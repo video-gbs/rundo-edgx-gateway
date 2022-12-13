@@ -1,0 +1,30 @@
+spring:
+  quartz:
+    scheduler-name: rundo-utils-timer
+    job-store-type: memory
+    overwrite-existing-jobs: true
+    jdbc:
+      comment-prefix: #
+      initialize-schema: never
+    wait-for-jobs-to-complete-on-shutdown: true
+  redis:
+    host: 127.0.0.1
+    database: 10
+    password: abc123
+  application:
+    name: rundo-utils-timer
+server:
+  port: 8070
+
+#logging:
+#  file:
+#    path: log/timmer
+#    name: timmer.log
+
+JApiDocs:
+  enable: true
+  docs:
+    path: D:\DevTool\Nginx\nginx-1.20.2\html\work
+    version: V1.0.0
+  project:
+    path: D:\Project\Work\RundoVideo\DevCode\rundo-gms-pro\rundo-utils-timer

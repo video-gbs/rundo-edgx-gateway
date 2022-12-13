@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.runjian</groupId>
+    <artifactId>rundo-edge-gateway</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.2</version>
+    </parent>
+
+    <modules>
+        <module>rundo-common</module>
+        <module>rundo-gb28181-server</module>
+        <module>rundo-utils-timer</module>
+    </modules>
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <rundo.common.version>1.0.0</rundo.common.version>
+        <rundo.timer.version>1.0.0</rundo.timer.version>
+        <rundo.rundo-gb28181-server.version>1.0.0</rundo.rundo-gb28181-server.version>
+
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.runjian</groupId>
+                <artifactId>rundo-common</artifactId>
+                <version>${rundo.common.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.runjian</groupId>
+                <artifactId>rundo-gb28181-server</artifactId>
+                <version>${rundo.rundo-gb28181-server.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.runjian</groupId>
+                <artifactId>rundo-utils-timer</artifactId>
+                <version>${rundo.timer.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-web</artifactId>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <optional>true</optional>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-configuration-processor</artifactId>
+                <optional>true</optional>
+            </dependency>
+        </dependencies>
+</project>
