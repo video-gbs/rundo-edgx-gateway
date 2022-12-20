@@ -1,3 +1,4 @@
 .idea/*
 logs/*
 rundo-edge-gateway.iml
+rundo-gb28181-server/target
