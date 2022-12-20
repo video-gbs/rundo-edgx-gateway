@@ -9,8 +9,8 @@ import com.runjian.dao.DeviceCompatibleMapper;
 import com.runjian.dao.DeviceMapper;
 import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
+import com.runjian.gb28181.session.CatalogDataCatch;
 import com.runjian.gb28181.transmit.cmd.ISIPCommander;
-import com.runjian.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
 import com.runjian.service.IDeviceService;
 import com.runjian.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -47,8 +47,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
     private final String  registerExpireTaskKeyPrefix = "device-register-expire-";
 
+
     @Autowired
-    private CatalogResponseMessageHandler catalogResponseMessageHandler;
+    private CatalogDataCatch catalogDataCatch;
 
     @Autowired
     private DynamicTask dynamicTask;
@@ -71,7 +72,7 @@ public class DeviceServiceImpl implements IDeviceService {
             } catch (InvalidArgumentException | SipException | ParseException e) {
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
             }
-            sync(deviceBean);
+//            sync(deviceBean);
         }else {
 
             if(device.getOnline() == 0){
@@ -83,14 +84,14 @@ public class DeviceServiceImpl implements IDeviceService {
                 } catch (InvalidArgumentException | SipException | ParseException e) {
                     log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
                 }
-                sync(deviceBean);
+//                sync(deviceBean);
             }
 
 
             deviceMapper.update(device);
 
         }
-
+        sync(deviceBean);
         // 刷新过期任务
         if(deviceCompatibleMapper.getByDeviceId(device.getDeviceId(), DeviceCompatibleEnum.HUAWEI_NVR_800.getType()) == null){
             //华为nvr800 不做定时过期限制
@@ -134,17 +135,23 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void sync(Device device) {
+        //同一设备单次一条同步请求
+        if(catalogDataCatch.isSyncRunning(device.getDeviceId())){
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "同步通道-开启同步时发现同步已经存在", device.getDeviceId());
+            return;
+        }
 
         int sn = (int)((Math.random()*9+1)*100000);
+        catalogDataCatch.addReady(device, sn);
         try {
             sipCommander.catalogQuery(device, sn, event -> {
                 String errorMsg = String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg);
-                catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), errorMsg);
+                catalogDataCatch.setChannelSyncEnd(device.getDeviceId(), errorMsg);
             });
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "设备服务", "同步通道-信令发送失败", device.getDeviceId(), e);
             String errorMsg = String.format("同步通道失败，信令发送失败： %s", e.getMessage());
-            catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), errorMsg);
+            catalogDataCatch.setChannelSyncEnd(device.getDeviceId(), errorMsg);
         }
     }
 

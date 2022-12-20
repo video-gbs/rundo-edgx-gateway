@@ -21,7 +21,7 @@ public interface DeviceMapper {
      * @param deviceId
      * @return
      */
-    @Select("SELECT * FROM "+DEVICE_TABLE_NAME+" WHERE deviceId = #{deviceId}")
+    @Select("SELECT * FROM "+DEVICE_TABLE_NAME+" WHERE device_id = #{deviceId}")
     DeviceDto getDeviceByDeviceId(String deviceId);
 
     @Insert("INSERT INTO "+DEVICE_TABLE_NAME+" (#{device})")

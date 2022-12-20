@@ -45,7 +45,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
     @Autowired
     private SipSubscribe sipSubscribe;
 
-
+    @Autowired
     private IDeviceService iDeviceService;
     @Override
     public void afterPropertiesSet() throws Exception {

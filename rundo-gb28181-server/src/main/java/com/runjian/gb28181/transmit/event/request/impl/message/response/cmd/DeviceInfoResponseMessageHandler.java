@@ -54,6 +54,7 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
         logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "DeviceInfo应答消息处理", "接收到消息");
+        SIPRequest request = (SIPRequest) evt.getRequest();
 
 
         // 检查设备是否存在， 不存在则不回复
@@ -61,7 +62,6 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
             logger.warn(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "DeviceInfo应答消息处理", "接收到应答消息,但是设备已经离线", (device != null ? device.getDeviceId():"" ));
             return;
         }
-        SIPRequest request = (SIPRequest) evt.getRequest();
         try {
             rootElement = getRootElement(evt, device.getCharset());
 
@@ -77,25 +77,18 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
                 return;
             }
             Element deviceIdElement = rootElement.element("DeviceID");
-            String channelId = deviceIdElement.getTextTrim();
-            String key = DeferredResultHolder.CALLBACK_CMD_DEVICEINFO + device.getDeviceId() + channelId;
             device.setName(getText(rootElement, "DeviceName"));
 
             device.setManufacturer(getText(rootElement, "Manufacturer"));
             device.setModel(getText(rootElement, "Model"));
             device.setFirmware(getText(rootElement, "Firmware"));
-            if (ObjectUtils.isEmpty(device.getStreamMode())) {
-                device.setStreamMode("UDP");
-            }
+
             deviceService.updateDevice(device);
 
-            RequestMessage msg = new RequestMessage();
-            msg.setKey(key);
-            msg.setData(device);
-            deferredResultHolder.invokeAllResult(msg);
-        } catch (DocumentException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "DeviceInfo应答消息处理", "消息解析处理失败", e);
         }
+
         try {
             // 回复200 OK
             responseAck(request, Response.OK);
@@ -103,6 +96,7 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
             logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "DeviceInfo应答消息处理", "命令发送失败", e);
 
         }
+
 
     }
 

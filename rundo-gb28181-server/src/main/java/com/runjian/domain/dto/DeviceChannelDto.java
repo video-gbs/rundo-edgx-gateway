@@ -1,11 +1,13 @@
-package com.runjian.gb28181.bean;
+package com.runjian.domain.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.util.Date;
+
 @Schema(description = "通道信息")
 @Data
-public class DeviceChannel {
+public class DeviceChannelDto {
 
 
 	/**
@@ -178,6 +180,8 @@ public class DeviceChannel {
 	@Schema(description = "业务分组")
 	private String businessGroupId;
 
+	private Date createdAt;
 
+	private Date updatedAt;
 
 }

@@ -14,7 +14,7 @@ public class Device {
 	/**
 	 * 数据id
 	 */
-	private Integer id;
+	private long id;
 	/**
 	 * 设备国标编号
 	 */

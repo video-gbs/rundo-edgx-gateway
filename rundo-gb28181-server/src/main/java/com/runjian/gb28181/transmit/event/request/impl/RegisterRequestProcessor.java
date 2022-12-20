@@ -14,7 +14,7 @@ import com.runjian.utils.DateUtil;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
-import gov.nist.javax.sip.clientauthutils.DigestServerAuthenticationHelper;
+import com.runjian.gb28181.auth.DigestServerAuthenticationHelper;
 import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.SIPDateHeader;
 import org.slf4j.Logger;
@@ -54,6 +54,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
     @Autowired
     private SIPSender sipSender;
 
+    @Autowired
     private IDeviceService deviceService;
 
     @Override
@@ -138,6 +139,17 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             received = viaHeader.getHost();
             rPort = viaHeader.getPort();
         }
+        // 注册成功
+        if (device == null) {
+            device= new DeviceDto();
+            device.setStreamMode("UDP");
+            device.setCharset("GB2312");
+            device.setDeviceId(deviceId);
+            device.setOnline(0);
+        }
+        device.setIp(received);
+        device.setPort(rPort);
+        device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
 
         if (expiresHeader.getExpires() == 0) {
             // 注销成功
@@ -153,20 +165,8 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
         }
 
         sipSender.transmitRequest(response);
-        // 注册成功
-        if (device == null) {
-            DeviceDto deviceDto = new DeviceDto();
-            deviceDto.setStreamMode("UDP");
-            deviceDto.setCharset("GB2312");
-            deviceDto.setDeviceId(deviceId);
-            deviceDto.setOnline(0);
-        }
-        device.setIp(received);
-        device.setPort(rPort);
-        device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
 
-
-        // 保存到redis
+        // 保存到rediss
         if (registerFlag) {
             logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "SIP命令REGISTER请求处理", "[注册成功] deviceId",  "设备Id:" + deviceId);
             device.setRegisterTime(DateUtil.getNow());
