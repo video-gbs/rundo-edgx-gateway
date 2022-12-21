@@ -14,7 +14,7 @@ import lombok.ToString;
 @AllArgsConstructor
 public enum GatewayMsgType {
 //    网关自身的消息  start
-    GATEWAY_REGISTER("GATEWAY_REGISTER"),
+    GATEWAY_SIGN_IN("SIGN_IN"),
 
 
 

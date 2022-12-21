@@ -92,4 +92,11 @@ public class MarkConstant {
 
     public static final String MAX_AUTH_USERNAME = "admin";
     public static final String REDIS_USER_ROLE_IDS = "ROLE_IDS";
+
+    /******************************mq队列相关***********************************************/
+    //队列订阅
+    public static final String  SIGIN_GS= "SIGIN-GS";
+    //队列发布
+    public static final String  SIGIN_SG= "SIGIN-SG";
+
 }

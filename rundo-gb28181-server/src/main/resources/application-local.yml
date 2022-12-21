@@ -175,8 +175,7 @@ response:
     exclude-url: "/v3/api-docs,/api/v1,/index/hook,/api-sse"
 
 
-project-mq:
-    exchange-id: PROJECT
+
 
 mq:
     enabled: true
@@ -194,6 +193,9 @@ mq:
           name: rundo.gateway
           type: topic
 
+gateway-info:
+#   网关的唯一id
+    gateway-id: eb48104ddf2b4760be541783b3621041
 
 JApiDocs:
     enable: false
