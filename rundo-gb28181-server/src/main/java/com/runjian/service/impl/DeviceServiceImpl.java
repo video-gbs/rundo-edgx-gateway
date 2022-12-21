@@ -2,6 +2,7 @@ package com.runjian.service.impl;
 
 import com.runjian.common.constant.DeviceCompatibleEnum;
 import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.constant.VideoType;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.conf.DynamicTask;
 import com.runjian.dao.DeviceChannelMapper;
@@ -72,26 +73,24 @@ public class DeviceServiceImpl implements IDeviceService {
             } catch (InvalidArgumentException | SipException | ParseException e) {
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
             }
-//            sync(deviceBean);
+            sync(deviceBean);
         }else {
 
             if(device.getOnline() == 0){
                 device.setOnline(1);
                 log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线,离线状态下重新注册", device.getDeviceId());
-                deviceMapper.update(device);
                 try {
                     sipCommander.deviceInfoQuery(deviceBean);
                 } catch (InvalidArgumentException | SipException | ParseException e) {
                     log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
                 }
-//                sync(deviceBean);
+                sync(deviceBean);
             }
 
 
             deviceMapper.update(device);
 
         }
-        sync(deviceBean);
         // 刷新过期任务
         if(deviceCompatibleMapper.getByDeviceId(device.getDeviceId(), DeviceCompatibleEnum.HUAWEI_NVR_800.getType()) == null){
             //华为nvr800 不做定时过期限制

@@ -13,4 +13,11 @@ public interface IRedisCatchStorageService {
     Long getCSEQ();
 
 
+    /**
+     * 计数器,sn码
+     *
+     * @return
+     */
+    String getSn(String key);
+
 }

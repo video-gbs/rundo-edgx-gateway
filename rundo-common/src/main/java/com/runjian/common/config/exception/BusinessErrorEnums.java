@@ -85,25 +85,9 @@ public enum BusinessErrorEnums {
 
     MQ_EXCHANGE_IS_NOT_FOUND(500, 22003, "找不到该exchange"),
 
+    /**************************** 网关业务相关 CODE:23xxx ****************************/
 
 
-    /**************************** 业务类型异常,PREFIX:模块名 CODE:3xxxx ****************************/
-
-    ACCOUNT_NOT_ENABLED(400,30001, "该用户已被禁用"),
-
-    REQUEST_EXPIRED(400,30002, "该请求鉴权超时，请重新生成鉴权参数"),
-
-    AUTHORIZED_FAILED(400,30003, "鉴权失败"),
-
-    NOT_FOUND_MEDIA_SERVER(500, 30005, "找不到可用的ZLM"),
-
-    RECORD_PLAN_IS_DISABLE(500, 30006, "录像计划状态为禁用"),
-
-    DB_DEVICE_NOT_OFFLINE(400,30008,"在线设备不允许删除"),
-
-    SSE_CONNECT_ERROR(400, 30010, "SSE用户连接异常"),
-
-    DEFAULT_MEDIA_DELETE_ERROR(400, 30011, "默认配置节点不可删除"),
 
 
     ;

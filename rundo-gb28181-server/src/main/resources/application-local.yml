@@ -57,7 +57,7 @@ spring:
 
     # rabbitmq 配置
     rabbitmq:
-        host: 192.168.43.232
+        host: 124.71.21.11
         port: 5672
         username: wvp
         password: wvp12345678
@@ -91,8 +91,8 @@ server:
 # 作为28181服务器的配置
 sip:
     # [必须修改] 本机的IP
-    ip: 192.168.43.232
-    monitor-ip: 192.168.43.232
+    ip: 192.168.10.8
+    monitor-ip: 192.168.10.8
     # [可选] 28181服务监听的端口
     port: 5060
     # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
@@ -117,7 +117,7 @@ media:
     # [必须修改] zlm服务器唯一id，用于触发hook时区别是哪台服务器,general.mediaServerId
     id: LORVY158beilorvy
     # [必须修改] zlm服务器的内网IP
-    ip: 192.168.43.232
+    ip: 192.168.10.8
     # [必须修改] zlm服务器的http.port
     http-port: 8088
 
@@ -174,48 +174,26 @@ version:
 response:
     exclude-url: "/v3/api-docs,/api/v1,/index/hook,/api-sse"
 
-video:
-    alarm:
-        # 助手完成视频文件转移后回调的MQ地址
-        callback-queue-id: ALARM
-        live-url:
-            prefix: https://rundogms.runjian.com:38080
-    record:
-        # 切片时间，单位：秒
-        slice-time: 30
-        # 定时器回调url，目前定时器内嵌，所以设置为本地
-        callback-url: http://127.0.0.1:18080
-        # 助手完成视频文件转移后回调的MQ地址
-        callback-queue-id: RECORD
-    download:
-        callback-queue-id: DOWNLOAD
-
 
 project-mq:
     exchange-id: PROJECT
 
 mq:
-    enabled: false
+    enabled: true
     queue-data-list:
-        - id: ALARM
-          routing-key: rundo.gbs.alarm
-          queue-name: rundo.gbs.alarm
-          exchange-id: VIDEO
-        - id: RECORD
-          routing-key: rundo.gbs.record
-          queue-name: rundo.gbs.record
-          exchange-id: VIDEO
-        - id: DOWNLOAD
-          routing-key: rundo.gbs.download
-          queue-name: rundo.gbs.download
-          exchange-id: VIDEO
+        - id: SIGIN-GS
+          routing-key: rundo.gateway.sign-in-gs
+          queue-name: rundo.gateway.sign-in-gs
+          exchange-id: GATEWAY
+        - id: SIGIN-SG
+          routing-key: rundo.gateway.sign-in-sg
+          queue-name: rundo.gateway.sign-in-sg
+          exchange-id: GATEWAY
     exchange-data-list:
-        - id: VIDEO
-          name: rundo.gbs.video
+        - id: GATEWAY
+          name: rundo.gateway
           type: topic
-        - id: PROJECT
-          name: rundo.gbs.project
-          type: topic
+
 
 JApiDocs:
     enable: false

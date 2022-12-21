@@ -24,10 +24,20 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
         String key = VideoManagerConstants.SIP_CSEQ_PREFIX;
 
         long result =  RedisCommonUtil.incr(key, 1L,redisTemplate);
-        if (result > Integer.MAX_VALUE) {
+        if (result > Long.MAX_VALUE) {
             RedisCommonUtil.set(redisTemplate,key, 1);
             result = 1;
         }
         return result;
+    }
+
+    @Override
+    public String getSn(String key) {
+        long result =  RedisCommonUtil.incr(key, 1L,redisTemplate);
+        if (result > Long.MAX_VALUE) {
+            RedisCommonUtil.set(redisTemplate,key, 1);
+            result = 1;
+        }
+        return Long.toString(result);
     }
 }
