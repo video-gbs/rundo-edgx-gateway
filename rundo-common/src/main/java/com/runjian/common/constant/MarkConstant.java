@@ -95,8 +95,8 @@ public class MarkConstant {
 
     /******************************mq队列相关***********************************************/
     //队列订阅
-    public static final String  SIGIN_GS= "SIGIN-GS";
+    public static final String  SIGIN_GS= "PUBLIC-GS";
     //队列发布
-    public static final String  SIGIN_SG= "SIGIN-SG";
+    public static final String  SIGIN_SG= "PUBLIC-SG";
 
 }

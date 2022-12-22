@@ -1,12 +1,19 @@
 package com.runjian.common.mq.domain;
 
+import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.response.CommonResponse;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 网关传输消息体
  */
 @Data
-public class GatewayMqDto {
+@AllArgsConstructor
+@NoArgsConstructor
+public class GatewayMqDto{
+
 
     /**
      * 网关序列号
@@ -24,8 +31,18 @@ public class GatewayMqDto {
     private String msgId;
 
     /**
-     * 数据体
+     * 消息码
+     */
+    private int code = BusinessErrorEnums.SUCCESS.getState();
+
+    /**
+     * 消息
+     */
+    private String msg =BusinessErrorEnums.SUCCESS.toString();
+    /**
+     * 数据
      */
     private Object data;
+
 }
 

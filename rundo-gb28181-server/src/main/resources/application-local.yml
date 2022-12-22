@@ -162,7 +162,7 @@ user-settings:
 
 # 在线文档： swagger-ui（生产环境建议关闭）
 swagger-ui:
-    enabled: false
+    enabled: true
 
 # 版本信息， 不需修改
 version:
@@ -180,13 +180,13 @@ response:
 mq:
     enabled: true
     queue-data-list:
-        - id: SIGIN-GS
-          routing-key: rundo.gateway.sign-in-gs
-          queue-name: rundo.gateway.sign-in-gs
+        - id: PUBLIC-GS
+          routing-key: rundo.gateway.public-gs
+          queue-name: rundo.gateway.public-gs
           exchange-id: GATEWAY
-        - id: SIGIN-SG
-          routing-key: rundo.gateway.sign-in-sg
-          queue-name: rundo.gateway.sign-in-sg
+        - id: PUBLIC-SG
+          routing-key: rundo.gateway.public-sg
+          queue-name: rundo.gateway.public-sg
           exchange-id: GATEWAY
     exchange-data-list:
         - id: GATEWAY
@@ -198,7 +198,7 @@ gateway-info:
     gateway-id: eb48104ddf2b4760be541783b3621041
 
 JApiDocs:
-    enable: false
+    enable: true
     docs:
         path: D:\DevTool\Environment\Nginx\nginx-1.22.0\html
         version: V1.0.0

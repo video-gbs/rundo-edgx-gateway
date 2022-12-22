@@ -1,6 +1,5 @@
 package com.runjian.common.utils.redis;
 
-import com.runjian.common.constant.DownloadStreamInfoDto;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.MarkConstant;
 import lombok.extern.slf4j.Slf4j;

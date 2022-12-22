@@ -65,4 +65,17 @@ public class RabbitMqSender {
         }
     }
 
+    public void sendMsgByExchange(String exchangeName, String routingKey, String msgId, Object msg, boolean convertStrJson) throws BusinessException {
+        CorrelationData correlationData = new CorrelationData();
+        correlationData.setId(msgId);
+        if (convertStrJson){
+            try {
+                rabbitTemplate.convertAndSend(exchangeName, routingKey, ConstantUtils.OBJECT_MAPPER.writeValueAsString(msg), correlationData);
+            } catch (JsonProcessingException e) {
+                log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "MQ发送消息服务", "消息发送失败，消息格式化异常", msg, e);
+            }
+        }else {
+            rabbitTemplate.convertAndSend(exchangeName, routingKey, msg, correlationData);
+        }
+    }
 }

@@ -67,16 +67,14 @@ public class GatewayRunner implements CommandLineRunner {
         gatewayInfoConf.setEdgeGatewayInfoDto(config);
 
         //进行mq消息发送
-        //消息组装
-        CommonResponse<EdgeGatewayInfoDto> success = CommonResponse.success(config);
-
-
         String sn = iRedisCatchStorageService.getSn(GatewayCacheConstants.GATEWAY_INFO_SN_INCR);
-        GatewayMqDto gatewayMqDto = new GatewayMqDto();
-        gatewayMqDto.setMsgId(GatewayCacheConstants.GATEWAY_INFO_SN_prefix+sn);
-        gatewayMqDto.setSerialNum(gatewayId);
-        gatewayMqDto.setMsgType(GatewayMsgType.GATEWAY_SIGN_IN.getTypeName());
-        gatewayMqDto.setData(success);
-        rabbitMqSender.sendMsg(MarkConstant.SIGIN_SG,  ""+Instant.now().toEpochMilli() + ConstantUtils.RANDOM_UTIL.nextInt(100), gatewayMqDto, true);
+        GatewayMqDto dataRes = new GatewayMqDto();
+
+        dataRes.setMsgId(GatewayCacheConstants.GATEWAY_INFO_SN_prefix+sn);
+        dataRes.setSerialNum(gatewayId);
+        dataRes.setMsgType(GatewayMsgType.GATEWAY_SIGN_IN.getTypeName());
+        dataRes.setData(config);
+        //消息组装
+        rabbitMqSender.sendMsg(MarkConstant.SIGIN_SG,  ""+Instant.now().toEpochMilli() + ConstantUtils.RANDOM_UTIL.nextInt(100), dataRes, true);
     }
 }
