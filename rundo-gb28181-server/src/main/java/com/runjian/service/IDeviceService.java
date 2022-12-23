@@ -43,4 +43,9 @@ public interface IDeviceService {
      */
     boolean expire(Device device);
 
+    /**
+     * 查询设备信息
+     * @param device
+     */
+    void deviceInfoQuery(Device device);
 }

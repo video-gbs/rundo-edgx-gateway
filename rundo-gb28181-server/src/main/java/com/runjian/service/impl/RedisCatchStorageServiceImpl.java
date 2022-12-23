@@ -1,13 +1,19 @@
 package com.runjian.service.impl;
 
 
+import com.runjian.common.constant.GatewayCacheConstants;
+import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.VideoManagerConstants;
+import com.runjian.common.mq.domain.GatewayMqDto;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.service.IRedisCatchStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 /**
  * @author chenjialing
@@ -18,6 +24,9 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Value("${gateway-info.serialNum}")
+    private String serialNum;
 
     @Override
     public Long getCSEQ() {
@@ -39,5 +48,18 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
             result = 1;
         }
         return Long.toString(result);
+    }
+
+    @Override
+    public GatewayMqDto getMqInfo(String msgType, String snIncr, String snPrefix) {
+        GatewayMqDto gatewayMqDto = new GatewayMqDto();
+        gatewayMqDto.setMsgType(msgType);
+        gatewayMqDto.setTime(LocalDateTime.now());
+        gatewayMqDto.setSerialNum(serialNum);
+
+        String sn = getSn(snIncr);
+
+        gatewayMqDto.setMsgId(snPrefix+sn);
+        return gatewayMqDto;
     }
 }

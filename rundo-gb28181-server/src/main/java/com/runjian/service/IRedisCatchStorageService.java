@@ -1,5 +1,7 @@
 package com.runjian.service;
 
+import com.runjian.common.mq.domain.GatewayMqDto;
+
 /**
  * @author chenjialing
  */
@@ -19,5 +21,7 @@ public interface IRedisCatchStorageService {
      * @return
      */
     String getSn(String key);
+
+    GatewayMqDto getMqInfo(String msgType,String snIncr,String snPrefix);
 
 }

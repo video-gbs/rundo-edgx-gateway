@@ -68,23 +68,17 @@ public class DeviceServiceImpl implements IDeviceService {
             device.setOnline(1);
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-首次注册,查询设备信息以及通道信息", device.getDeviceId());
             deviceMapper.add(device);
-            try {
-                sipCommander.deviceInfoQuery(deviceBean);
-            } catch (InvalidArgumentException | SipException | ParseException e) {
-                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-            }
+            //查询设备信息
+            deviceInfoQuery(deviceBean);
+            //查询通道信息
             sync(deviceBean);
+
+            //发送mq设备上线信息
         }else {
 
             if(device.getOnline() == 0){
+                //重新上线 发送mq
                 device.setOnline(1);
-                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线,离线状态下重新注册", device.getDeviceId());
-                try {
-                    sipCommander.deviceInfoQuery(deviceBean);
-                } catch (InvalidArgumentException | SipException | ParseException e) {
-                    log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-                }
-                sync(deviceBean);
             }
 
 
@@ -169,5 +163,14 @@ public class DeviceServiceImpl implements IDeviceService {
         Instant registerTimeDate = Instant.from(DateUtil.formatter.parse(device.getRegisterTime()));
         Instant expireInstant = registerTimeDate.plusMillis(TimeUnit.SECONDS.toMillis(device.getExpires()));
         return expireInstant.isBefore(Instant.now());
+    }
+
+    @Override
+    public void deviceInfoQuery(Device device) {
+        try {
+            sipCommander.deviceInfoQuery(device);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
+        }
     }
 }

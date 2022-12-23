@@ -27,7 +27,7 @@ public class GatewayHeartBeatSchedule {
     @Autowired
     private RabbitMqSender rabbitMqSender;
 
-    @Scheduled(cron="0 0/1 * * * ?")   //每5分钟执行一次
+    @Scheduled(cron="0 0/1 * * * ?")   //每1分钟执行一次
     public void sendMsg(){
         GatewayMqDto gatewayMqDto = new GatewayMqDto();
         gatewayMqDto.setMsgType(GatewayMsgType.HEARTBEAT.getTypeName());
