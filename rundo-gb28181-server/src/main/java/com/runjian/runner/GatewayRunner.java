@@ -22,6 +22,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  * 服务启动,生成网关配置信息
@@ -43,8 +44,8 @@ public class GatewayRunner implements CommandLineRunner {
     @Value("${server.port}")
     private String serverPort;
 
-    @Value("${gateway-info.gateway-id}")
-    private String gatewayId;
+    @Value("${gateway-info.serialNum}")
+    private String serialNum;
 
     @Autowired
     private RabbitMqSender rabbitMqSender;
@@ -61,7 +62,7 @@ public class GatewayRunner implements CommandLineRunner {
         EdgeGatewayInfoDto config = new EdgeGatewayInfoDto();
         config.setPort(port);
         config.setIp(ip);
-        config.setGatewayId(gatewayId);
+        config.setGatewayId(serialNum);
         config.setGatewayType(0);
         config.setProtocal(GatewayProtocalEnum.GB28181.getTypeName());
         gatewayInfoConf.setEdgeGatewayInfoDto(config);
@@ -71,9 +72,10 @@ public class GatewayRunner implements CommandLineRunner {
         GatewayMqDto dataRes = new GatewayMqDto();
 
         dataRes.setMsgId(GatewayCacheConstants.GATEWAY_INFO_SN_prefix+sn);
-        dataRes.setSerialNum(gatewayId);
+        dataRes.setSerialNum(serialNum);
         dataRes.setMsgType(GatewayMsgType.GATEWAY_SIGN_IN.getTypeName());
         dataRes.setData(config);
+        dataRes.setTime(LocalDateTime.now());
         //消息组装
         rabbitMqSender.sendMsg(MarkConstant.SIGIN_SG,  ""+Instant.now().toEpochMilli() + ConstantUtils.RANDOM_UTIL.nextInt(100), dataRes, true);
     }

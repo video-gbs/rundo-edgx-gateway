@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 /**
  * 网关传输消息体
  */
@@ -29,6 +31,11 @@ public class GatewayMqDto{
      * 消息ID
      */
     private String msgId;
+
+    /**
+     * time
+     */
+    private LocalDateTime time;
 
     /**
      * 消息码

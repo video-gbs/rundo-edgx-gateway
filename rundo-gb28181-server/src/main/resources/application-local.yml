@@ -195,7 +195,7 @@ mq:
 
 gateway-info:
 #   网关的唯一id
-    gateway-id: eb48104ddf2b4760be541783b3621041
+    serialNum: eb48104ddf2b4760be541783b3621041
 
 JApiDocs:
     enable: true

@@ -14,8 +14,10 @@ import lombok.ToString;
 @AllArgsConstructor
 public enum GatewayMsgType {
 //    网关自身的消息  start
+    //注册
     GATEWAY_SIGN_IN("SIGN_IN"),
-
+    //心跳
+    HEARTBEAT("HEARTBEAT"),
 
 
 //    设备相关消息  start

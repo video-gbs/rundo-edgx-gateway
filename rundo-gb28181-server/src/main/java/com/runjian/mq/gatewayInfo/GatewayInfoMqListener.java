@@ -54,7 +54,7 @@ public class GatewayInfoMqListener implements ChannelAwareMessageListener {
             //判断是否是注册返回
             String msgType = jsonMsg.getString("msgType");
             if(msgType.equals(GatewayMsgType.GATEWAY_SIGN_IN.getTypeName())){
-                //注册返回
+                //注册返回 进行业务队列的动态监听
 
                 Boolean isFirstSignIn = data.getBoolean("isFirstSignIn");
                 //监听队列
@@ -75,10 +75,11 @@ public class GatewayInfoMqListener implements ChannelAwareMessageListener {
                 gatewayInfoSignInEvent.setGatewaySignInRsp(gatewaySignInRsp);
                 applicationEventPublisher.publishEvent(gatewayInfoSignInEvent);
 
+            }else if(msgType.equals(GatewayMsgType.HEARTBEAT.getTypeName())) {
+                //心跳todo  暂时不处理
             }else {
-                //心跳todo
-            }
 
+            }
 
 
         }catch (Exception ex){
