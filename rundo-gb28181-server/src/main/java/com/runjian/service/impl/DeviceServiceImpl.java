@@ -12,6 +12,7 @@ import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.session.CatalogDataCatch;
 import com.runjian.gb28181.transmit.cmd.ISIPCommander;
+import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
 import com.runjian.service.IDeviceService;
 import com.runjian.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +56,9 @@ public class DeviceServiceImpl implements IDeviceService {
     @Autowired
     private DynamicTask dynamicTask;
 
+    @Autowired
+    private GatewayBusinessAsyncSender gatewayBusinessAsyncSender;
+
     @Override
     public void online(DeviceDto device) {
 
@@ -74,11 +78,14 @@ public class DeviceServiceImpl implements IDeviceService {
             sync(deviceBean);
 
             //发送mq设备上线信息
+            gatewayBusinessAsyncSender.sendRegister(deviceBean);
         }else {
 
             if(device.getOnline() == 0){
                 //重新上线 发送mq
                 device.setOnline(1);
+                //发送mq设备上线信息
+                gatewayBusinessAsyncSender.sendRegister(deviceBean);
             }
 
 

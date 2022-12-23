@@ -29,12 +29,12 @@ public class GatewaySignInRsp {
     private String mqExchange;
 
     /**
-     * 发送消息
+     * 发送消息 --消息解析引擎发送队列
      */
     private String mqSetQueue;
 
     /**
-     * 监听消息
+     * 监听消息 --消息解析引擎接收队列
      */
     private String mqGetQueue;
 }

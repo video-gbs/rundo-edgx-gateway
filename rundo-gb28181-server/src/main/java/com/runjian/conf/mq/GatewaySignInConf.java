@@ -31,12 +31,12 @@ public class GatewaySignInConf {
     private String mqExchange;
 
     /**
-     * 发送消息
+     * 发送消息 --客户端监听队列
      */
     private String mqSetQueue;
 
     /**
-     * 监听消息
+     * 监听消息 --客户端发送队列
      */
     private String mqGetQueue;
 }
