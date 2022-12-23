@@ -1,5 +1,6 @@
 package com.runjian.service.impl;
 
+import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.DeviceCompatibleEnum;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.VideoType;
@@ -146,13 +147,15 @@ public class DeviceServiceImpl implements IDeviceService {
         try {
             sipCommander.catalogQuery(device, sn, event -> {
                 String errorMsg = String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg);
-                catalogDataCatch.setChannelSyncEnd(device.getDeviceId(), errorMsg);
+                catalogDataCatch.setChannelSyncEnd(device.getDeviceId(), errorMsg, BusinessErrorEnums.SIP_CATALOG_EXCEPTION.getErrCode());
             });
         } catch (SipException | InvalidArgumentException | ParseException e) {
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "设备服务", "同步通道-信令发送失败", device.getDeviceId(), e);
             String errorMsg = String.format("同步通道失败，信令发送失败： %s", e.getMessage());
-            catalogDataCatch.setChannelSyncEnd(device.getDeviceId(), errorMsg);
+            catalogDataCatch.setChannelSyncEnd(device.getDeviceId(), errorMsg,BusinessErrorEnums.SIP_SEND_EXCEPTION.getErrCode());
         }
+        //通道同步的mq消息同步
+        gatewayBusinessAsyncSender.sendCatalog(device);
     }
 
     @Override
@@ -179,5 +182,6 @@ public class DeviceServiceImpl implements IDeviceService {
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
         }
+
     }
 }

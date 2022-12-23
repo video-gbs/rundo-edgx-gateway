@@ -40,7 +40,7 @@ public class GatewayMqDto{
     /**
      * 消息码
      */
-    private int code = BusinessErrorEnums.SUCCESS.getState();
+    private int code = BusinessErrorEnums.SUCCESS.getErrCode();
 
     /**
      * 消息

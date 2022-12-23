@@ -1,5 +1,6 @@
 package com.runjian.gb28181.transmit.event.request.impl.message.response.cmd;
 
+import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.gb28181.bean.*;
 import com.runjian.gb28181.session.CatalogDataCatch;
@@ -94,7 +95,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "目录查询回复", "[收到通道]设备: 0个", take.getDevice().getDeviceId());
                         // 数据已经完整接收
                         storager.cleanChannelsForDevice(take.getDevice().getDeviceId());
-                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);
+                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null, BusinessErrorEnums.SUCCESS.getErrCode());
                     } else {
                         Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
                         if (deviceListIterator != null) {
@@ -120,9 +121,9 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                 boolean resetChannelsResult = storager.resetChannelsForcatalog(take.getDevice().getDeviceId(), catalogDataCatch.get(take.getDevice().getDeviceId()));
                                 if (!resetChannelsResult) {
                                     String errorMsg = "接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.get(take.getDevice().getDeviceId()).size() + "条";
-                                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), errorMsg);
+                                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), errorMsg, BusinessErrorEnums.SIP_CATALOG_EXCEPTION.getErrCode());
                                 } else {
-                                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);
+                                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,BusinessErrorEnums.SUCCESS.getErrCode());
                                 }
                             }
                         }
@@ -160,7 +161,5 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
         catalogDataCatch.addReady(device, sn);
     }
 
-    public void setChannelSyncEnd(String deviceId, String errorMsg) {
-        catalogDataCatch.setChannelSyncEnd(deviceId, errorMsg);
-    }
+
 }

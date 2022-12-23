@@ -1,5 +1,6 @@
 package com.runjian.gb28181.event;
 
+import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.gb28181.bean.DeviceNotFoundEvent;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -100,8 +101,8 @@ public class SipSubscribe {
             }else if (event instanceof TimeoutEvent) {
                 TimeoutEvent timeoutEvent = (TimeoutEvent)event;
                 this.type = EventResultType.timeout;
-                this.msg = "消息超时未回复";
-                this.statusCode = -1024;
+                this.msg = BusinessErrorEnums.SIP_TIMEOUT_EVENT.getErrMsg();
+                this.statusCode = BusinessErrorEnums.SIP_TIMEOUT_EVENT.getErrCode();
                 if (timeoutEvent.isServerTransaction()) {
                     this.callId = ((SIPRequest)timeoutEvent.getServerTransaction().getRequest()).getCallIdHeader().getCallId();
                 }else {
@@ -110,8 +111,8 @@ public class SipSubscribe {
             }else if (event instanceof TransactionTerminatedEvent) {
                 TransactionTerminatedEvent transactionTerminatedEvent = (TransactionTerminatedEvent)event;
                 this.type = EventResultType.transactionTerminated;
-                this.msg = "事务已结束";
-                this.statusCode = -1024;
+                this.msg = BusinessErrorEnums.SIP_TRASACTION_TERMINATED_EVENT.getErrMsg();
+                this.statusCode = BusinessErrorEnums.SIP_TRASACTION_TERMINATED_EVENT.getErrCode();
                 if (transactionTerminatedEvent.isServerTransaction()) {
                     this.callId = ((SIPRequest)transactionTerminatedEvent.getServerTransaction().getRequest()).getCallIdHeader().getCallId();
                 }else {
@@ -120,13 +121,13 @@ public class SipSubscribe {
             }else if (event instanceof DialogTerminatedEvent) {
                 DialogTerminatedEvent dialogTerminatedEvent = (DialogTerminatedEvent)event;
                 this.type = EventResultType.dialogTerminated;
-                this.msg = "会话已结束";
-                this.statusCode = -1024;
+                this.msg = BusinessErrorEnums.SIP_DIALOG_TERMINATED_EVENT.getErrMsg();
+                this.statusCode = BusinessErrorEnums.SIP_DIALOG_TERMINATED_EVENT.getErrCode();
                 this.callId = dialogTerminatedEvent.getDialog().getCallId().getCallId();
             }else if (event instanceof DeviceNotFoundEvent) {
                 this.type = EventResultType.deviceNotFoundEvent;
-                this.msg = "设备未找到";
-                this.statusCode = -1024;
+                this.msg = BusinessErrorEnums.SIP_DEVICE_NOTFOUND_EVENT.getErrMsg();
+                this.statusCode = BusinessErrorEnums.SIP_DEVICE_NOTFOUND_EVENT.getErrCode();
                 this.callId = ((DeviceNotFoundEvent) event).getCallId();
             }
         }

@@ -85,9 +85,18 @@ public enum BusinessErrorEnums {
 
     MQ_EXCHANGE_IS_NOT_FOUND(500, 22003, "找不到该exchange"),
 
-    /**************************** 网关业务相关 CODE:23xxx ****************************/
+    /**************************** 网关业务相关 CODE:231xx ****************************/
 
 
+    /************************** sip自定义s事件异常 CODE:232xx ****************************/
+    SIP_TIMEOUT_EVENT(500,232001,"消息超时未回复"),
+    SIP_TRASACTION_TERMINATED_EVENT(500,232002,"事务已结束"),
+    SIP_DIALOG_TERMINATED_EVENT(500,232003,"会话已结束"),
+    SIP_DEVICE_NOTFOUND_EVENT(500,232004,"设备未找到"),
+
+    SIP_SEND_EXCEPTION(500,232005,"sip信令发送失败"),
+    //通道同步失败
+    SIP_CATALOG_EXCEPTION(500,232006,"通道同步失败异常"),
 
 
     ;

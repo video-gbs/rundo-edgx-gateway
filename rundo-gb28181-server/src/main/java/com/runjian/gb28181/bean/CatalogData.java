@@ -16,6 +16,7 @@ public class CatalogData {
     private Instant lastTime;
     private Device device;
     private String errorMsg;
+    private int code;
 
     public enum CatalogDataStatus{
         ready, runIng, end
@@ -77,5 +78,13 @@ public class CatalogData {
 
     public void setStatus(CatalogDataStatus status) {
         this.status = status;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public void setCode(int code) {
+        this.code = code;
     }
 }

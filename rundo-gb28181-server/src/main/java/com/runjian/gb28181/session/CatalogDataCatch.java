@@ -69,6 +69,14 @@ public class CatalogDataCatch {
         return catalogData.getChannelList();
     }
 
+    /**
+     * 返回通道同步数据
+     * @param deviceId
+     * @return
+     */
+    public CatalogData getData(String deviceId) {
+        return data.get(deviceId);
+    }
     public int getTotal(String deviceId) {
         CatalogData catalogData = data.get(deviceId);
         if (catalogData == null) {
@@ -131,12 +139,13 @@ public class CatalogDataCatch {
     }
 
 
-    public void setChannelSyncEnd(String deviceId, String errorMsg) {
+    public void setChannelSyncEnd(String deviceId, String errorMsg,int code) {
         CatalogData catalogData = data.get(deviceId);
         if (catalogData == null) {
             return;
         }
         catalogData.setStatus(CatalogData.CatalogDataStatus.end);
         catalogData.setErrorMsg(errorMsg);
+        catalogData.setCode(code);
     }
 }
