@@ -193,7 +193,8 @@ public class DeviceServiceImpl implements IDeviceService {
             sipCommander.deviceInfoQuery(device);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-            BusinessSceneResp.addSceneEnd(BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
+            objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(BusinessErrorEnums.SIP_SEND_EXCEPTION, null);
+            RedisCommonUtil.setOverWrite(redisTemplate,BusinessSceneConstants.DEVICE_INFO_SCENE_KEY+device.getDeviceId(),objectBusinessSceneResp);
         }
         //异步发送deviceinfo的指令
         gatewayBusinessAsyncSender.sendDeviceInfo(device);

@@ -105,6 +105,22 @@ public class RedisCommonUtil {
     }
 
     /**
+     * 普通缓存放入
+     * @param key 键
+     * @param value 值
+     * @return true / false
+     */
+    public static boolean setOverWrite(RedisTemplate redisTemplate,String key, Object value) {
+
+        try {
+            redisTemplate.opsForValue().set(key, value,0);
+            return true;
+        } catch (Exception e) {
+            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "局部异常捕获", "error","redis.error", e);
+            return false;
+        }
+    }
+    /**
      * 普通缓存放入并设置时间
      * @param key 键
      * @param value 值
