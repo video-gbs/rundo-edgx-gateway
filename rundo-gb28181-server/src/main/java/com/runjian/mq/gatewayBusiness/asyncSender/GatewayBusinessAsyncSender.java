@@ -1,10 +1,11 @@
 package com.runjian.mq.gatewayBusiness.asyncSender;
 
-import com.runjian.common.constant.GatewayCacheConstants;
-import com.runjian.common.constant.GatewayMsgType;
-import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.GatewayMqDto;
+import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.GatewayInfoConf;
 import com.runjian.conf.mq.GatewaySignInConf;
 import com.runjian.gb28181.bean.CatalogData;
@@ -15,6 +16,7 @@ import com.runjian.service.IRedisCatchStorageService;
 import com.runjian.utils.UuidUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -39,6 +41,12 @@ public class GatewayBusinessAsyncSender {
 
     @Autowired
     CatalogDataCatch catalogDataCatch;
+
+    @Autowired
+    RedisTemplate redisTemplate;
+
+    int sleepTime = 10;
+    int maxSleepTime = 5000;
     //注册mq消息发送
     @Async("taskExecutor")
     public void sendRegister(Device device){
@@ -79,5 +87,58 @@ public class GatewayBusinessAsyncSender {
         mqInfo.setData(data.getChannelList());
         rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), gatewaySignInConf.getMqGetQueue(), UuidUtil.toUuid(),mqInfo,true);
     }
+
+    /**
+     * 设备信息的mq消息发送
+     * @param device
+     */
+    @Async("taskExecutor")
+    public void sendDeviceInfo(Device device){
+        //
+        String deviceId = device.getDeviceId();
+        //
+        //获取指令发送的缓存状态
+        BusinessSceneResp businessSceneResp = (BusinessSceneResp<Device>)RedisCommonUtil.get(redisTemplate, BusinessSceneConstants.DEVICE_INFO_SCENE_KEY + deviceId);
+        GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.DEVICEINFO.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix);
+
+        if(ObjectUtils.isEmpty(businessSceneResp)){
+            //缓存异常 发送失败指令
+            mqInfo.setCode(BusinessErrorEnums.REDIS_EXCEPTION.getErrCode());
+            mqInfo.setMsg(BusinessErrorEnums.REDIS_EXCEPTION.toString());
+            mqInfo.setData(null);
+            rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), gatewaySignInConf.getMqGetQueue(), UuidUtil.toUuid(),mqInfo,true);
+            return;
+        }
+        int i = 0;
+        while (businessSceneResp.getStatus().equals(BusinessSceneStatusEnum.ready)){
+            try{
+                Thread.sleep(sleepTime);
+            }catch (InterruptedException e){
+                e.printStackTrace();
+            }
+            i+=sleepTime;
+
+            //sleep时间大于5s结束循环
+            if(i>=maxSleepTime){
+                //判断
+                businessSceneResp = BusinessSceneResp.addSceneEnd(BusinessErrorEnums.BUSINESS_SCENE_EXCEPTION,null);
+                break;
+            }else {
+                businessSceneResp = (BusinessSceneResp<Device>)RedisCommonUtil.get(redisTemplate, BusinessSceneConstants.DEVICE_INFO_SCENE_KEY + deviceId);
+            }
+        }
+        //进行mq消息发送
+        if(ObjectUtils.isEmpty(businessSceneResp)){
+            mqInfo.setCode(BusinessErrorEnums.REDIS_EXCEPTION.getErrCode());
+            mqInfo.setMsg(BusinessErrorEnums.REDIS_EXCEPTION.toString());
+            mqInfo.setData(null);
+        }else {
+            mqInfo.setCode(businessSceneResp.getCode());
+            mqInfo.setMsg(businessSceneResp.getMsg());
+            mqInfo.setData(businessSceneResp.getData());
+        }
+        rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), gatewaySignInConf.getMqGetQueue(), UuidUtil.toUuid(),mqInfo,true);
+    }
+
 }
 

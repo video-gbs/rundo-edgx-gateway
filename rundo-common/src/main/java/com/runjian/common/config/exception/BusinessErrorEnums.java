@@ -86,7 +86,8 @@ public enum BusinessErrorEnums {
     MQ_EXCHANGE_IS_NOT_FOUND(500, 22003, "找不到该exchange"),
 
     /**************************** 网关业务相关 CODE:231xx ****************************/
-
+    REDIS_EXCEPTION(500,23100,"redis缓存异常"),
+    BUSINESS_SCENE_EXCEPTION(500,23101,"业务场景处理异常"),
 
     /************************** sip自定义s事件异常 CODE:232xx ****************************/
     SIP_TIMEOUT_EVENT(500,232001,"消息超时未回复"),

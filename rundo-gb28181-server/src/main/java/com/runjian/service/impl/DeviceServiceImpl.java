@@ -1,10 +1,13 @@
 package com.runjian.service.impl;
 
 import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.common.constant.BusinessSceneConstants;
 import com.runjian.common.constant.DeviceCompatibleEnum;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.VideoType;
 import com.runjian.common.utils.BeanUtil;
+import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.DynamicTask;
 import com.runjian.dao.DeviceChannelMapper;
 import com.runjian.dao.DeviceCompatibleMapper;
@@ -18,6 +21,7 @@ import com.runjian.service.IDeviceService;
 import com.runjian.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.sip.InvalidArgumentException;
@@ -59,6 +63,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     private GatewayBusinessAsyncSender gatewayBusinessAsyncSender;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     public void online(DeviceDto device) {
@@ -126,6 +133,9 @@ public class DeviceServiceImpl implements IDeviceService {
 //                streamSession.remove(deviceId, ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
 //            }
 //        }
+        Device deviceBean = new Device();
+        BeanUtil.copyProperties(device,deviceBean);
+        gatewayBusinessAsyncSender.sendRegister(deviceBean);
     }
 
     @Override
@@ -177,11 +187,15 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void deviceInfoQuery(Device device) {
+        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady();
+        RedisCommonUtil.set(redisTemplate, BusinessSceneConstants.DEVICE_INFO_SCENE_KEY+device.getDeviceId(),objectBusinessSceneResp,5);
         try {
             sipCommander.deviceInfoQuery(device);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
+            BusinessSceneResp.addSceneEnd(BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
         }
-
+        //异步发送deviceinfo的指令
+        gatewayBusinessAsyncSender.sendDeviceInfo(device);
     }
 }
