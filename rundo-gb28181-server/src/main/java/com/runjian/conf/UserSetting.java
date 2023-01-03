@@ -20,6 +20,10 @@ public class UserSetting {
     private Boolean seniorSdp = Boolean.FALSE;
 
     private Integer playTimeout = 18000;
+    /**
+     * 业务场景流程超时时间
+     */
+    private Integer businessSceneTimeout = 5000;
 
     private int platformPlayTimeout = 60000;
 
@@ -168,5 +172,13 @@ public class UserSetting {
 
     public void setStreamOnDemand(Boolean streamOnDemand) {
         this.streamOnDemand = streamOnDemand;
+    }
+
+    public Integer getBusinessSceneTimeout() {
+        return businessSceneTimeout;
+    }
+
+    public void setBusinessSceneTimeout(Integer businessSceneTimeout) {
+        this.businessSceneTimeout = businessSceneTimeout;
     }
 }

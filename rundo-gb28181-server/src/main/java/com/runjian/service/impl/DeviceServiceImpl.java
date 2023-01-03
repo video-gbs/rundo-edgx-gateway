@@ -2,10 +2,7 @@ package com.runjian.service.impl;
 
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
-import com.runjian.common.constant.BusinessSceneConstants;
-import com.runjian.common.constant.DeviceCompatibleEnum;
-import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.constant.VideoType;
+import com.runjian.common.constant.*;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.DynamicTask;
@@ -81,7 +78,7 @@ public class DeviceServiceImpl implements IDeviceService {
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-首次注册,查询设备信息以及通道信息", device.getDeviceId());
             deviceMapper.add(device);
             //查询设备信息
-            deviceInfoQuery(deviceBean);
+            deviceInfoQuery(deviceBean,null);
             //查询通道信息
             sync(deviceBean);
 
@@ -186,14 +183,20 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public void deviceInfoQuery(Device device) {
-        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady();
+    public void deviceInfoQuery(Device device,String msgId) {
+        //同设备同类型业务消息，加上全局锁
+
+
+
+
+
+        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICEINFO,null);
         RedisCommonUtil.set(redisTemplate, BusinessSceneConstants.DEVICE_INFO_SCENE_KEY+device.getDeviceId(),objectBusinessSceneResp,5);
         try {
             sipCommander.deviceInfoQuery(device);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-            objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(BusinessErrorEnums.SIP_SEND_EXCEPTION, null);
+            objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION, null,null);
             RedisCommonUtil.setOverWrite(redisTemplate,BusinessSceneConstants.DEVICE_INFO_SCENE_KEY+device.getDeviceId(),objectBusinessSceneResp);
         }
         //异步发送deviceinfo的指令

@@ -63,6 +63,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element element) {
+
         taskQueue.offer(new HandlerCatchData(evt, device, element));
         // 回复200 OK
         try {

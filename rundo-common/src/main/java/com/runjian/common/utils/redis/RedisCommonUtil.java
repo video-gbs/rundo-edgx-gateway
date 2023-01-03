@@ -168,4 +168,16 @@ public class RedisCommonUtil {
     }
 
 
+
+    /**
+     * 添加一个元素, zset与set最大的区别就是每个元素都有一个score，因此有个排序的辅助功能;  zadd
+     *
+     * @param key
+     * @param value
+     * @param score
+     */
+    public static Boolean zAdd(RedisTemplate redisTemplate, Object key, Object value, double score) {
+
+        return redisTemplate.opsForZSet().add(key, value, score);
+    }
 }

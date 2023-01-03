@@ -47,5 +47,5 @@ public interface IDeviceService {
      * 查询设备信息
      * @param device
      */
-    void deviceInfoQuery(Device device);
+    void deviceInfoQuery(Device device,String msgId);
 }

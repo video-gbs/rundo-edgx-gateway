@@ -16,6 +16,8 @@ spring:
         password:
         # [可选] 超时时间
         timeout: 10000
+
+
         # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
         # mysql数据源
     datasource:
@@ -155,6 +157,9 @@ user-settings:
     auto-apply-play: false
     # 点播等待超时时间,单位：毫秒
     play-timeout: 5000
+    # 信令场景超时时间
+    business-scene-timeout: 5000
+
     # 上级点播等待超时时间,单位：毫秒
     platform-play-timeout: 60000
     # 设备录像下载最大时间周期 30分钟
