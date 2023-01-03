@@ -180,4 +180,140 @@ public class RedisCommonUtil {
 
         return redisTemplate.opsForZSet().add(key, value, score);
     }
+
+    //    ============================== Map ==============================
+
+    /**
+     * HashGet
+     * @param key 键（no null）
+     * @param item 项（no null）
+     * @return 值
+     */
+    public static Object hget(RedisTemplate redisTemplate,String key, String item) {
+        return redisTemplate.opsForHash().get(key, item);
+    }
+
+    /**
+     * 获取 key 对应的 map
+     * @param key 键（no null）
+     * @return 对应的多个键值
+     */
+    public static Map<Object, Object> hmget(RedisTemplate redisTemplate,String key) {
+        return redisTemplate.opsForHash().entries(key);
+    }
+
+    /**
+     * HashSet
+     * @param key 键
+     * @param map 值
+     * @return true / false
+     */
+    public static boolean hmset(RedisTemplate redisTemplate,String key, Map<Object, Object> map) {
+        try {
+            redisTemplate.opsForHash().putAll(key, map);
+            return true;
+        } catch (Exception e) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "Redis工具", "未知异常", e);
+            return false;
+        }
+    }
+
+    /**
+     * HashSet 并设置时间
+     * @param key 键
+     * @param map 值
+     * @param time 时间
+     * @return true / false
+     */
+    public static boolean hmset(RedisTemplate redisTemplate,,String key, Map<Object, Object> map, long time) {
+        try {
+            redisTemplate.opsForHash().putAll(key, map);
+            if (time > 0) {
+                expire(redisTemplate,key, time);
+            }
+            return true;
+        } catch (Exception e) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "Redis工具", "未知异常", e);
+            return false;
+        }
+    }
+
+    /**
+     * 向一张 Hash表 中放入数据，如不存在则创建
+     * @param key 键
+     * @param item 项
+     * @param value 值
+     * @return true / false
+     */
+    public static boolean hset(RedisTemplate redisTemplate,,String key, String item, Object value) {
+        try {
+            redisTemplate.opsForHash().put(key, item, value);
+            return true;
+        } catch (Exception e) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "Redis工具", "未知异常", e);
+            return false;
+        }
+    }
+
+    /**
+     * 向一张 Hash表 中放入数据，并设置时间，如不存在则创建
+     * @param key 键
+     * @param item 项
+     * @param value 值
+     * @param time 时间（如果原来的 Hash表 设置了时间，这里会覆盖）
+     * @return true / false
+     */
+    public static boolean hset(RedisTemplate redisTemplate,,String key, String item, Object value, long time) {
+        try {
+            redisTemplate.opsForHash().put(key, item, value);
+            if (time > 0) {
+                expire(redisTemplate,key, time);
+            }
+            return true;
+        } catch (Exception e) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "Redis工具", "未知异常", e);
+            return false;
+        }
+    }
+
+    /**
+     * 删除 Hash表 中的值
+     * @param key 键
+     * @param item 项（可以多个，no null）
+     */
+    public static void hdel(RedisTemplate redisTemplate,String key, Object... item) {
+        redisTemplate.opsForHash().delete(key, item);
+    }
+
+    /**
+     * 判断 Hash表 中是否有该键的值
+     * @param key 键（no null）
+     * @param item 值（no null）
+     * @return true / false
+     */
+    public static boolean hHasKey(RedisTemplate redisTemplate,String key, String item) {
+        return redisTemplate.opsForHash().hasKey(key, item);
+    }
+
+    /**
+     * Hash递增，如果不存在则创建一个，并把新增的值返回
+     * @param key 键
+     * @param item 项
+     * @param by 递增大小 > 0
+     * @return
+     */
+    public static Double hincr(RedisTemplate redisTemplate,String key, String item, Double by) {
+        return redisTemplate.opsForHash().increment(key, item, by);
+    }
+
+    /**
+     * Hash递减
+     * @param key 键
+     * @param item 项
+     * @param by 递减大小
+     * @return
+     */
+    public static Double hdecr(RedisTemplate redisTemplate,String key, String item, Double by) {
+        return redisTemplate.opsForHash().increment(key, item, -by);
+    }
 }
