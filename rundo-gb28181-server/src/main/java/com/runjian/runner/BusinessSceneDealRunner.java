@@ -6,8 +6,10 @@ import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.BusinessSceneConstants;
 import com.runjian.common.constant.BusinessSceneStatusEnum;
 import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.Redisson;
 import org.redisson.api.RLock;
 import org.redisson.api.RReadWriteLock;
@@ -28,6 +30,7 @@ import java.util.Set;
  * @author chenjialing
  */
 @Component
+@Slf4j
 @Order(value = 0)
 public class BusinessSceneDealRunner implements CommandLineRunner {
 
@@ -66,6 +69,7 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                 if(time.isBefore(now) || statusEnum.equals(BusinessSceneStatusEnum.end)){
                     //消息跟踪完毕 删除指定的键值 异步处理对应的mq消息发送,并释放相应的redisson锁
                     //释放全局redisson锁
+                    log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景常驻线程处理", "预处理可进行消费的场景信令", businessSceneResp);
                     long threadId = businessSceneResp.getThreadId();
                     RLock lock = redissonClient.getLock(entrykey);
                     lock.unlockAsync(threadId);
