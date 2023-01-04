@@ -199,7 +199,7 @@ public class RedisCommonUtil {
      * @param key 键（no null）
      * @return 对应的多个键值
      */
-    public static Map<Object, Object> hmget(RedisTemplate redisTemplate,String key) {
+    public static Map<String, Object> hmget(RedisTemplate redisTemplate,String key) {
         return redisTemplate.opsForHash().entries(key);
     }
 

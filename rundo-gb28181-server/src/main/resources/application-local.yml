@@ -156,8 +156,8 @@ user-settings:
     auto-apply-play: false
     # 点播等待超时时间,单位：毫秒
     play-timeout: 5000
-    # 信令场景超时时间 单位：毫秒
-    business-scene-timeout: 5000
+    # 信令场景超时时间 单位：秒
+    business-scene-timeout: 5
 
     # 上级点播等待超时时间,单位：毫秒
     platform-play-timeout: 60000
