@@ -29,6 +29,7 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -93,14 +94,16 @@ public class DeviceServiceImpl implements IDeviceService {
             sync(deviceBean);
 
             //发送mq设备上线信息
-            gatewayBusinessAsyncSender.sendRegister(deviceBean);
+            BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), deviceBean);
+            gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
         }else {
 
             if(device.getOnline() == 0){
                 //重新上线 发送mq
                 device.setOnline(1);
                 //发送mq设备上线信息
-                gatewayBusinessAsyncSender.sendRegister(deviceBean);
+                BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), deviceBean);
+                gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
             }
 
 
@@ -142,7 +145,9 @@ public class DeviceServiceImpl implements IDeviceService {
 //        }
         Device deviceBean = new Device();
         BeanUtil.copyProperties(device,deviceBean);
-        gatewayBusinessAsyncSender.sendRegister(deviceBean);
+        //发送mq设备上线信息
+        BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), deviceBean);
+        gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
     }
 
     @Override

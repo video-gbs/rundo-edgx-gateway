@@ -69,7 +69,8 @@ public class GatewayBusinessAsyncSender {
             while (!taskQueue.isEmpty()){
                 BusinessSceneResp businessSceneRespPoll = taskQueue.poll();
                 GatewayMsgType gatewayMsgType = businessSceneRespPoll.getGatewayMsgType();
-                GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix);
+                String msgId = businessSceneRespPoll.getMsgId();
+                GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
                 mqInfo.setData(businessSceneRespPoll.getData());
                 log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", businessSceneResp);
                 rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),mqInfo,true);
@@ -87,7 +88,7 @@ public class GatewayBusinessAsyncSender {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "设备注册-信令发送失败，业务队列暂时未初始化", device);
             return;
         }
-        GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.REGISTER.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix);
+        GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.REGISTER.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
         mqInfo.setData(device);
         rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),mqInfo,true);
     }
@@ -111,7 +112,7 @@ public class GatewayBusinessAsyncSender {
         }
         //进行mq消息发送
         CatalogData data = catalogDataCatch.getData(deviceId);
-        GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.CATALOG.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix);
+        GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.CATALOG.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
         mqInfo.setCode(data.getCode());
         mqInfo.setMsg(data.getErrorMsg());
         mqInfo.setData(data.getChannelList());

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
 
@@ -51,15 +52,20 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     }
 
     @Override
-    public GatewayMqDto getMqInfo(String msgType, String snIncr, String snPrefix) {
+    public GatewayMqDto getMqInfo(String msgType, String snIncr, String snPrefix,String msgId) {
         GatewayMqDto gatewayMqDto = new GatewayMqDto();
         gatewayMqDto.setMsgType(msgType);
         gatewayMqDto.setTime(LocalDateTime.now());
         gatewayMqDto.setSerialNum(serialNum);
 
         String sn = getSn(snIncr);
+        if(ObjectUtils.isEmpty(msgId)){
+            gatewayMqDto.setMsgId(snPrefix+sn);
 
-        gatewayMqDto.setMsgId(snPrefix+sn);
+        }else {
+            gatewayMqDto.setMsgId(msgId);
+
+        }
         return gatewayMqDto;
     }
 }

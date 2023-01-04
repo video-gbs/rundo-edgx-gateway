@@ -22,6 +22,6 @@ public interface IRedisCatchStorageService {
      */
     String getSn(String key);
 
-    GatewayMqDto getMqInfo(String msgType,String snIncr,String snPrefix);
+    GatewayMqDto getMqInfo(String msgType,String snIncr,String snPrefix,String msgId);
 
 }
