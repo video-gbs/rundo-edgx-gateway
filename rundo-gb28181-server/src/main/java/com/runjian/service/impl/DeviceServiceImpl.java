@@ -1,11 +1,13 @@
 package com.runjian.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.*;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.DynamicTask;
+import com.runjian.conf.UserSetting;
 import com.runjian.dao.DeviceChannelMapper;
 import com.runjian.dao.DeviceCompatibleMapper;
 import com.runjian.dao.DeviceMapper;
@@ -17,6 +19,8 @@ import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
 import com.runjian.service.IDeviceService;
 import com.runjian.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -63,6 +67,12 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    RedissonClient redissonClient;
+
+    @Autowired
+    UserSetting userSetting;
 
     @Override
     public void online(DeviceDto device) {
@@ -185,21 +195,26 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void deviceInfoQuery(Device device,String msgId) {
         //同设备同类型业务消息，加上全局锁
-
-
-
-
-
-        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICEINFO,null);
-        RedisCommonUtil.set(redisTemplate, BusinessSceneConstants.DEVICE_INFO_SCENE_KEY+device.getDeviceId(),objectBusinessSceneResp,5);
+        String businessSceneKey = GatewayMsgType.DEVICEINFO.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
+        RLock lock = redissonClient.getLock(businessSceneKey);
         try {
+            //阻塞型,默认是30s无返回参数
+            lock.lock();
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICEINFO,msgId,userSetting.getBusinessSceneTimeout());
+            boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
+            if(!hset){
+                throw new Exception("redis操作hashmap失败");
+            }
             sipCommander.deviceInfoQuery(device);
-        } catch (InvalidArgumentException | SipException | ParseException e) {
+        }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-            objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION, null,null);
-            RedisCommonUtil.setOverWrite(redisTemplate,BusinessSceneConstants.DEVICE_INFO_SCENE_KEY+device.getDeviceId(),objectBusinessSceneResp);
+            BusinessSceneResp<Device> hgetObject = (BusinessSceneResp<Device>)RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey);
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION, msgId,hgetObject.getThreadId(),hgetObject.getTime(),null);
+            RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
+
         }
-        //异步发送deviceinfo的指令
-        gatewayBusinessAsyncSender.sendDeviceInfo(device);
+        //在异步线程进行解锁
+
+
     }
 }

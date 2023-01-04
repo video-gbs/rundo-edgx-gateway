@@ -93,8 +93,7 @@ server:
 # 作为28181服务器的配置
 sip:
     # [必须修改] 本机的IP
-    ip: 192.168.10.8
-    monitor-ip: 192.168.10.8
+    ip: 192.168.0.72
     # [可选] 28181服务监听的端口
     port: 5060
     # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
@@ -119,7 +118,7 @@ media:
     # [必须修改] zlm服务器唯一id，用于触发hook时区别是哪台服务器,general.mediaServerId
     id: LORVY158beilorvy
     # [必须修改] zlm服务器的内网IP
-    ip: 192.168.10.8
+    ip: 192.168.0.72
     # [必须修改] zlm服务器的http.port
     http-port: 8088
 
@@ -157,7 +156,7 @@ user-settings:
     auto-apply-play: false
     # 点播等待超时时间,单位：毫秒
     play-timeout: 5000
-    # 信令场景超时时间
+    # 信令场景超时时间 单位：毫秒
     business-scene-timeout: 5000
 
     # 上级点播等待超时时间,单位：毫秒

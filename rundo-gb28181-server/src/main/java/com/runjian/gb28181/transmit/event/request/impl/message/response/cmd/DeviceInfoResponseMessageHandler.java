@@ -62,12 +62,15 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
         logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "DeviceInfo应答消息处理", "接收到消息");
         SIPRequest request = (SIPRequest) evt.getRequest();
         BusinessSceneResp<Device> deviceBusinessSceneResp;
+        //获取hashmap中相应的缓存
+
+
         String redisKey = BusinessSceneConstants.DEVICE_INFO_SCENE_KEY+device.getDeviceId();
         // 检查设备是否存在， 不存在则不回复
         if (device == null || device.getOnline() == 0) {
             logger.warn(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "DeviceInfo应答消息处理", "接收到应答消息,但是设备已经离线", (device != null ? device.getDeviceId():"" ));
-            deviceBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_DEVICE_NOTFOUND_EVENT, null,null);
-            RedisCommonUtil.setOverWrite(redisTemplate,redisKey,deviceBusinessSceneResp);
+//            deviceBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_DEVICE_NOTFOUND_EVENT, null,null);
+//            RedisCommonUtil.setOverWrite(redisTemplate,redisKey,deviceBusinessSceneResp);
             return;
         }
         try {
@@ -80,8 +83,8 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
                     responseAck((SIPRequest) evt.getRequest(), Response.BAD_REQUEST);
                 } catch (SipException | InvalidArgumentException | ParseException e) {
                     logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "DeviceInfo应答消息处理", "命令发送失败,BAD_REQUEST", e);
-                    deviceBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION, null,null);
-                    RedisCommonUtil.setOverWrite(redisTemplate,redisKey,deviceBusinessSceneResp);
+//                    deviceBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION, null,null);
+//                    RedisCommonUtil.setOverWrite(redisTemplate,redisKey,deviceBusinessSceneResp);
                 }
                 return;
             }
@@ -96,8 +99,8 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
         } catch (Exception e) {
             logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "DeviceInfo应答消息处理", "消息解析处理失败", e);
-            deviceBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.BUSINESS_SCENE_EXCEPTION, null,null);
-            RedisCommonUtil.setOverWrite(redisTemplate,redisKey,deviceBusinessSceneResp);
+//            deviceBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.BUSINESS_SCENE_EXCEPTION, null,null);
+//            RedisCommonUtil.setOverWrite(redisTemplate,redisKey,deviceBusinessSceneResp);
         }
 
         try {
@@ -108,8 +111,8 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
         }
         //处理完成
-        deviceBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SUCCESS, null,device);
-        RedisCommonUtil.setOverWrite(redisTemplate,redisKey,deviceBusinessSceneResp);
+//        deviceBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SUCCESS, null,device);
+//        RedisCommonUtil.setOverWrite(redisTemplate,redisKey,deviceBusinessSceneResp);
 
     }
 

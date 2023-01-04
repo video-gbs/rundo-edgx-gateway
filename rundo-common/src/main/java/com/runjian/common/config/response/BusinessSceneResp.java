@@ -1,5 +1,11 @@
 package com.runjian.common.config.response;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.BusinessSceneStatusEnum;
 import com.runjian.common.constant.GatewayMsgType;
@@ -47,6 +53,8 @@ public class BusinessSceneResp<T> {
     /**
      * 预计过期时间
      */
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime time;
     /**
      * 数据
@@ -56,12 +64,15 @@ public class BusinessSceneResp<T> {
 
     /**
      * 创建初始数据
+     * @param gatewayMsgType
+     * @param msgId
+     * @param timeOut 过期时间
      * @param <T>
      * @return
      */
-    public static<T> BusinessSceneResp<T> addSceneReady(GatewayMsgType gatewayMsgType,String msgId){
+    public static<T> BusinessSceneResp<T> addSceneReady(GatewayMsgType gatewayMsgType,String msgId,int timeOut){
         long id = Thread.currentThread().getId();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now().plusSeconds(timeOut);
         return create(BusinessErrorEnums.SUCCESS.getErrCode(), BusinessErrorEnums.SUCCESS.toString(), BusinessSceneStatusEnum.ready, gatewayMsgType,msgId,id,now,null);
     }
 

@@ -21,9 +21,9 @@ public class UserSetting {
 
     private Integer playTimeout = 18000;
     /**
-     * 业务场景流程超时时间
+     * 业务场景流程超时时间 单位秒
      */
-    private Integer businessSceneTimeout = 5000;
+    private Integer businessSceneTimeout = 5;
 
     private int platformPlayTimeout = 60000;
 

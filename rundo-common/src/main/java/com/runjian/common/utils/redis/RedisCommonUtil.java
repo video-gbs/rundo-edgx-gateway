@@ -1,5 +1,6 @@
 package com.runjian.common.utils.redis;
 
+import com.alibaba.fastjson.JSON;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.MarkConstant;
 import lombok.extern.slf4j.Slf4j;
@@ -225,7 +226,7 @@ public class RedisCommonUtil {
      * @param time 时间
      * @return true / false
      */
-    public static boolean hmset(RedisTemplate redisTemplate,,String key, Map<Object, Object> map, long time) {
+    public static boolean hmset(RedisTemplate redisTemplate,String key, Map<Object, Object> map, long time) {
         try {
             redisTemplate.opsForHash().putAll(key, map);
             if (time > 0) {
@@ -245,8 +246,11 @@ public class RedisCommonUtil {
      * @param value 值
      * @return true / false
      */
-    public static boolean hset(RedisTemplate redisTemplate,,String key, String item, Object value) {
+    public static boolean hset(RedisTemplate redisTemplate,String key, String item, Object value) {
         try {
+            if(!(value instanceof String)){
+                value = JSON.toJSONString(value);
+            }
             redisTemplate.opsForHash().put(key, item, value);
             return true;
         } catch (Exception e) {
@@ -263,7 +267,7 @@ public class RedisCommonUtil {
      * @param time 时间（如果原来的 Hash表 设置了时间，这里会覆盖）
      * @return true / false
      */
-    public static boolean hset(RedisTemplate redisTemplate,,String key, String item, Object value, long time) {
+    public static boolean hset(RedisTemplate redisTemplate,String key, String item, Object value, long time) {
         try {
             redisTemplate.opsForHash().put(key, item, value);
             if (time > 0) {

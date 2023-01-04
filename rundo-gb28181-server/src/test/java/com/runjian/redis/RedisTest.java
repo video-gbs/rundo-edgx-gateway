@@ -3,6 +3,8 @@ package com.runjian.redis;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.utils.redis.RedisCommonUtil;
+import com.runjian.gb28181.bean.Device;
+import com.runjian.service.IDeviceService;
 import com.runjian.utils.redis.RedissonLockUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -24,9 +26,12 @@ public class RedisTest {
 
     @Autowired
     RedissonClient redissonClient;
+
+    @Autowired
+    IDeviceService deviceService;
     @Test
     public void testZadd(){
-        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.GATEWAY_SIGN_IN,null);
+        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.GATEWAY_SIGN_IN,null,5);
         Boolean test = RedisCommonUtil.zAdd(redisTemplate, "test", objectBusinessSceneResp, 125);
 
     }
@@ -60,6 +65,22 @@ public class RedisTest {
 
         }
 
+    }
+
+    @Test
+    public void testDeviceSender(){
+        Device device = new Device();
+        device.setDeviceId("123123123");
+        device.setName("test");
+        device.setStreamMode("UDP");
+        device.setStreamMode("UDP");
+        device.setCharset("GB2312");
+        device.setOnline(0);
+        device.setTransport("UDP");
+        device.setIp("127.0.0.1");
+        device.setPort(5060);
+        device.setHostAddress("127.0.0.1:5060");
+        deviceService.deviceInfoQuery(device,null);
     }
 
 }
