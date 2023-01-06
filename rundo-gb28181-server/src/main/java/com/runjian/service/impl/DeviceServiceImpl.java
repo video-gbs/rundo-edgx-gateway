@@ -1,6 +1,7 @@
 package com.runjian.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.*;
@@ -11,6 +12,7 @@ import com.runjian.conf.UserSetting;
 import com.runjian.dao.DeviceChannelMapper;
 import com.runjian.dao.DeviceCompatibleMapper;
 import com.runjian.dao.DeviceMapper;
+import com.runjian.domain.dto.CatalogMqSyncDto;
 import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.session.CatalogDataCatch;
@@ -88,10 +90,7 @@ public class DeviceServiceImpl implements IDeviceService {
             device.setOnline(1);
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-首次注册,查询设备信息以及通道信息", device.getDeviceId());
             deviceMapper.add(device);
-            //查询设备信息
-            deviceInfoQuery(deviceBean,null);
-            //查询通道信息
-            sync(deviceBean);
+
 
             //发送mq设备上线信息
             BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), deviceBean);
@@ -110,6 +109,7 @@ public class DeviceServiceImpl implements IDeviceService {
             deviceMapper.update(device);
 
         }
+        sync(deviceBean,null);
         // 刷新过期任务
         if(deviceCompatibleMapper.getByDeviceId(device.getDeviceId(), DeviceCompatibleEnum.HUAWEI_NVR_800.getType()) == null){
             //华为nvr800 不做定时过期限制
@@ -157,27 +157,33 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public void sync(Device device) {
-        //同一设备单次一条同步请求
-        if(catalogDataCatch.isSyncRunning(device.getDeviceId())){
-            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "同步通道-开启同步时发现同步已经存在", device.getDeviceId());
-            return;
-        }
-
-        int sn = (int)((Math.random()*9+1)*100000);
-        catalogDataCatch.addReady(device, sn);
+    public void sync(Device device,String msgId) {
+        String businessSceneKey = GatewayMsgType.CATALOG.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
+        RLock lock = redissonClient.getLock(businessSceneKey);
         try {
+            //阻塞型,默认是30s无返回参数
+            lock.lock();
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.CATALOG,msgId,userSetting.getBusinessSceneTimeout());
+            boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
+            if(!hset){
+                throw new Exception("redis操作hashmap失败");
+            }
+            int sn = (int)((Math.random()*9+1)*100000);
+            catalogDataCatch.addReady(device,sn);
             sipCommander.catalogQuery(device, sn, event -> {
                 String errorMsg = String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg);
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "同步通道失败", errorMsg);
                 catalogDataCatch.setChannelSyncEnd(device.getDeviceId(), errorMsg, BusinessErrorEnums.SIP_CATALOG_EXCEPTION.getErrCode());
             });
-        } catch (SipException | InvalidArgumentException | ParseException e) {
-            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "设备服务", "同步通道-信令发送失败", device.getDeviceId(), e);
-            String errorMsg = String.format("同步通道失败，信令发送失败： %s", e.getMessage());
-            catalogDataCatch.setChannelSyncEnd(device.getDeviceId(), errorMsg,BusinessErrorEnums.SIP_SEND_EXCEPTION.getErrCode());
+        }catch (Exception e){
+
+            String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey);
+            BusinessSceneResp businessSceneResp = JSONObject.parseObject(businessSceneString, BusinessSceneResp.class);
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.CATALOG,BusinessErrorEnums.SIP_SEND_EXCEPTION, msgId,businessSceneResp.getThreadId(),businessSceneResp.getTime(),null);
+            RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
+
         }
-        //通道同步的mq消息同步
-        gatewayBusinessAsyncSender.sendCatalog(device);
+
     }
 
     @Override
@@ -213,8 +219,9 @@ public class DeviceServiceImpl implements IDeviceService {
             sipCommander.deviceInfoQuery(device);
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-            BusinessSceneResp<Device> hgetObject = (BusinessSceneResp<Device>)RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey);
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION, msgId,hgetObject.getThreadId(),hgetObject.getTime(),null);
+            String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey);
+            BusinessSceneResp businessSceneResp = JSONObject.parseObject(businessSceneString, BusinessSceneResp.class);
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION, msgId,businessSceneResp.getThreadId(),businessSceneResp.getTime(),null);
             RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
 
         }

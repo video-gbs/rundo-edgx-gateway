@@ -28,7 +28,7 @@ public interface IDeviceService {
      * 同步设备信息
      * @param device
      */
-    void sync(Device device);
+    void sync(Device device,String msgId);
 
     /**
      * 更新设备
