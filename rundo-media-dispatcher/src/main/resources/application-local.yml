@@ -8,7 +8,7 @@ spring:
         # [必须修改] 端口号
         port: 6379
         # [可选] 数据库 DB
-        database: 6
+        database: 1
         # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
         password:
         # [可选] 超时时间
@@ -18,7 +18,7 @@ spring:
     datasource:
         type: com.alibaba.druid.pool.DruidDataSource
         driver-class-name: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://127.0.0.1:3306/media_dispatcher?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
+        url: jdbc:mysql://127.0.0.1:3306/rundo_media_dispatcher?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
         username: root
         password: root123
         druid:
@@ -90,9 +90,17 @@ media:
     # [必须修改] zlm服务器唯一id，用于触发hook时区别是哪台服务器,general.mediaServerId
     id: LORVY158beilorvy
     # [必须修改] zlm服务器的内网IP
-    ip: 192.168.10.8
+    ip: 192.168.0.72
+
+    # [可选] 返回流地址时的ip，置空使用 media.ip
+    stream-ip: 192.168.0.72
+    # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
+    sdp-ip: 192.168.0.72
+    # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
+    hook-ip: 127.0.0.1
     # [必须修改] zlm服务器的http.port
     http-port: 80
+
 
     # [必须修改] zlm服务器的http.port
     http-play-port: 80
@@ -116,46 +124,3 @@ media:
 logging:
     config: classpath:logback-spring-local.xml
 
-
-# [根据业务需求配置]
-user-settings:
-    # 推流直播是否录制
-    record-push-live: true
-    auto-apply-play: false
-    # 点播等待超时时间,单位：毫秒
-    play-timeout: 5000
-    # 上级点播等待超时时间,单位：毫秒
-    platform-play-timeout: 60000
-    # 设备录像下载最大时间周期 30分钟
-    device-download-time-cycle: 1800
-
-# 在线文档： swagger-ui（生产环境建议关闭）
-swagger-ui:
-    enabled: true
-
-# 版本信息， 不需修改
-version:
-    version: "@project.version@"
-    description: "@project.description@"
-    artifact-id: "@project.artifactId@"
-
-#同流媒体调度中心交互，使用mq
-mq:
-    enabled: false
-    queue-data-list:
-        - id: PUBLIC-GS
-          routing-key: rundo.gateway.public-gs
-          queue-name: rundo.gateway.public-gs
-          exchange-id: GATEWAY
-        - id: PUBLIC-SG
-          routing-key: rundo.gateway.public-sg
-          queue-name: rundo.gateway.public-sg
-          exchange-id: GATEWAY
-    exchange-data-list:
-        - id: GATEWAY
-          name: rundo.gateway
-          type: topic
-
-gateway-info:
-#   网关的唯一id
-    serialNum: eb48104ddf2b4760be541783b3621041

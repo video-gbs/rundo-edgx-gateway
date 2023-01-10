@@ -14,5 +14,16 @@ public class VideoManagerConstants {
 	/** redis key相关 end **/
 
 
+	/***zlm相关 start ****/
+	public static final String MEDIA_SERVER_PREFIX = "ZLM_MEDIA_SERVER_";
+
+	public static final String MEDIA_SERVERS_ONLINE_PREFIX = "ZLM_MEDIA_ONLINE_SERVERS_";
+
+	public static final String MEDIA_STREAM_PREFIX = "ZLM_MEDIA_STREAM";
+
+
+
+
+	/**zlm相关  end ****/
 
 }

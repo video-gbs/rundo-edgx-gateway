@@ -1,9 +1,8 @@
 package com.runjian.domain.dto;
 
 
-import com.runjian.gb28181.session.SsrcConfig;
+import com.runjian.conf.SsrcConfig;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.util.ObjectUtils;
 
 import java.util.HashMap;
 

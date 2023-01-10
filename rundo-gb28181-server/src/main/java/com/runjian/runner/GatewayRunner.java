@@ -10,6 +10,7 @@ import com.runjian.common.mq.domain.GatewayMqDto;
 import com.runjian.common.utils.ConstantUtils;
 import com.runjian.conf.GatewayInfoConf;
 import com.runjian.conf.SipConfig;
+import com.runjian.conf.SsrcConfig;
 import com.runjian.dao.GatewayInfoMapper;
 import com.runjian.domain.dto.EdgeGatewayInfoDto;
 import com.runjian.service.IRedisCatchStorageService;
@@ -55,6 +56,9 @@ public class GatewayRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        //初始化ssrconfig
+        new SsrcConfig(null, sipConfig.getDomain());
+
         //获取配置并装配
         String ip = sipConfig.getIp();
         int port = Integer.parseInt(serverPort);

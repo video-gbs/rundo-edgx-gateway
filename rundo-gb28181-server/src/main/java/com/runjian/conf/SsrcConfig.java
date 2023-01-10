@@ -1,7 +1,8 @@
-package com.runjian.gb28181.session;
+package com.runjian.conf;
 
 import com.runjian.common.constant.ConfigConst;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,13 +10,9 @@ import java.util.Random;
 import java.util.Set;
 
 @Schema(description = "ssrc信息")
+@Component
 public class SsrcConfig {
 
-    /**
-     * zlm流媒体服务器Id
-     */
-    @Schema(description = "流媒体服务器Id")
-    private String mediaServerId;
 
     @Schema(description = "SSRC前缀")
     private String ssrcPrefix;
@@ -35,8 +32,7 @@ public class SsrcConfig {
     public SsrcConfig() {
     }
 
-    public SsrcConfig(String mediaServerId, Set<String> usedSet, String sipDomain) {
-        this.mediaServerId = mediaServerId;
+    public SsrcConfig(Set<String> usedSet, String sipDomain) {
         this.isUsed = new ArrayList<>();
         this.ssrcPrefix = sipDomain.substring(3, 8);
         this.notUsed = new ArrayList<>();
@@ -114,14 +110,6 @@ public class SsrcConfig {
 
     public String getSsrcPrefix() {
         return ssrcPrefix;
-    }
-
-    public String getMediaServerId() {
-        return mediaServerId;
-    }
-
-    public void setMediaServerId(String mediaServerId) {
-        this.mediaServerId = mediaServerId;
     }
 
     public void setSsrcPrefix(String ssrcPrefix) {

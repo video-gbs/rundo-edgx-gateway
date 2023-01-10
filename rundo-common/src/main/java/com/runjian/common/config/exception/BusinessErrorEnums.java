@@ -99,6 +99,11 @@ public enum BusinessErrorEnums {
     //通道同步失败
     SIP_CATALOG_EXCEPTION(500,232006,"通道同步失败异常"),
 
+    /************************** media异常 CODE:233xx ****************************/
+    MEDIA_ZLM_EXSITED_ERROR(500,23300,"流媒体服务已存在"),
+    MEDIA_ZLM_COLLECT_ERROR(500,23300,"流媒体服务连接失败"),
+
+
 
     ;
 

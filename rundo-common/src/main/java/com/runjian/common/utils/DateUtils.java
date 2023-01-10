@@ -7,6 +7,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.Locale;
 
@@ -16,11 +18,26 @@ import java.util.Locale;
  */
 public class DateUtils {
 
+    /**
+     * 兼容不规范的iso8601时间格式
+     */
+    private static final String ISO8601_COMPATIBLE_PATTERN = "yyyy-M-d'T'H:m:s";
 
+    /**
+     * 用以输出标准的iso8601时间格式
+     */
+    private static final String ISO8601_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).withZone(ZoneId.systemDefault());
 
     public static final DateTimeFormatter DATE_TIME_HOUR_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH", Locale.getDefault()).withZone(ZoneId.systemDefault());
+
+    /**
+     * 内部统一时间格式
+     */
+    public static final String PATTERN = "yyyy-MM-dd HH:mm:ss";
+
+    public static final String zoneStr = "Asia/Shanghai";
 
     /**
      * 转换空格符号位地址栏%20
@@ -30,6 +47,9 @@ public class DateUtils {
 
     public static final DateTimeFormatter DATE_TIME_T_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).withZone(ZoneId.systemDefault());
 
+    public static final DateTimeFormatter formatterCompatibleISO8601 = DateTimeFormatter.ofPattern(ISO8601_COMPATIBLE_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
+    public static final DateTimeFormatter formatterISO8601 = DateTimeFormatter.ofPattern(ISO8601_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
+    public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     /**
      * 缺省的时间戳格式
      */
@@ -133,5 +153,54 @@ public class DateUtils {
         }
         SimpleDateFormat sdf = new SimpleDateFormat(dateFormat);
         return sdf.format(date);
+    }
+    public static String yyyy_MM_dd_HH_mm_ssToISO8601(String formatTime) {
+
+        return formatterISO8601.format(formatter.parse(formatTime));
+    }
+
+    public static String ISO8601Toyyyy_MM_dd_HH_mm_ss(String formatTime) {
+        return formatter.format(formatterCompatibleISO8601.parse(formatTime));
+
+    }
+
+    /**
+     * yyyy_MM_dd_HH_mm_ss 转时间戳
+     * @param formatTime
+     * @return
+     */
+    public static long yyyy_MM_dd_HH_mm_ssToTimestamp(String formatTime) {
+        TemporalAccessor temporalAccessor = formatter.parse(formatTime);
+        Instant instant = Instant.from(temporalAccessor);
+        return instant.getEpochSecond();
+    }
+
+    /**
+     * 获取当前时间
+     * @return
+     */
+    public static String getNow() {
+        LocalDateTime nowDateTime = LocalDateTime.now();
+        return formatter.format(nowDateTime);
+    }
+
+    /**
+     * 格式校验
+     * @param timeStr 时间字符串
+     * @param dateTimeFormatter 待校验的格式
+     * @return
+     */
+    public static boolean verification(String timeStr, DateTimeFormatter dateTimeFormatter) {
+        try {
+            LocalDate.parse(timeStr, dateTimeFormatter);
+            return true;
+        }catch (DateTimeParseException exception) {
+            return false;
+        }
+    }
+
+    public static String getNowForISO8601() {
+        LocalDateTime nowDateTime = LocalDateTime.now();
+        return formatterISO8601.format(nowDateTime);
     }
 }

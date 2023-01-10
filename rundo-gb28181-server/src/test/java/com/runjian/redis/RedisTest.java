@@ -32,7 +32,6 @@ public class RedisTest {
     @Test
     public void testZadd(){
         BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.GATEWAY_SIGN_IN,null,5);
-        Boolean test = RedisCommonUtil.zAdd(redisTemplate, "test", objectBusinessSceneResp, 125);
 
     }
 

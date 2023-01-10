@@ -143,8 +143,22 @@ public class RedisCommonUtil {
         }
     }
 
+    /**
+     * 判断 key 是否存在
+     * @param key 键
+     * @return true / false
+     */
+    public static boolean hasKey(RedisTemplate redisTemplate,String key) {
+        try {
+            return redisTemplate.hasKey(key);
+        } catch (Exception e) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "Redis工具", "未知异常", e);
+            return false;
+        }
+    }
 
 
+//    ============================== String ==============================//    =====================
 
 
 
@@ -170,6 +184,8 @@ public class RedisCommonUtil {
 
 
 
+//    ============================== ZSet ==============================
+
     /**
      * 添加一个元素, zset与set最大的区别就是每个元素都有一个score，因此有个排序的辅助功能;  zadd
      *
@@ -177,10 +193,122 @@ public class RedisCommonUtil {
      * @param value
      * @param score
      */
-    public static Boolean zAdd(RedisTemplate redisTemplate, Object key, Object value, double score) {
+    public static void zAdd(RedisTemplate redisTemplate, Object key, Object value, double score) {
 
-        return redisTemplate.opsForZSet().add(key, value, score);
+        redisTemplate.opsForZSet().add(key, value, score);
     }
+
+    /**
+     * 删除元素 zrem
+     *
+     * @param key
+     * @param value
+     */
+    public static void zRemove(RedisTemplate redisTemplate, Object key, Object value) {
+
+        redisTemplate.opsForZSet().remove(key, value);
+    }
+
+    /**
+     * score的增加or减少 zincrby
+     *
+     * @param key
+     * @param value
+     * @param delta -1 表示减 1 表示加1
+     */
+    public static Double zIncrScore(RedisTemplate redisTemplate, Object key, Object value, double delta) {
+
+        return redisTemplate.opsForZSet().incrementScore(key, value, delta);
+    }
+
+    /**
+     * 查询value对应的score   zscore
+     *
+     * @param key
+     * @param value
+     * @return
+     */
+    public static Double zScore(RedisTemplate redisTemplate, Object key, Object value) {
+
+        return redisTemplate.opsForZSet().score(key, value);
+    }
+
+    /**
+     * 判断value在zset中的排名  zrank
+     *
+     * @param key
+     * @param value
+     * @return
+     */
+    public static Long zRank(RedisTemplate redisTemplate, Object key, Object value) {
+
+        return redisTemplate.opsForZSet().rank(key, value);
+    }
+
+    /**
+     * 返回集合的长度
+     *
+     * @param key
+     * @return
+     */
+    public static Long zSize(RedisTemplate redisTemplate, Object key) {
+
+        return redisTemplate.opsForZSet().zCard(key);
+    }
+
+    /**
+     * 查询集合中指定顺序的值， 0 -1 表示获取全部的集合内容  zrange
+     *
+     * 返回有序的集合，score小的在前面
+     *
+     * @param key
+     * @param start
+     * @param end
+     * @return
+     */
+    public static Set<Object> zRange(RedisTemplate redisTemplate, Object key, int start, int end) {
+
+        return redisTemplate.opsForZSet().range(key, start, end);
+    }
+    /**
+     * 查询集合中指定顺序的值和score，0, -1 表示获取全部的集合内容
+     *
+     * @param key
+     * @param start
+     * @param end
+     * @return
+     */
+    public static Set<ZSetOperations.TypedTuple<String>> zRangeWithScore(RedisTemplate redisTemplate, Object key, int start, int end) {
+
+        return redisTemplate.opsForZSet().rangeWithScores(key, start, end);
+    }
+    /**
+     * 查询集合中指定顺序的值  zrevrange
+     *
+     * 返回有序的集合中，score大的在前面
+     *
+     * @param key
+     * @param start
+     * @param end
+     * @return
+     */
+    public static Set<String> zRevRange(RedisTemplate redisTemplate, Object key, int start, int end) {
+
+        return redisTemplate.opsForZSet().reverseRange(key, start, end);
+    }
+    /**
+     * 根据score的值，来获取满足条件的集合  zrangebyscore
+     *
+     * @param key
+     * @param min
+     * @param max
+     * @return
+     */
+    public static Set<String> zSortRange(RedisTemplate redisTemplate, Object key, int min, int max) {
+
+        return redisTemplate.opsForZSet().rangeByScore(key, min, max);
+    }
+
 
     //    ============================== Map ==============================
 

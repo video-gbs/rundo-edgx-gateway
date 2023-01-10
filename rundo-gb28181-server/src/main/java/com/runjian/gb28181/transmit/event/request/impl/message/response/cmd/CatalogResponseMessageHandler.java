@@ -152,10 +152,11 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "目录查询回复", "查询过程超时,放弃后续的数据库同步", take.getDevice().getDeviceId());
                                     catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
                                     if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
+                                        //只处理正在执行的通道同步
+
                                         storager.resetChannelsForcatalog(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
                                         catalogData.setStatus(CatalogData.CatalogDataStatus.end);
 
-                                        CatalogData catalogData1 = catalogDataCatch.getData(take.getDevice().getDeviceId());
                                         CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
                                         catalogMqSyncDto.setTotal(catalogData.getTotal());
                                         catalogMqSyncDto.setSucessTotal(catalogData.getChannelList().size());
