@@ -94,9 +94,12 @@ public class MarkConstant {
     public static final String REDIS_USER_ROLE_IDS = "ROLE_IDS";
 
     /******************************mq队列相关***********************************************/
-    //队列订阅
+    //网关与能力层消息 队列订阅
     public static final String  SIGIN_GS= "PUBLIC-GS";
-    //队列发布
+    //网关与能力层消息 队列发布
     public static final String  SIGIN_SG= "PUBLIC-SG";
+
+    //网关与流媒体调度服务 调度名称
+    public static final String  PLAY_CALL_BACK_QUEUE = "playCallBack";
 
 }

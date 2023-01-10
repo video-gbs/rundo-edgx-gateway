@@ -124,3 +124,16 @@ media:
 logging:
     config: classpath:logback-spring-local.xml
 
+mq:
+    enabled: true
+    queue-data-list:
+        - #同流媒体调度服务交互的mq
+        - id: playCallBack
+          routing-key: rundo.meidia.dispatcher.playCallBack
+          queue-name: rundo.meidia.dispatcher.playCallBack
+          exchange-id: GATEWAY-MEDIA-DISPATCHER
+    exchange-data-list:
+        - id: GATEWAY-MEDIA-DISPATCHER
+          name: rundo.meidia.dispatcher
+          type: topic
+

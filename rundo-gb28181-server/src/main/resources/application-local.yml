@@ -184,17 +184,27 @@ response:
 mq:
     enabled: true
     queue-data-list:
+        #同平台能力层服务交互的mq
         - id: PUBLIC-GS
           routing-key: rundo.gateway.public-gs
           queue-name: rundo.gateway.public-gs
           exchange-id: GATEWAY
+        #同平台能力层服务交互的mq
         - id: PUBLIC-SG
           routing-key: rundo.gateway.public-sg
           queue-name: rundo.gateway.public-sg
           exchange-id: GATEWAY
+          #同流媒体调度服务交互的mq
+        - id: playCallBack
+          routing-key: rundo.meidia.dispatcher.playCallBack
+          queue-name: rundo.meidia.dispatcher.playCallBack
+          exchange-id: GATEWAY-MEDIA-DISPATCHER
     exchange-data-list:
         - id: GATEWAY
           name: rundo.gateway
+          type: topic
+        - id: GATEWAY-MEDIA-DISPATCHER
+          name: rundo.meidia.dispatcher
           type: topic
 
 gateway-info:
