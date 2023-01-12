@@ -1,13 +1,11 @@
 package com.runjian.runner;
 
 import com.runjian.common.config.response.CommonResponse;
-import com.runjian.common.constant.GatewayCacheConstants;
-import com.runjian.common.constant.GatewayMsgType;
-import com.runjian.common.constant.GatewayProtocalEnum;
-import com.runjian.common.constant.MarkConstant;
+import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.GatewayMqDto;
 import com.runjian.common.utils.ConstantUtils;
+import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.GatewayInfoConf;
 import com.runjian.conf.SipConfig;
 import com.runjian.conf.SsrcConfig;
@@ -20,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -54,10 +53,13 @@ public class GatewayRunner implements CommandLineRunner {
     @Autowired
     private IRedisCatchStorageService iRedisCatchStorageService;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     @Override
     public void run(String... args) throws Exception {
-        //初始化ssrconfig
-        new SsrcConfig(null, sipConfig.getDomain());
+        //初始化ssrconfig  并使用redis缓存进行统一管理 防止未来集群化调用同一个流媒体使用ssrc推流冲突
+        iRedisCatchStorageService.ssrcInit();
 
         //获取配置并装配
         String ip = sipConfig.getIp();

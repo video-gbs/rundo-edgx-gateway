@@ -51,10 +51,6 @@ public class BaseRtpServerDto {
      */
     private Boolean ssrcCheck = true;
 
-    /**
-     * 默认最大mp4录制时间为10分钟
-     */
-    private int mp4MaxSecond = 600;
 
 
 

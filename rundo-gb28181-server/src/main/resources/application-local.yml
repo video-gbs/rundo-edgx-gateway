@@ -195,16 +195,17 @@ mq:
           queue-name: rundo.gateway.public-sg
           exchange-id: GATEWAY
           #同流媒体调度服务交互的mq
-        - id: playCallBack
-          routing-key: rundo.meidia.dispatcher.playCallBack
-          queue-name: rundo.meidia.dispatcher.playCallBack
-          exchange-id: GATEWAY-MEDIA-DISPATCHER
+        - id: MEDIA
+          #未来需要扩展网关的路由和队列的名称编号 多个相同的网关编号增加!!!!!
+          routing-key: rundo.meidia
+          queue-name: rundo.meidia
+          exchange-id: MEDIA
     exchange-data-list:
         - id: GATEWAY
           name: rundo.gateway
           type: topic
-        - id: GATEWAY-MEDIA-DISPATCHER
-          name: rundo.meidia.dispatcher
+        - id: MEDIA
+          name: rundo.meidia
           type: topic
 
 gateway-info:

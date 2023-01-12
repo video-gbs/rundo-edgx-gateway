@@ -100,7 +100,7 @@ public class MarkConstant {
     public static final String  SIGIN_SG= "PUBLIC-SG";
 
     //网关与流媒体调度服务 调度名称
-    public static final String  PLAY_CALL_BACK_QUEUE = "playCallBack";
+    public static final String  PLAY_CALL_BACK_QUEUE = "MEDIA";
 
 
 

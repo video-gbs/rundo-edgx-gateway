@@ -21,9 +21,10 @@ public class VideoManagerConstants {
 
 	public static final String MEDIA_STREAM_PREFIX = "ZLM_MEDIA_STREAM";
 
-
-
-
 	/**zlm相关  end ****/
 
+	/***ssrc缓存  start****/
+
+	public static final String SSRC_CACHE_KEY = "SSRC_CACHE_KEY_";
+	/***ssrc缓存  end****/
 }

@@ -10,7 +10,6 @@ import java.util.Random;
 import java.util.Set;
 
 @Schema(description = "ssrc信息")
-@Component
 public class SsrcConfig {
 
 
@@ -76,16 +75,27 @@ public class SsrcConfig {
      * 释放ssrc，主要用完的ssrc一定要释放，否则会耗尽
      * @param ssrc 需要重置的ssrc
      */
-    public void releaseSsrc(String ssrc) {
+    public Boolean releaseSsrc(String ssrc) {
+        Boolean result;
         if (ssrc == null) {
-            return;
+            result =  false;
+            return result;
         }
         String sn = ssrc.substring(6);
         try {
-            isUsed.remove(sn);
-            notUsed.add(sn);
+            //判断一下isUsed中是否有该参数
+            if(isUsed.contains(sn)){
+                isUsed.remove(sn);
+                notUsed.add(sn);
+                result = true;
+            }else {
+                result = false;
+            }
+
         }catch (NullPointerException e){
+            result = false;
         }
+        return result;
     }
 
     /**

@@ -26,7 +26,9 @@ public enum GatewayMsgType {
 //    设备信息
     DEVICEINFO("DEVICEINFO"),
 //    设备通道
-    CATALOG("CATALOG")
+    CATALOG("CATALOG"),
+    //点播
+    PLAY("PLAY"),
 
     ;
 
