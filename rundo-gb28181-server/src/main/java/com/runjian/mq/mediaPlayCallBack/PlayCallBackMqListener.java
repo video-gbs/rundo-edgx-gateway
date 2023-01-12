@@ -27,14 +27,14 @@ public class PlayCallBackMqListener implements ChannelAwareMessageListener {
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
         try {
-            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "网关消息监听服务", "接收到返回消息", message);
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "流媒体调度服务消息监听服务", "接收到返回消息", message);
             String msg = new String(message.getBody());
             JSONObject jsonMsg = JSONObject.parseObject(msg);
 
 
 
         }catch (Exception ex){
-            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "网关消息监听服务", "消息接收成功，处理失败", message, ex.getMessage());
+            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "流媒体调度服务监听服务", "消息接收成功，处理失败", message, ex.getMessage());
         }finally {
             // 手动确认消息
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), true);

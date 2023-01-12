@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Primary;
 
 /**
  * @author chenjialing
@@ -28,6 +29,7 @@ public class GatewayInfoMqConfig {
 
     @Bean
     @DependsOn("createExchangeQueue")
+    @Primary
     public SimpleMessageListenerContainer gatewayInfoMqListenerContainer(ConnectionFactory connectionFactory) throws BusinessException {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);

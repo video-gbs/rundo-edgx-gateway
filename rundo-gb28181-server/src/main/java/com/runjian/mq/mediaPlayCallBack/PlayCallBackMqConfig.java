@@ -29,7 +29,7 @@ public class PlayCallBackMqConfig {
 
     @Bean
     @DependsOn("createExchangeQueue")
-    public SimpleMessageListenerContainer gatewayInfoMqListenerContainer(ConnectionFactory connectionFactory) throws BusinessException {
+    public SimpleMessageListenerContainer playCallBackMqListenerContainer(ConnectionFactory connectionFactory) throws BusinessException {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.setQueueNames(rabbitMqProperties.getQueueData(queueName).getQueueName());
