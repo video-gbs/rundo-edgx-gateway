@@ -57,7 +57,7 @@ public class ZlmRunner implements CommandLineRunner {
 
     @Override
     public void run(String... strings) throws Exception {
-        mediaServerService.clearMediaServerForOnline();
+
         MediaServerItem defaultMediaServer = mediaServerService.getDefaultMediaServer();
         if (defaultMediaServer == null) {
             mediaServerService.addToDatabase(mediaConfig.getMediaSerItem());
@@ -65,7 +65,6 @@ public class ZlmRunner implements CommandLineRunner {
             MediaServerItem mediaSerItem = mediaConfig.getMediaSerItem();
             mediaServerService.updateToDatabase(mediaSerItem);
         }
-        mediaServerService.syncCatchFromDatabase();
         HookSubscribeForServerStarted hookSubscribeForServerStarted = HookSubscribeFactory.on_server_started();
         // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
         hookSubscribe.addSubscribe(hookSubscribeForServerStarted,
@@ -89,7 +88,6 @@ public class ZlmRunner implements CommandLineRunner {
         // 获取所有的zlm， 并开启主动连接
         List<MediaServerItem> all = mediaServerService.getAllFromDatabase();
         Map<String, MediaServerItem> allMap = new HashMap<>();
-        mediaServerService.updateVmServer(all);
         if (all.size() == 0) {
             all.add(mediaConfig.getMediaSerItem());
         }
@@ -110,13 +108,7 @@ public class ZlmRunner implements CommandLineRunner {
                 }
                 startGetMedia = null;
             }
-            // 获取redis中所有的zlm
-            List<MediaServerItem> allInRedis = mediaServerService.getAll();
-            for (MediaServerItem mediaServerItem : allInRedis) {
-                if (!allMap.containsKey(mediaServerItem.getId())) {
-                    mediaServerService.delete(mediaServerItem.getId());
-                }
-            }
+
         }, 60 * 1000 );
     }
 
@@ -154,7 +146,7 @@ public class ZlmRunner implements CommandLineRunner {
 
     public ZLMServerConfig getMediaServerConfig(MediaServerItem mediaServerItem) {
         if (startGetMedia == null) { return null;}
-        if (!mediaServerItem.isDefaultServer() && mediaServerService.getOne(mediaServerItem.getId()) == null) {
+        if (!mediaServerItem.isDefaultServer()) {
             return null;
         }
         if ( startGetMedia.get(mediaServerItem.getId()) == null || !startGetMedia.get(mediaServerItem.getId())) {

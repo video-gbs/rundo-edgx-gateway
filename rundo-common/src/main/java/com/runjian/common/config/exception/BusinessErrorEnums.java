@@ -104,6 +104,20 @@ public enum BusinessErrorEnums {
     MEDIA_ZLM_COLLECT_ERROR(500,23300,"流媒体服务连接失败"),
 
 
+    /**************************** 对外api类型异常,PREFIX:模块名 CODE:3xxxx ****************************/
+
+    ACCOUNT_NOT_ENABLED(400,30001, "该用户已被禁用"),
+
+    REQUEST_EXPIRED(400,30002, "该请求鉴权超时，请重新生成鉴权参数"),
+
+    AUTHORIZED_FAILED(400,30003, "鉴权失败"),
+
+
+
+
+
+
+
 
     ;
 

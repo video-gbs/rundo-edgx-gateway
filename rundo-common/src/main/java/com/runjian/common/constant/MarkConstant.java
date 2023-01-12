@@ -102,4 +102,12 @@ public class MarkConstant {
     //网关与流媒体调度服务 调度名称
     public static final String  PLAY_CALL_BACK_QUEUE = "playCallBack";
 
+
+
+
+    /******************************对外api接口参数相关***********************************************/
+    public static final String FOREIGN_AUTHORIZATION = "authorization";
+
+    public static final String FOREIGN_PLATFORM_ID = "platformid";
+
 }

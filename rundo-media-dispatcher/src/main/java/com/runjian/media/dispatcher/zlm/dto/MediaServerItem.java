@@ -83,6 +83,9 @@ public class MediaServerItem {
     @Schema(description = "是否是默认ZLM")
     private boolean defaultServer;
 
+    @Schema(description = "流媒体的类型，zlm和其他")
+    private String type;
+
     @Schema(description = "创建时间")
     private String createAt;
 

@@ -15,15 +15,12 @@ public interface ImediaServerService {
 
     List<MediaServerItem> getAllMediaServer();
 
-    List<MediaServerItem> getAll();
 
     List<MediaServerItem> getAllFromDatabase();
 
-    List<MediaServerItem> getAllOnline();
 
     MediaServerItem getOne(String generalMediaServerId);
 
-    void syncCatchFromDatabase();
 
     /**
      * 新的节点加入
@@ -39,11 +36,9 @@ public interface ImediaServerService {
      */
     void zlmServerOffline(String mediaServerId);
 
-    MediaServerItem getMediaServerForMinimumLoad();
 
     void setZLMConfig(MediaServerItem mediaServerItem, boolean restart);
 
-    void updateVmServer(List<MediaServerItem>  mediaServerItemList);
 
     SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, boolean ssrcCheck, String ssrc,int port);
 
@@ -52,17 +47,14 @@ public interface ImediaServerService {
 
     void closeRTPServer(String mediaServerId, String streamId);
 
-    void clearRTPServer(MediaServerItem mediaServerItem);
+
 
     void update(MediaServerItem mediaSerItem);
 
-    void addCount(String mediaServerId);
 
-    void removeCount(String mediaServerId);
 
-    void releaseSsrc(String mediaServerItemId, String ssrc);
 
-    void clearMediaServerForOnline();
+
 
     void add(MediaServerItem mediaSerItem);
 
@@ -70,13 +62,11 @@ public interface ImediaServerService {
 
     int updateToDatabase(MediaServerItem mediaSerItem);
 
-    void resetOnlineServerItem(MediaServerItem serverItem);
 
     MediaServerItem checkMediaServer(String ip, int port, String secret);
 
     boolean checkMediaRecordServer(String ip, int port);
 
-    void delete(String id);
 
     void deleteDb(String id);
 

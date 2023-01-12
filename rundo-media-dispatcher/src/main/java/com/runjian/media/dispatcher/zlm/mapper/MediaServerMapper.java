@@ -24,32 +24,35 @@ public interface MediaServerMapper {
     @Lang(SimpleUpdateExtendedLanguageDriver.class)
     int update(MediaServerItem mediaServerItem);
 
-    @Update("UPDATE "+MEDIA_SERVER_TABLE_NAME+" (#{mediaServerItem}) where ip= #{ip} and httpPort=#{httpPort}")
+    @Update("UPDATE "+MEDIA_SERVER_TABLE_NAME+" (#{mediaServerItem}) where ip= #{ip} and httpPort=#{httpPort} and type=\"zlm\"")
     @Lang(SimpleUpdateExtendedLanguageDriver.class)
     int updateByHostAndPort(MediaServerItem mediaServerItem);
 
     @Select("SELECT * FROM "+MEDIA_SERVER_TABLE_NAME+" WHERE id=#{id}")
     MediaServerItem queryOne(String id);
 
-    @Select("SELECT * FROM "+MEDIA_SERVER_TABLE_NAME+"")
+    @Select("SELECT * FROM "+MEDIA_SERVER_TABLE_NAME+" WHERE  type=\"zlm\"")
     List<MediaServerItem> queryAll();
 
     @Delete("DELETE FROM "+MEDIA_SERVER_TABLE_NAME+" WHERE id=#{id}")
     void delOne(String id);
 
-    @Select("DELETE FROM "+MEDIA_SERVER_TABLE_NAME+" WHERE ip=#{host} and httpPort=#{port}")
+    @Select("DELETE FROM "+MEDIA_SERVER_TABLE_NAME+" WHERE ip=#{host} and httpPort=#{port} and type=\"zlm\"")
     void delOneByIPAndPort(String host, int port);
 
-    @Delete("DELETE FROM "+MEDIA_SERVER_TABLE_NAME+" WHERE default_server=1")
+    @Delete("DELETE FROM "+MEDIA_SERVER_TABLE_NAME+" WHERE default_server=1 and type=\"zlm\"")
     int delDefault();
 
-    @Select("SELECT * FROM "+MEDIA_SERVER_TABLE_NAME+" WHERE ip=#{host} and http_port=#{port}")
+    @Select("SELECT * FROM "+MEDIA_SERVER_TABLE_NAME+" WHERE ip=#{host} and http_port=#{port} and type=\"zlm\"")
     MediaServerItem queryOneByHostAndPort(String host, int port);
 
-    @Select("SELECT * FROM "+MEDIA_SERVER_TABLE_NAME+" WHERE default_server=1")
+    @Select("SELECT * FROM "+MEDIA_SERVER_TABLE_NAME+" WHERE default_server=1 and type=\"zlm\"")
     MediaServerItem queryDefault();
 
 
-    @Select("SELECT * FROM "+MEDIA_SERVER_TABLE_NAME+" WHERE default_server=1 and id=#{id}")
+    @Select("SELECT * FROM "+MEDIA_SERVER_TABLE_NAME+" WHERE  id=#{id}")
     MediaServerItem queryOneDefault(String id);
+
+    @Select("SELECT * FROM "+MEDIA_SERVER_TABLE_NAME+" WHERE type=\"zlm\" and status=1")
+    MediaServerItem queryOneOnline();
 }

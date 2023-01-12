@@ -325,12 +325,11 @@ public class ZLMHttpHookListener {
 		if(regist){
 			//流注册成功，通知网关进行封装相关的拉流地址
 			//负载均衡分数增加
-			mediaServerService.addCount(mediaServerId);
+
 			//todo 回调通知网关
 		}else {
 			//流注册失败，通知网关进行推拉流的关闭；  如该流有级联，同时向上级级联平台发送BYE
 			//负载均衡分数减少
-			mediaServerService.removeCount(mediaServerId);
 			//todo 回调通知网关
 
 		}
