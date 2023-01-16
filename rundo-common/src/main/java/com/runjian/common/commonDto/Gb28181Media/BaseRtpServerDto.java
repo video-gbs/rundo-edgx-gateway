@@ -38,10 +38,6 @@ public class BaseRtpServerDto {
     private Integer port;
 
     /**
-     * 默认不录制mp4视频
-     */
-    private Boolean enableMp4 = false;
-    /**
      * 默认不开启音频
      */
     private Boolean enableAudio = false;

@@ -88,4 +88,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     public void cleanChannelsForDevice(String deviceId) {
         deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
     }
+
+    @Override
+    public DeviceChannel getOne(String deviceId, String channelId) {
+        return deviceChannelMapper.queryChannelsByDeviceIdAndChannelId(deviceId, channelId);
+    }
 }

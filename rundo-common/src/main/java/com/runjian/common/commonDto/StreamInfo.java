@@ -6,8 +6,6 @@ import lombok.Data;
 public class StreamInfo {
 
 
-    private String app;
-
     private String stream;
 
     private String deviceID;
@@ -15,9 +13,6 @@ public class StreamInfo {
     private String channelId;
 
     private String flv;
-
-
-    private String ip;
 
     private String https_flv;
 
@@ -27,27 +22,27 @@ public class StreamInfo {
 
     private String fmp4;
 
-    private String https_fmp4;
+    private String httpsFmp4;
 
-    private String ws_fmp4;
+    private String wsFmp4;
 
-    private String wss_fmp4;
+    private String wssFmp4;
 
     private String hls;
 
-    private String https_hls;
+    private String httpsHls;
 
-    private String ws_hls;
+    private String wsHls;
 
-    private String wss_hls;
+    private String wssHls;
 
     private String ts;
 
-    private String https_ts;
+    private String httpsTs;
 
-    private String ws_ts;
+    private String wsTs;
 
-    private String wss_ts;
+    private String wssTs;
 
     private String rtmp;
 
@@ -59,27 +54,9 @@ public class StreamInfo {
 
     private String rtc;
 
-
     private String rtcs;
 
-    private String mediaServerId;
-
-    private Object tracks;
-
-    private String startTime;
-
-    private String endTime;
-
-    private double progress;
 
 
-    private boolean pause;
-
-    public static class TransactionInfo{
-        public String callId;
-        public String localTag;
-        public String remoteTag;
-        public String branch;
-    }
 
 }

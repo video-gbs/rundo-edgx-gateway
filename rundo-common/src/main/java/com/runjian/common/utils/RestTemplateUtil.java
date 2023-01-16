@@ -1,9 +1,11 @@
 package com.runjian.common.utils;
 
+import com.runjian.common.config.response.CommonResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -15,6 +17,31 @@ import java.util.Map;
  */
 @Slf4j
 public class RestTemplateUtil {
+
+
+    public static CommonResponse postReturnCommonrespons(String url, Object obj, RestTemplate restTemplate) {
+        if (StringUtils.isEmpty(url) || ObjectUtils.isEmpty(obj)) {
+            return null;
+        }
+        long startTime = System.currentTimeMillis();
+
+        try {
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity httpEntity = new HttpEntity(obj, httpHeaders);
+            ResponseEntity<CommonResponse> responseEntity = restTemplate.postForEntity(url, httpEntity, CommonResponse.class);
+            long endTime = System.currentTimeMillis();
+            log.info("post-json, 请求地址={}, 耗时={} ms, 参数={}, 响应信息={}", url,
+                    (endTime - startTime), obj.toString(), responseEntity.getBody());
+            if (responseEntity.getStatusCodeValue() == HttpStatus.OK.value()) {
+                return responseEntity.getBody();
+            }
+        } catch (Exception e) {
+            log.error("post-json error, 请求地址={}, 耗时={} ms, 参数={}, 失败信息={}", url,
+                    (System.currentTimeMillis() - startTime), obj.toString(), e.getMessage());
+        }
+        return null;
+    }
 
     /**
      * post请求(json格式)

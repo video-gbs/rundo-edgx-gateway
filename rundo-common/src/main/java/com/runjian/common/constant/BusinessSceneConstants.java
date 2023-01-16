@@ -15,4 +15,6 @@ public class BusinessSceneConstants {
     public static final String  DEVICE_INFO_SCENE_KEY= "device_info_scene_key:";
 
     public static final String  SCENE_SEM_KEY= ":";
+
+    public static final String  SCENE_STREAM_KEY= "_";
 }

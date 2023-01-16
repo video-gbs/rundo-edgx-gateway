@@ -87,4 +87,7 @@ public interface DeviceChannelMapper {
     @Lang(SimpleUpdateExtendedLanguageDriver.class)
     int update(DeviceChannel deviceChannel);
 
+    @Select("SELECT * FROM "+DEVICE_CHANNEL_TABLE_NAME+" WHERE device_id=#{deviceId} and channel_id=#{channelId}")
+    DeviceChannel queryChannelsByDeviceIdAndChannelId(String deviceId,String channelId);
+
 }

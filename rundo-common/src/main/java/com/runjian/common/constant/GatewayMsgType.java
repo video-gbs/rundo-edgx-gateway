@@ -22,13 +22,13 @@ public enum GatewayMsgType {
 
 //    设备相关消息  start
 //    设备注册
-    REGISTER("REGISTER"),
+    REGISTER("DEVICE_SIGN_IN"),
 //    设备信息
-    DEVICEINFO("DEVICEINFO"),
+    DEVICEINFO("DEVICE_SYNC"),
 //    设备通道
-    CATALOG("CATALOG"),
+    CATALOG("CHANNEL_SYNC"),
     //点播
-    PLAY("PLAY"),
+    PLAY("CHANNEL_PLAY"),
 
     ;
 

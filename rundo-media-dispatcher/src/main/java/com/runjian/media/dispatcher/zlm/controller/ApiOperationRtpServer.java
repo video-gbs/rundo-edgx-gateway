@@ -1,12 +1,12 @@
 package com.runjian.media.dispatcher.zlm.controller;
 
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
+import com.runjian.common.commonDto.Gb28181Media.CloseRtpServerDto;
+import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.validator.ValidatorService;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
-import com.runjian.media.dispatcher.zlm.dto.SSRCInfo;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -30,13 +30,24 @@ public class ApiOperationRtpServer {
      * 创建推流的端口
      */
     @PostMapping(value = "/media/openRtpServer",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    public CommonResponse<SSRCInfo> openRtpServer(@RequestBody BaseRtpServerDto baseRtpServerDto){
+    public CommonResponse<SsrcInfo> openRtpServer(@RequestBody BaseRtpServerDto baseRtpServerDto){
         validatorService.validateRequest(baseRtpServerDto);
         //获取zlm流媒体配置
         MediaServerItem defaultMediaServer = imediaServerService.getDefaultMediaServer();
 
-        SSRCInfo ssrcInfo = imediaServerService.openRTPServer(defaultMediaServer, baseRtpServerDto.getStreamId(), baseRtpServerDto.getSsrcCheck(), baseRtpServerDto.getSsrc(), baseRtpServerDto.getPort());
+        SsrcInfo ssrcInfo = imediaServerService.openRTPServer(defaultMediaServer, baseRtpServerDto.getStreamId(), baseRtpServerDto.getSsrcCheck(), baseRtpServerDto.getSsrc(), baseRtpServerDto.getPort());
 
-        return ssrcInfo;
+        return CommonResponse.success(ssrcInfo);
+    }
+
+    /**
+     * 创建推流的端口
+     */
+    @PostMapping(value = "/media/closeRtpServer",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<Boolean> closeRtpServer(@RequestBody CloseRtpServerDto closeRtpServerDto){
+        validatorService.validateRequest(closeRtpServerDto);
+        //获取zlm流媒体配置
+
+        return CommonResponse.success(imediaServerService.closeRTPServer(closeRtpServerDto.getMediaServerId(), closeRtpServerDto.getStreamId()));
     }
 }

@@ -10,6 +10,10 @@ import lombok.Data;
 public class PlayReq {
 
     /**
+     * 流传输模式
+     */
+    String streamMode;
+    /**
      * 设备id
      */
     String deviceId;
@@ -25,5 +29,8 @@ public class PlayReq {
      * 是否ssrc校验
      */
     Boolean ssrcCheck = true;
-
+    /**
+     * 业务消息id
+     */
+    String msgId;
 }

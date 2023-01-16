@@ -21,6 +21,8 @@ public class VideoManagerConstants {
 
 	public static final String MEDIA_STREAM_PREFIX = "ZLM_MEDIA_STREAM";
 
+	public static final String MEDIA_TRANSACTION_USED_PREFIX = "ZLM_MEDIA_TRANSACTION_";
+
 	/**zlm相关  end ****/
 
 	/***ssrc缓存  start****/

@@ -1,5 +1,7 @@
 package com.runjian.service;
 
+import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.domain.GatewayMqDto;
 import com.runjian.conf.SsrcConfig;
 
@@ -30,5 +32,13 @@ public interface IRedisCatchStorageService {
     Boolean ssrcRelease(String ssrc);
 
     SsrcConfig getSsrcConfig();
+
+    /**
+     * 操作业务场景的redis修改
+     * @param businessSceneKey
+     * @param gatewayMsgType
+     * @param data
+     */
+    void editBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums, Object data);
 
 }

@@ -1,5 +1,6 @@
 package com.runjian.gb28181.transmit.cmd;
 
+import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.conf.exception.SsrcTransactionNotFoundException;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceAlarm;
@@ -328,4 +329,5 @@ public interface ISIPCommander {
 	 */
 	void sendAlarmMessage(Device device, DeviceAlarm deviceAlarm) throws InvalidArgumentException, SipException, ParseException;
 
+	public void playStreamCmd(String streamMode,SsrcInfo ssrcInfo, Device device, String channelId, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
 }

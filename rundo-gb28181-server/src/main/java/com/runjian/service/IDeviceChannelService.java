@@ -21,4 +21,12 @@ public interface IDeviceChannelService {
      * @param deviceId
      */
     void cleanChannelsForDevice(String deviceId);
+
+    /**
+     * 获取一个通道
+     * @param deviceId
+     * @param channelId
+     * @return
+     */
+    DeviceChannel getOne(String deviceId,String channelId);
 }

@@ -3,19 +3,17 @@ package com.runjian.media.dispatcher.zlm.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.constant.VideoManagerConstants;
-import com.runjian.common.utils.DateUtils;
-import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.DynamicTask;
+import com.runjian.media.dispatcher.conf.MediaConfig;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.zlm.ZLMRESTfulUtils;
 import com.runjian.media.dispatcher.zlm.ZLMRTPServerFactory;
 import com.runjian.media.dispatcher.zlm.ZLMServerConfig;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
-import com.runjian.media.dispatcher.zlm.dto.SSRCInfo;
 import com.runjian.media.dispatcher.zlm.event.publisher.EventPublisher;
 import com.runjian.media.dispatcher.zlm.mapper.MediaServerMapper;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
@@ -34,7 +32,6 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -83,8 +80,9 @@ public class MediaServerServiceImpl implements ImediaServerService {
 
 
 
+
     @Override
-    public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, boolean ssrcCheck, String ssrc,int port) {
+    public SsrcInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, boolean ssrcCheck, String ssrc, int port) {
         if (mediaServerItem == null || mediaServerItem.getId() == null) {
             return null;
         }
@@ -100,23 +98,25 @@ public class MediaServerServiceImpl implements ImediaServerService {
             // streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
             rtpServerPort = mediaServerItem.getRtpProxyPort();
         }
-        return new SSRCInfo(rtpServerPort, ssrc, streamId);
+        SsrcInfo ssrcInfo = new SsrcInfo(rtpServerPort, ssrc, streamId,mediaServerItem.getId());
+        ssrcInfo.setSdpIp(mediaServerItem.getSdpIp());
+        return ssrcInfo;
     }
 
 
 
     @Override
-    public void closeRTPServer(MediaServerItem mediaServerItem, String streamId) {
+    public Boolean closeRTPServer(MediaServerItem mediaServerItem, String streamId) {
         if (mediaServerItem == null) {
-            return;
+            return false;
         }
-        zlmrtpServerFactory.closeRTPServer(mediaServerItem, streamId);
+        return zlmrtpServerFactory.closeRTPServer(mediaServerItem, streamId);
     }
 
     @Override
-    public void closeRTPServer(String mediaServerId, String streamId) {
+    public Boolean closeRTPServer(String mediaServerId, String streamId) {
         MediaServerItem mediaServerItem = this.getOne(mediaServerId);
-        closeRTPServer(mediaServerItem, streamId);
+        return  closeRTPServer(mediaServerItem, streamId);
     }
 
 

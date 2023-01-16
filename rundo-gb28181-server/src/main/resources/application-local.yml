@@ -179,6 +179,11 @@ response:
     exclude-url: "/v3/api-docs,/api/v1,/index/hook,/api-sse"
 
 
+mdeia-api-uri-list:
+    open-rtp-server: "/api/media/openRtpServer"
+    close-rtp-server: "/api/media/closeRtpServer"
+
+
 
 
 mq:

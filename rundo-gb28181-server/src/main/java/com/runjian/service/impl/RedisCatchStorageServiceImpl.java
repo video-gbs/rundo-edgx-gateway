@@ -1,10 +1,10 @@
 package com.runjian.service.impl;
 
 
-import com.runjian.common.constant.GatewayCacheConstants;
-import com.runjian.common.constant.GatewayMsgType;
-import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.constant.VideoManagerConstants;
+import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.common.constant.*;
 import com.runjian.common.mq.domain.GatewayMqDto;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.SipConfig;
@@ -106,5 +106,14 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     @Override
     public SsrcConfig getSsrcConfig() {
         return  (SsrcConfig)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.SSRC_CACHE_KEY+sipConfig.getDomain());
+    }
+
+    @Override
+    public void editBusinessSceneKey(String businessSceneKey,GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums,Object data) {
+
+        String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey);
+        BusinessSceneResp businessSceneResp = JSONObject.parseObject(businessSceneString, BusinessSceneResp.class);
+        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(gatewayMsgType, businessErrorEnums, businessSceneResp.getMsgId(),businessSceneResp.getThreadId(),businessSceneResp.getTime(),data);
+        RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
     }
 }

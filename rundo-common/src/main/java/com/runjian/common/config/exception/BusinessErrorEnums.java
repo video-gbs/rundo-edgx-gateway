@@ -99,9 +99,17 @@ public enum BusinessErrorEnums {
     //通道同步失败
     SIP_CATALOG_EXCEPTION(500,232006,"通道同步失败异常"),
 
+    DB_NOT_FOUND(500,232007,"数据查找失败"),
+
+    CHANNEL_OFFLINE(500,232008,"通道处于离线状态"),
+
+    DB_DEVICE_NOT_FOUND(500,232009,"设备数据查找失败"),
     /************************** media异常 CODE:233xx ****************************/
     MEDIA_ZLM_EXSITED_ERROR(500,23300,"流媒体服务已存在"),
-    MEDIA_ZLM_COLLECT_ERROR(500,23300,"流媒体服务连接失败"),
+    MEDIA_ZLM_COLLECT_ERROR(500,23301,"流媒体服务连接失败"),
+    MEDIA_SERVER_COLLECT_ERROR(500,23302,"流媒体调用服务连接失败"),
+    MEDIA_ZLM_RTPSERVER_CREATE_ERROR(500,23303,"流媒体ZLM推流端口创建失败"),
+    MEDIA_SERVER_BIND_ERROR(500,23304,"流媒体服务暂未绑定网关"),
 
 
     /**************************** 对外api类型异常,PREFIX:模块名 CODE:3xxxx ****************************/
