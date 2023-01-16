@@ -20,6 +20,7 @@ import com.runjian.domain.dto.DeviceDto;
 import com.runjian.domain.req.PlayReq;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceChannel;
+import com.runjian.gb28181.bean.SsrcTransaction;
 import com.runjian.gb28181.session.VideoStreamSessionManager;
 import com.runjian.gb28181.transmit.cmd.impl.SIPCommander;
 import com.runjian.service.IDeviceChannelService;
@@ -122,8 +123,15 @@ public class PlayServiceImpl implements IplayService {
                 return;
             }
 
-            //todo 复用流判断
+            // 复用流判断
+            SsrcTransaction isPlay = streamSession.getSsrcTransaction(playReq.getDeviceId(), playReq.getChannelId(), "play", null);
+            if(ObjectUtils.isEmpty(isPlay)){
+                //拼接streamd的流返回值 封装返回请求体
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播成功，流已存在", playReq);
 
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.SUCCESS,null);
+                return;
+            }
             //收流端口创建
             BaseRtpServerDto baseRtpServerDto = new BaseRtpServerDto();
             baseRtpServerDto.setDeviceId(playReq.getDeviceId());
