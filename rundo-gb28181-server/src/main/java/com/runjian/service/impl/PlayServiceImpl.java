@@ -183,14 +183,7 @@ public class PlayServiceImpl implements IplayService {
                 //失败业务处理
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播失败", playReq);
                 //关闭推流端口
-                CloseRtpServerDto closeRtpServerDto = new CloseRtpServerDto();
-                closeRtpServerDto.setMediaServerId(ssrcInfo.getMediaServerId());
-                closeRtpServerDto.setStreamId(ssrcInfo.getStreamId());
-                CommonResponse closeResponse = RestTemplateUtil.postReturnCommonrespons(mediaServerInfoConfig.getMediaUrl() + closeRtpServerApi, closeRtpServerDto, restTemplate);
-                if(closeResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
-                    //后续这zlm也会进行关闭该端口
-                    log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "关闭推流端口失败", closeResponse);
-                }
+                closeGb28181RtpServer(ssrcInfo);
                 //剔除缓存
                 streamSession.removeSsrcTransaction(device.getDeviceId(), playReq.getChannelId(), ssrcInfo.getStreamId());
                 //释放ssrc
@@ -289,16 +282,22 @@ public class PlayServiceImpl implements IplayService {
 
             }
             //关闭推流端口
-            CloseRtpServerDto closeRtpServerDto = new CloseRtpServerDto();
-            closeRtpServerDto.setMediaServerId(ssrcInfo.getMediaServerId());
-            closeRtpServerDto.setStreamId(ssrcInfo.getStreamId());
-            CommonResponse closeResponse = RestTemplateUtil.postReturnCommonrespons(mediaServerInfoConfig.getMediaUrl() + closeRtpServerApi, closeRtpServerDto, restTemplate);
-            if(closeResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
-                //后续这zlm也会进行关闭该端口
-                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "关闭推流端口失败", closeResponse);
-            }
+            closeGb28181RtpServer(ssrcInfo);
+            //剔除缓存
+            streamSession.removeSsrcTransaction(device.getDeviceId(), channelId, ssrcInfo.getStreamId());
 
 
+        }
+    }
+
+    private void closeGb28181RtpServer(SsrcInfo ssrcInfo) {
+        CloseRtpServerDto closeRtpServerDto = new CloseRtpServerDto();
+        closeRtpServerDto.setMediaServerId(ssrcInfo.getMediaServerId());
+        closeRtpServerDto.setStreamId(ssrcInfo.getStreamId());
+        CommonResponse closeResponse = RestTemplateUtil.postReturnCommonrespons(mediaServerInfoConfig.getMediaUrl() + closeRtpServerApi, closeRtpServerDto, restTemplate);
+        if(closeResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
+            //后续这zlm也会进行关闭该端口
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "关闭推流端口失败", closeResponse);
         }
     }
 }
