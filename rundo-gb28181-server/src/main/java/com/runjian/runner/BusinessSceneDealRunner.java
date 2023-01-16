@@ -9,6 +9,7 @@ import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
+import com.runjian.service.IplayService;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.Redisson;
 import org.redisson.api.RLock;
@@ -43,6 +44,9 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
     @Autowired
     GatewayBusinessAsyncSender gatewayBusinessAsyncSender;
 
+    @Autowired
+    IplayService iplayService;
+
     @Async
     @Override
     public void run(String... args) throws Exception {
@@ -75,6 +79,11 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                     lock.unlockAsync(threadId);
                     //删除跟踪完毕的消息
                     RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey);
+
+                    //针对点播失败的异常场景，需要：1.自行释放ssrc和2.删除相关的缓存，3.判断是否需要进行设备指令的bye和4.流媒体推流端口的关闭
+                    if(businessSceneResp.getGatewayMsgType().equals(GatewayMsgType.PLAY)){
+                        iplayService.playBusinessErrorScene(entrykey,businessSceneResp);
+                    }
                     //异步处理消息的mq发送
                     gatewayBusinessAsyncSender.sendforAllScene(businessSceneResp);
 

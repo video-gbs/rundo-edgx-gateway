@@ -96,6 +96,7 @@ public enum BusinessErrorEnums {
     SIP_DEVICE_NOTFOUND_EVENT(500,232004,"设备未找到"),
 
     SIP_SEND_EXCEPTION(500,232005,"sip信令发送失败"),
+
     //通道同步失败
     SIP_CATALOG_EXCEPTION(500,232006,"通道同步失败异常"),
 
@@ -104,6 +105,9 @@ public enum BusinessErrorEnums {
     CHANNEL_OFFLINE(500,232008,"通道处于离线状态"),
 
     DB_DEVICE_NOT_FOUND(500,232009,"设备数据查找失败"),
+
+    SIP_SEND_SUCESS(500,232010,"sip信令发送成功"),
+
     /************************** media异常 CODE:233xx ****************************/
     MEDIA_ZLM_EXSITED_ERROR(500,23300,"流媒体服务已存在"),
     MEDIA_ZLM_COLLECT_ERROR(500,23301,"流媒体服务连接失败"),

@@ -16,5 +16,7 @@ public class BusinessSceneConstants {
 
     public static final String  SCENE_SEM_KEY= ":";
 
-    public static final String  SCENE_STREAM_KEY= "_";
+    public static final String  SCENE_STREAM_KEY= "-";
+
+    public static final String  SCENE_STREAM_SPLICE_KEY= "_";
 }

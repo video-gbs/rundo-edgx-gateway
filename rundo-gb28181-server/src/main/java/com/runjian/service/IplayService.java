@@ -1,5 +1,7 @@
 package com.runjian.service;
 
+import com.runjian.common.commonDto.StreamInfo;
+import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.domain.req.PlayReq;
 
 public interface IplayService {
@@ -11,9 +13,13 @@ public interface IplayService {
     public void play(PlayReq playReq);
 
     /**
-     * 流注册/注销处理
+     * 流注册事件
+     * @param streamInfo
+     * @param msgId
      */
-    public void onStreamChanges();
+    public void onStreamChanges(StreamInfo streamInfo,String msgId);
 
     public void onStreamNoneReader();
+
+    public void playBusinessErrorScene(String businessKey, BusinessSceneResp businessSceneResp);
 }

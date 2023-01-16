@@ -9,6 +9,7 @@ import com.runjian.conf.exception.SsrcTransactionNotFoundException;
 import com.runjian.domain.dto.MediaServerItem;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceAlarm;
+import com.runjian.gb28181.bean.SsrcTransaction;
 import com.runjian.gb28181.event.SipSubscribe;
 import com.runjian.gb28181.transmit.SIPSender;
 import com.runjian.gb28181.transmit.cmd.ISIPCommander;
@@ -82,19 +83,17 @@ public class SIPCommander implements ISIPCommander {
 
     }
 
+
     @Override
     public void fronEndCmd(Device device, String channelId, String cmdString, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
 
     }
 
-    @Override
-    public void streamByeCmd(Device device, String channelId, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
-
-    }
 
     @Override
-    public void streamByeCmd(Device device, String channelId, String stream, String callId) throws InvalidArgumentException, ParseException, SipException, SsrcTransactionNotFoundException {
-
+    public void streamByeCmd(SsrcTransaction ssrcTransaction,Device device,String channelId,SipSubscribe.Event errorEvent) throws InvalidArgumentException, ParseException, SipException {
+        Request byteRequest = headerProvider.createByteRequest(device, channelId, ssrcTransaction.getSipTransactionInfo());
+        sipSender.transmitRequest( byteRequest, errorEvent, null);
     }
 
     @Override
