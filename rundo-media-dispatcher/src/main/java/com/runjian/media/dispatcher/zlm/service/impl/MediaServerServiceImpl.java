@@ -4,15 +4,20 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.SsrcInfo;
+import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.constant.VideoManagerConstants;
 import com.runjian.media.dispatcher.conf.DynamicTask;
 import com.runjian.media.dispatcher.conf.MediaConfig;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.zlm.ZLMRESTfulUtils;
 import com.runjian.media.dispatcher.zlm.ZLMRTPServerFactory;
 import com.runjian.media.dispatcher.zlm.ZLMServerConfig;
+import com.runjian.media.dispatcher.zlm.ZlmHttpHookSubscribe;
+import com.runjian.media.dispatcher.zlm.dto.HookSubscribeFactory;
+import com.runjian.media.dispatcher.zlm.dto.HookSubscribeForStreamChange;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
 import com.runjian.media.dispatcher.zlm.event.publisher.EventPublisher;
 import com.runjian.media.dispatcher.zlm.mapper.MediaServerMapper;
@@ -78,6 +83,8 @@ public class MediaServerServiceImpl implements ImediaServerService {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private ZlmHttpHookSubscribe subscribe;
 
 
 
@@ -86,6 +93,18 @@ public class MediaServerServiceImpl implements ImediaServerService {
         if (mediaServerItem == null || mediaServerItem.getId() == null) {
             return null;
         }
+        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.GB28181_APP, streamId, true, VideoManagerConstants.GB28181_SCHEAM, mediaServerItem.getId());
+        subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
+            //流注册处理  发送指定mq消息
+            logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm推流成功", "收到推流订阅消息", json.toJSONString());
+            //拼接拉流的地址
+            String pushStreamId = json.getString("stream");
+            StreamInfo streamInfoByAppAndStream = getStreamInfoByAppAndStream(mediaServerItem, VideoManagerConstants.GB28181_APP, pushStreamId);
+            //todo 进行点播成功返回  通知网关mq
+
+            // hook响应
+            subscribe.removeSubscribe(hookSubscribe);
+        });
 
         if (streamId == null) {
             streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
@@ -94,7 +113,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
         if (mediaServerItem.isRtpEnable()) {
             rtpServerPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck?Integer.parseInt(ssrc):0, port);
         } else {
-            // todo 查看这个方法
+            // todo 暂时不考虑单端口服用的情况
             // streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
             rtpServerPort = mediaServerItem.getRtpProxyPort();
         }
@@ -470,5 +489,42 @@ public class MediaServerServiceImpl implements ImediaServerService {
     public void removeMediaServer(String id) {
 
         deleteDb(id);
+    }
+
+    public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream) {
+        StreamInfo streamInfoResult = new StreamInfo();
+        streamInfoResult.setStream(stream);
+        String addr = mediaInfo.getStreamIp();
+        streamInfoResult.setMediaServerId(mediaInfo.getId());
+        streamInfoResult.setRtmp(String.format("rtmp://%s:%s/%s/%s", addr, mediaInfo.getRtmpPort(), app,  stream));
+        if (mediaInfo.getRtmpSslPort() != 0) {
+            streamInfoResult.setRtmps(String.format("rtmps://%s:%s/%s/%s", addr, mediaInfo.getRtmpSslPort(), app,  stream));
+        }
+        streamInfoResult.setRtsp(String.format("rtsp://%s:%s/%s/%s", addr, mediaInfo.getRtspPort(), app,  stream));
+        if (mediaInfo.getRtspSslPort() != 0) {
+            streamInfoResult.setRtsps(String.format("rtsps://%s:%s/%s/%s", addr, mediaInfo.getRtspSslPort(), app,  stream));
+        }
+        streamInfoResult.setFlv(String.format("http://%s:%s/%s/%s.live.flv", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setWsFlv(String.format("ws://%s:%s/%s/%s.live.flv", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setHls(String.format("http://%s:%s/%s/%s/hls.m3u8", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setWsHls(String.format("ws://%s:%s/%s/%s/hls.m3u8", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setFmp4(String.format("http://%s:%s/%s/%s.live.mp4", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setWsFmp4(String.format("ws://%s:%s/%s/%s.live.mp4", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setTs(String.format("http://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setWsTs(String.format("ws://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setRtc(String.format("http://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play", mediaInfo.getStreamIp(), mediaInfo.getHttpPlayPort(), app,  stream));
+        if (mediaInfo.getHttpSslPort() != 0) {
+            streamInfoResult.setHttpsFlv(String.format("https://%s:%s/%s/%s.live.flv", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setWssFlv(String.format("wss://%s:%s/%s/%s.live.flv", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setHttpsHls(String.format("https://%s:%s/%s/%s/hls.m3u8", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setWssHls(String.format("wss://%s:%s/%s/%s/hls.m3u8", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setHttpsFmp4(String.format("https://%s:%s/%s/%s.live.mp4", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setWssFmp4(String.format("wss://%s:%s/%s/%s.live.mp4", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setHttpsTs(String.format("https://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setWssTs(String.format("wss://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setRtcs(String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play", mediaInfo.getStreamIp(), mediaInfo.getHttpSslPort(), app,  stream);
+        }
+
+        return streamInfoResult;
     }
 }

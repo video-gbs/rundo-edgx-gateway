@@ -193,12 +193,22 @@ public class PlayServiceImpl implements IplayService {
             });
 
         }catch (Exception e){
-
-
+            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播失败", playReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.UNKNOWN_ERROR,null);
         }
 
         return;
 
+
+    }
+
+    @Override
+    public void onStreamChanges() {
+
+    }
+
+    @Override
+    public void onStreamNoneReader() {
 
     }
 }

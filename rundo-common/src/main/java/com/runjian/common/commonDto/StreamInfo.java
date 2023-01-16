@@ -2,23 +2,22 @@ package com.runjian.common.commonDto;
 
 import lombok.Data;
 
+/**
+ * @author chenjialing
+ */
 @Data
 public class StreamInfo {
 
 
     private String stream;
 
-    private String deviceID;
-
-    private String channelId;
-
     private String flv;
 
-    private String https_flv;
+    private String httpsFlv;
 
-    private String ws_flv;
+    private String wsFlv;
 
-    private String wss_flv;
+    private String wssFlv;
 
     private String fmp4;
 
@@ -55,6 +54,8 @@ public class StreamInfo {
     private String rtc;
 
     private String rtcs;
+
+    private String mediaServerId;
 
 
 

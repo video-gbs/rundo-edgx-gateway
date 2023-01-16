@@ -23,6 +23,14 @@ public class VideoManagerConstants {
 
 	public static final String MEDIA_TRANSACTION_USED_PREFIX = "ZLM_MEDIA_TRANSACTION_";
 
+
+	public static final String GB28181_APP = "rtp";
+
+	public static final String GB28181_SCHEAM = "rtsp";
+
+
+
+
 	/**zlm相关  end ****/
 
 	/***ssrc缓存  start****/
