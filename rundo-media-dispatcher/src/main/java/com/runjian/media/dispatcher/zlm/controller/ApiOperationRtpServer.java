@@ -2,7 +2,9 @@ package com.runjian.media.dispatcher.zlm.controller;
 
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.CloseRtpServerDto;
+import com.runjian.common.commonDto.Gb28181Media.RtpInfoDto;
 import com.runjian.common.commonDto.SsrcInfo;
+import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.validator.ValidatorService;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
@@ -41,7 +43,7 @@ public class ApiOperationRtpServer {
     }
 
     /**
-     * 创建推流的端口
+     * 关闭推流的端口
      */
     @PostMapping(value = "/media/closeRtpServer",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> closeRtpServer(@RequestBody CloseRtpServerDto closeRtpServerDto){
@@ -49,5 +51,17 @@ public class ApiOperationRtpServer {
         //获取zlm流媒体配置
 
         return CommonResponse.success(imediaServerService.closeRTPServer(closeRtpServerDto.getMediaServerId(), closeRtpServerDto.getStreamId()));
+    }
+
+    //查看流是否存在
+    /**
+     *  查看流是否存在
+     */
+    @PostMapping(value = "/media/getRtpInfo",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<StreamInfo> getRtpServer(@RequestBody RtpInfoDto rtpInfoDto){
+        validatorService.validateRequest(rtpInfoDto);
+        //获取zlm流媒体配置
+
+        return CommonResponse.success(imediaServerService.getRtpInfo(rtpInfoDto.getMediaServerId(), rtpInfoDto.getStreamId(),rtpInfoDto.getApp()));
     }
 }

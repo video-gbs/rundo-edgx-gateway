@@ -2,6 +2,7 @@ package com.runjian.media.dispatcher.zlm.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.SsrcInfo;
+import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.media.dispatcher.zlm.ZLMServerConfig;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
 import java.util.List;
@@ -51,7 +52,7 @@ public interface ImediaServerService {
     void update(MediaServerItem mediaSerItem);
 
 
-
+    StreamInfo getRtpInfo(String mediaServerId, String streamId,String app);
 
 
 

@@ -182,6 +182,7 @@ response:
 mdeia-api-uri-list:
     open-rtp-server: "/api/media/openRtpServer"
     close-rtp-server: "/api/media/closeRtpServer"
+    get-rtp-server: "/api/media/getRtpServer"
 
 
 

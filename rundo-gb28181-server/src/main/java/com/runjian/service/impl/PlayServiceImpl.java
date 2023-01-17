@@ -3,6 +3,7 @@ package com.runjian.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.CloseRtpServerDto;
+import com.runjian.common.commonDto.Gb28181Media.RtpInfoDto;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
@@ -11,6 +12,7 @@ import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.BusinessSceneConstants;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.constant.VideoManagerConstants;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.RestTemplateUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
@@ -80,6 +82,9 @@ public class PlayServiceImpl implements IplayService {
     @Value("${mdeia-api-uri-list.close-rtp-server}")
     private String closeRtpServerApi;
 
+    @Value("${mdeia-api-uri-list.get-rtp-server}")
+    private String getRtpServerApi;
+
     @Autowired
     RestTemplate restTemplate;
 
@@ -130,13 +135,33 @@ public class PlayServiceImpl implements IplayService {
             }
 
             // 复用流判断
-            SsrcTransaction isPlay = streamSession.getSsrcTransaction(playReq.getDeviceId(), playReq.getChannelId(), "play", null);
-            if(!ObjectUtils.isEmpty(isPlay)){
+            SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(playReq.getDeviceId(), playReq.getChannelId(), "play", null);
+            if(!ObjectUtils.isEmpty(ssrcTransaction)){
                 //拼接streamd的流返回值 封装返回请求体
                 log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播成功，流已存在", playReq);
+                //进行流媒体中流的判断
+                RtpInfoDto rtpInfoDto = new RtpInfoDto();
+                rtpInfoDto.setApp(VideoManagerConstants.GB28181_APP);
+                rtpInfoDto.setMediaServerId(ssrcTransaction.getMediaServerId());
+                rtpInfoDto.setStreamId(ssrcTransaction.getStream());
+                CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(mediaServerInfoConfig.getMediaUrl() + openRtpServerApi, rtpInfoDto, restTemplate);
+                if(commonResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
+                    log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "zlm连接失败", commonResponse);
 
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.SUCCESS,null);
-                return;
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.MEDIA_SERVER_COLLECT_ERROR,null);
+                    return;
+                }else {
+                    if(ObjectUtils.isEmpty(commonResponse.getData())){
+                        //流实际已经不存在 ，接着点播即可
+                        streamSession.removeSsrcTransaction(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
+                    }else {
+                        //流存在 直接返回流封装的地址信息
+                        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.SUCCESS,commonResponse.getData());
+                        return;
+
+                    }
+                }
+
             }
             //收流端口创建
             BaseRtpServerDto baseRtpServerDto = new BaseRtpServerDto();

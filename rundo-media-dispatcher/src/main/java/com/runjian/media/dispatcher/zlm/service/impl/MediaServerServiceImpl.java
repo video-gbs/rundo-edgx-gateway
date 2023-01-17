@@ -522,9 +522,24 @@ public class MediaServerServiceImpl implements ImediaServerService {
             streamInfoResult.setWssFmp4(String.format("wss://%s:%s/%s/%s.live.mp4", addr, mediaInfo.getHttpSslPort(), app,  stream));
             streamInfoResult.setHttpsTs(String.format("https://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpSslPort(), app,  stream));
             streamInfoResult.setWssTs(String.format("wss://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpSslPort(), app,  stream));
-            streamInfoResult.setRtcs(String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play", mediaInfo.getStreamIp(), mediaInfo.getHttpSslPort(), app,  stream);
+            streamInfoResult.setRtcs(String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play", mediaInfo.getStreamIp(), mediaInfo.getHttpSslPort(), app,  stream));
         }
 
         return streamInfoResult;
+    }
+
+    @Override
+    public StreamInfo getRtpInfo(String mediaServerId, String streamId,String app) {
+        MediaServerItem mediaInfo = this.getOne(mediaServerId);
+        StreamInfo streamInfo = new StreamInfo();
+        if(ObjectUtils.isEmpty(mediaInfo)){
+            return streamInfo;
+        }
+        JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaInfo, streamId);
+        if(rtpInfo.getInteger("code") == 0){
+            streamInfo = getStreamInfoByAppAndStream(mediaInfo, streamId, app);
+        }
+        return streamInfo;
+
     }
 }
