@@ -37,6 +37,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
@@ -231,6 +232,7 @@ public class PlayServiceImpl implements IplayService {
 
     }
 
+    @Async("taskExecutor")
     @Override
     public void playBusinessErrorScene(String businessKey,BusinessSceneResp businessSceneResp) {
         //点播相关的key的组合条件
@@ -247,7 +249,7 @@ public class PlayServiceImpl implements IplayService {
             String channelId = businessKey.substring(channelStart);
             Object data = businessSceneResp.getData();
             if(ObjectUtils.isEmpty(data)){
-                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "错误场景处理失败,缓存信息异常", businessSceneResp);
+                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "错误点播场景处理失败,缓存信息异常", businessSceneResp);
             }
             //判断缓存是否存在
             //1.自行释放ssrc和2.删除相关的缓存，3.设备指令的bye和4.流媒体推流端口的关闭
@@ -255,13 +257,13 @@ public class PlayServiceImpl implements IplayService {
             SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(deviceId, channelId, "null", ssrcInfo.getStreamId());
             if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
                 //todo 重要，缓存异常，点播失败需要人工介入
-                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "错误场景处理失败,点播缓存异常", businessSceneResp);
+                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "错误点播场景处理失败,点播缓存异常", businessSceneResp);
                 return;
             }
             DeviceDto deviceDto = deviceService.getDevice(deviceId);
             if(ObjectUtils.isEmpty(deviceDto)){
                 //todo 重要，缓存异常，点播失败需要人工介入
-                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "错误场景处理失败,设备信息未找到", businessSceneResp);
+                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "错误点播场景处理失败,设备信息未找到", businessSceneResp);
             }
             Device device = new Device();
             BeanUtil.copyProperties(deviceDto,device);
