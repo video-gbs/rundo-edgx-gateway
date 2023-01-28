@@ -346,6 +346,7 @@ public class ZLMHttpHookListener {
 			// 拉流代理
 
 		}
+		//todo 根据上层的判断进行是否进行无人观看的拉流关闭
 		return ret;
 	}
 	

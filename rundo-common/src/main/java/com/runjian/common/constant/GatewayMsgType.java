@@ -29,6 +29,12 @@ public enum GatewayMsgType {
     CATALOG("CHANNEL_SYNC"),
     //点播
     PLAY("CHANNEL_PLAY"),
+    //回放
+    PLAY_BACK("CHANNEL_PLAYBACK"),
+    //停播
+    STOP_PLAY("CHANNEL_STOP_PLAY"),
+    //云台控制
+    PTZ_CONTROL("CHANNEL_PTZ_CONTROL"),
 
     /********调度服务相关*************/
     //流注册

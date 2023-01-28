@@ -22,4 +22,6 @@ public interface IplayService {
     public void onStreamNoneReader();
 
     public void playBusinessErrorScene(String businessKey, BusinessSceneResp businessSceneResp);
+
+    void streamBye(String streamId,String msgId);
 }

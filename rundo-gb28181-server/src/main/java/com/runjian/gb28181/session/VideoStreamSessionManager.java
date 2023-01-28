@@ -99,4 +99,7 @@ public class VideoStreamSessionManager {
 		RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + MarkConstant.MARK_SPLIT_SEMICOLON +  deviceId + MarkConstant.MARK_SPLIT_SYMBOL + channelId + MarkConstant.MARK_SPLIT_SYMBOL + ssrcTransaction.getCallId() + MarkConstant.MARK_SPLIT_SYMBOL + stream);
 	}
 
+	public void removeSsrcTransaction(SsrcTransaction ssrcTransaction) {
+		RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + MarkConstant.MARK_SPLIT_SEMICOLON +  ssrcTransaction.getDeviceId() + MarkConstant.MARK_SPLIT_SYMBOL + ssrcTransaction.getChannelId() + MarkConstant.MARK_SPLIT_SYMBOL + ssrcTransaction.getCallId() + MarkConstant.MARK_SPLIT_SYMBOL + ssrcTransaction.getStream());
+	}
 }
