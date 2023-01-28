@@ -4,6 +4,7 @@ import lombok.Data;
 
 /**
  * 网关信息注册返回
+ * @author chenjialing
  */
 @Data
 public class GatewaySignInRsp {

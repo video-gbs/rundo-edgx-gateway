@@ -3,11 +3,13 @@ package com.runjian.media.dispatcher.zlm.controller;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.CloseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.RtpInfoDto;
+import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.validator.ValidatorService;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
+import com.runjian.media.dispatcher.zlm.service.IGatewayBindService;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +29,22 @@ public class ApiOperationRtpServer {
     ImediaServerService imediaServerService;
 
     @Autowired
+    IGatewayBindService gatewayBindService;
+
+    @Autowired
     private ValidatorService validatorService;
+
+    /**
+     *
+     */
+    @PostMapping(value = "/media/gatwayBind",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<SsrcInfo> gaetwayBind(@RequestBody GatewayBindReq gatewayBindReq){
+        validatorService.validateRequest(gatewayBindReq);
+        gatewayBindService.edit(gatewayBindReq);
+
+        return CommonResponse.success();
+    }
+
     /**
      * 创建推流的端口
      */

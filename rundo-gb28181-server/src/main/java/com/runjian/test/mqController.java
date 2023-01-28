@@ -52,7 +52,7 @@ public class mqController {
     @RequestMapping("addListener")
     public void addListener(@RequestParam String queueName) {
 
-        Long gatewayId = gatewaySignInConf.getGatewayId();
+        gatewaySignInConf.getGatewayId();
         String[] strings = container.getQueueNames();
         List<String> list= Arrays.asList(strings);
         if (!list.contains(queueName)) {

@@ -6,8 +6,10 @@ import com.runjian.media.dispatcher.zlm.dto.dao.GatewayBind;
 import com.runjian.media.dispatcher.zlm.mapper.GatewayBindMapper;
 import com.runjian.media.dispatcher.zlm.service.IGatewayBindService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+@Service
 public class GatewayBindServiceImpl implements IGatewayBindService {
     @Autowired
     GatewayBindMapper gatewayBindMapper;

@@ -18,7 +18,7 @@ public class GatewaySignInConf {
     /**
      * 网关id
      */
-    private Long gatewayId;
+    private String gatewayId;
 
     /**
      * 注册类型 MQ RESTFUL
@@ -31,12 +31,12 @@ public class GatewaySignInConf {
     private String mqExchange;
 
     /**
-     * 发送消息 --客户端监听队列
+     * 发送消息 --网关监听队列
      */
     private String mqSetQueue;
 
     /**
-     * 监听消息 --客户端发送队列
+     * 监听消息 --网关发送队列
      */
     private String mqGetQueue;
 }

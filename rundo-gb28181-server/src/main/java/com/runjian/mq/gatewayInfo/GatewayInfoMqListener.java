@@ -3,6 +3,7 @@ package com.runjian.mq.gatewayInfo;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.rabbitmq.client.Channel;
+import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.GatewayMsgType;
@@ -74,6 +75,8 @@ public class GatewayInfoMqListener implements ChannelAwareMessageListener {
                 GatewayInfoSignInEvent gatewayInfoSignInEvent = new GatewayInfoSignInEvent(this);
                 gatewayInfoSignInEvent.setGatewaySignInRsp(gatewaySignInRsp);
                 applicationEventPublisher.publishEvent(gatewayInfoSignInEvent);
+
+
 
             }else if(msgType.equals(GatewayMsgType.HEARTBEAT.getTypeName())) {
                 //心跳todo  暂时不处理
