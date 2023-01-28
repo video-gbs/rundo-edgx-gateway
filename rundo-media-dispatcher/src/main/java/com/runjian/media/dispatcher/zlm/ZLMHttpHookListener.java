@@ -4,6 +4,7 @@ import java.util.*;
 import java.text.ParseException;
 import com.alibaba.fastjson.JSON;
 import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
+import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.GatewayMqDto;
@@ -174,7 +175,16 @@ public class ZLMHttpHookListener {
 		ret.put("enable_hls", true);
 
 		//todo 判断是否录制mp4 以及是否开启音频
-
+		BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ+BusinessSceneConstants.SCENE_SEM_KEY+stream);
+		if(ObjectUtils.isEmpty(baseRtpServerDto)){
+			//缓存不存在或则推流超时了
+			logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"on_publish API调用","rtpserver信息缓存不存在",json);
+			ret.put("code", 1);
+			ret.put("msg", "rtpServer not exists");
+		}else {
+			//正常推流，判断是否开启音频
+			ret.put("enable_audio", baseRtpServerDto.getEnableAudio());
+		}
 		if ("rtp".equals(app)) {
 
 			//todo 判断是否要进行级联推流

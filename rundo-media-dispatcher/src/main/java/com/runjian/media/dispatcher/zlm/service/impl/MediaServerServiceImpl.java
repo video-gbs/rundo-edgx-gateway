@@ -8,13 +8,11 @@ import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.exception.BusinessException;
-import com.runjian.common.constant.GatewayCacheConstants;
-import com.runjian.common.constant.GatewayMsgType;
-import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.constant.VideoManagerConstants;
+import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.GatewayMqDto;
 import com.runjian.common.utils.UuidUtil;
+import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.DynamicTask;
 import com.runjian.media.dispatcher.conf.MediaConfig;
 import com.runjian.media.dispatcher.conf.UserSetting;
@@ -114,6 +112,9 @@ public class MediaServerServiceImpl implements ImediaServerService {
         String ssrc = baseRtpServerDto.getSsrc();
         Boolean ssrcCheck = baseRtpServerDto.getSsrcCheck();
         Integer port = baseRtpServerDto.getPort();
+        //缓存相关的请求参数
+        RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_RTP_SERVER_REQ+ BusinessSceneConstants.SCENE_SEM_KEY+baseRtpServerDto.getStreamId(),baseRtpServerDto,5);
+
 
         HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.GB28181_APP, baseRtpServerDto.getStreamId(), true, VideoManagerConstants.GB28181_SCHEAM, mediaServerItem.getId());
         subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
