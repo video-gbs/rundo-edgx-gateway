@@ -80,9 +80,52 @@ public class SIPCommander implements ISIPCommander {
 
     @Override
     public void frontEndCmd(Device device, String channelId, int cmdCode, int parameter1, int parameter2, int combineCode2) throws SipException, InvalidArgumentException, ParseException {
+        String cmdStr = frontEndCmdString(cmdCode, parameter1, parameter2, combineCode2);
+        StringBuffer ptzXml = new StringBuffer(200);
+        String charset = device.getCharset();
+        ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
+        ptzXml.append("<Control>\r\n");
+        ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
+        ptzXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        ptzXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+        ptzXml.append("<PTZCmd>" + cmdStr + "</PTZCmd>\r\n");
+        ptzXml.append("<Info>\r\n");
+        ptzXml.append("<ControlPriority>5</ControlPriority>\r\n");
+        ptzXml.append("</Info>\r\n");
+        ptzXml.append("</Control>\r\n");
 
+
+
+
+        SIPRequest request = (SIPRequest) headerProvider.createMessageRequest(device, ptzXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(device.getTransport()));
+        sipSender.transmitRequest(request);
     }
 
+    /**
+     * 云台指令码计算
+     *
+     * @param cmdCode      指令码
+     * @param parameter1   数据1
+     * @param parameter2   数据2
+     * @param combineCode2 组合码2
+     */
+    public static String frontEndCmdString(int cmdCode, int parameter1, int parameter2, int combineCode2) {
+        StringBuilder builder = new StringBuilder("A50F01");
+        String strTmp;
+        strTmp = String.format("%02X", cmdCode);
+        builder.append(strTmp, 0, 2);
+        strTmp = String.format("%02X", parameter1);
+        builder.append(strTmp, 0, 2);
+        strTmp = String.format("%02X", parameter2);
+        builder.append(strTmp, 0, 2);
+        strTmp = String.format("%X", combineCode2);
+        builder.append(strTmp, 0, 1).append("0");
+        //计算校验码
+        int checkCode = (0XA5 + 0X0F + 0X01 + cmdCode + parameter1 + parameter2 + (combineCode2 & 0XF0)) % 0X100;
+        strTmp = String.format("%02X", checkCode);
+        builder.append(strTmp, 0, 2);
+        return builder.toString();
+    }
 
     @Override
     public void fronEndCmd(Device device, String channelId, String cmdString, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
