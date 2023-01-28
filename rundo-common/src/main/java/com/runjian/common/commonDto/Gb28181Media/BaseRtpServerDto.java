@@ -12,10 +12,10 @@ import javax.validation.constraints.NotNull;
 public class BaseRtpServerDto {
 
     /**
-     * 未来消息同时的mq的路由key
+     * 网关的id
      */
-    @NotNull(message = "路由key不得为null")
-    private String mqRouteKey;
+    @NotNull(message = "网关的id")
+    private String gatewayId;
 
     @NotNull(message = "流id不得为null")
     private String streamId;

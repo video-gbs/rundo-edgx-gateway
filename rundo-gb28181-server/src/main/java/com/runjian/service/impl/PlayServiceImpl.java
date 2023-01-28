@@ -174,7 +174,6 @@ public class PlayServiceImpl implements IplayService {
             }
             baseRtpServerDto.setStreamId(playReq.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_SPLICE_KEY+playReq.getChannelId());
             //todo 待定这个流程 判断观看的服务到底是哪里进行判断
-            baseRtpServerDto.setMqRouteKey(mediaServerInfoConfig.getMqRoutingKey());
             CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(mediaServerInfoConfig.getMediaUrl() + openRtpServerApi, baseRtpServerDto, restTemplate);
             if(commonResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "创建推流端口失败", commonResponse);

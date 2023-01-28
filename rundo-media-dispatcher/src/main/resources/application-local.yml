@@ -128,7 +128,7 @@ mq:
     enabled: true
     queue-data-list:
         - #同流媒体调度服务交互的mq
-        - id: playCallBack
+        - id: mediaCallBack
           routing-key: rundo.meidia.dispatcher.playCallBack
           queue-name: rundo.meidia.dispatcher.playCallBack
           exchange-id: GATEWAY-MEDIA-DISPATCHER

@@ -5,6 +5,7 @@ import java.text.ParseException;
 import com.alibaba.fastjson.JSON;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.MarkConstant;
+import com.runjian.common.constant.VideoManagerConstants;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.zlm.dto.*;
@@ -337,7 +338,7 @@ public class ZLMHttpHookListener {
 		ret.put("code", 0);
 		// 录像下载
 		ret.put("close", userSetting.getStreamOnDemand());
-		if ("rtp".equals(app)){
+		if (VideoManagerConstants.GB28181_APP.equals(app)){
 			// 国标流， 点播/录像回放/录像下载
 
 		}else {

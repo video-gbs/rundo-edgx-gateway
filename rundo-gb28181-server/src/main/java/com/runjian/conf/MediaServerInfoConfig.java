@@ -15,7 +15,7 @@ public class MediaServerInfoConfig {
 
     private String mqRoutingKey;
 
-    private String mqQueueName;
+    private String mqExchange;
 
     private String sdpIp;
 

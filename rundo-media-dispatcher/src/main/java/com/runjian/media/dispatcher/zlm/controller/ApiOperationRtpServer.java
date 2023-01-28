@@ -37,7 +37,7 @@ public class ApiOperationRtpServer {
         //获取zlm流媒体配置
         MediaServerItem defaultMediaServer = imediaServerService.getDefaultMediaServer();
 
-        SsrcInfo ssrcInfo = imediaServerService.openRTPServer(defaultMediaServer, baseRtpServerDto.getStreamId(), baseRtpServerDto.getSsrcCheck(), baseRtpServerDto.getSsrc(), baseRtpServerDto.getPort());
+        SsrcInfo ssrcInfo = imediaServerService.openRTPServer(defaultMediaServer, baseRtpServerDto);
 
         return CommonResponse.success(ssrcInfo);
     }

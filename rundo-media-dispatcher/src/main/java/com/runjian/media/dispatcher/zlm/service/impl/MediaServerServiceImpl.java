@@ -3,12 +3,14 @@ package com.runjian.media.dispatcher.zlm.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.VideoManagerConstants;
+import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.media.dispatcher.conf.DynamicTask;
 import com.runjian.media.dispatcher.conf.MediaConfig;
 import com.runjian.media.dispatcher.conf.UserSetting;
@@ -21,6 +23,7 @@ import com.runjian.media.dispatcher.zlm.dto.HookSubscribeForStreamChange;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
 import com.runjian.media.dispatcher.zlm.event.publisher.EventPublisher;
 import com.runjian.media.dispatcher.zlm.mapper.MediaServerMapper;
+import com.runjian.media.dispatcher.zlm.service.IGatewayBindService;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -86,14 +89,25 @@ public class MediaServerServiceImpl implements ImediaServerService {
     @Autowired
     private ZlmHttpHookSubscribe subscribe;
 
+    @Autowired
+    RabbitMqSender rabbitMqSender;
+
+    @Autowired
+    IGatewayBindService gatewayBindService;
+
 
 
     @Override
-    public SsrcInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, boolean ssrcCheck, String ssrc, int port) {
+    public SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto) {
         if (mediaServerItem == null || mediaServerItem.getId() == null) {
             return null;
         }
-        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.GB28181_APP, streamId, true, VideoManagerConstants.GB28181_SCHEAM, mediaServerItem.getId());
+        String streamId = baseRtpServerDto.getStreamId();
+        String ssrc = baseRtpServerDto.getSsrc();
+        Boolean ssrcCheck = baseRtpServerDto.getSsrcCheck();
+        Integer port = baseRtpServerDto.getPort();
+
+        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.GB28181_APP, baseRtpServerDto.getStreamId(), true, VideoManagerConstants.GB28181_SCHEAM, mediaServerItem.getId());
         subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
             //流注册处理  发送指定mq消息
             logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm推流成功", "收到推流订阅消息", json.toJSONString());
@@ -101,7 +115,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
             String pushStreamId = json.getString("stream");
             StreamInfo streamInfoByAppAndStream = getStreamInfoByAppAndStream(mediaServerItem, VideoManagerConstants.GB28181_APP, pushStreamId);
             //todo 进行点播成功返回  通知网关mq
-
+//            rabbitMqSender.sendMsgByExchange();
             // hook响应
             subscribe.removeSubscribe(hookSubscribe);
         });

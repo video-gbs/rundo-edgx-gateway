@@ -1,6 +1,7 @@
 package com.runjian.media.dispatcher.zlm.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.media.dispatcher.zlm.ZLMServerConfig;
@@ -39,8 +40,13 @@ public interface ImediaServerService {
 
     void setZLMConfig(MediaServerItem mediaServerItem, boolean restart);
 
-
-    SsrcInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, boolean ssrcCheck, String ssrc, int port);
+    /**
+     * 创建端口
+     * @param mediaServerItem
+     * @param baseRtpServerDto
+     * @return
+     */
+    SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto);
 
 
     Boolean closeRTPServer(MediaServerItem mediaServerItem, String streamId);
