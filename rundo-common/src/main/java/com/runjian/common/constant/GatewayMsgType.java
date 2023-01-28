@@ -20,7 +20,7 @@ public enum GatewayMsgType {
     HEARTBEAT("HEARTBEAT"),
 
 
-//    设备相关消息  start
+    /********设备通道服务相关*************/
 //    设备注册
     REGISTER("DEVICE_SIGN_IN"),
 //    设备信息
@@ -29,6 +29,16 @@ public enum GatewayMsgType {
     CATALOG("CHANNEL_SYNC"),
     //点播
     PLAY("CHANNEL_PLAY"),
+
+    /********调度服务相关*************/
+    //流注册
+    PLAY_STREAM_CALLBACK("PLAY_STREAM_CALLBACK"),
+    //流无人观看
+    PLAY_NONE_STREAM_READER_CALLBACK("PLAY_NONE_STREAM_READER_CALLBACK"),
+
+
+    /******调度服务相关*************/
+
 
     ;
 

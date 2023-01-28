@@ -1,20 +1,15 @@
 package com.runjian.mq.gatewayBusiness.asyncSender;
 
-import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.GatewayMqDto;
-import com.runjian.common.utils.redis.RedisCommonUtil;
-import com.runjian.conf.GatewayInfoConf;
 import com.runjian.conf.mq.GatewaySignInConf;
 import com.runjian.gb28181.bean.CatalogData;
 import com.runjian.gb28181.bean.Device;
-import com.runjian.gb28181.bean.DeviceChannel;
-import com.runjian.gb28181.bean.HandlerCatchData;
 import com.runjian.gb28181.session.CatalogDataCatch;
 import com.runjian.service.IRedisCatchStorageService;
-import com.runjian.utils.UuidUtil;
+import com.runjian.common.utils.UuidUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,8 +19,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**

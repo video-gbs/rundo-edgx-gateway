@@ -1,4 +1,4 @@
-package com.runjian.utils;
+package com.runjian.common.utils;
 
 import java.util.UUID;
 

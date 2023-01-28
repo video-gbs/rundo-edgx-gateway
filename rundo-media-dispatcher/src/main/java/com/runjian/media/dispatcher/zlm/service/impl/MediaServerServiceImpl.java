@@ -8,9 +8,13 @@ import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.exception.BusinessException;
+import com.runjian.common.constant.GatewayCacheConstants;
+import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.VideoManagerConstants;
 import com.runjian.common.mq.RabbitMqSender;
+import com.runjian.common.mq.domain.GatewayMqDto;
+import com.runjian.common.utils.UuidUtil;
 import com.runjian.media.dispatcher.conf.DynamicTask;
 import com.runjian.media.dispatcher.conf.MediaConfig;
 import com.runjian.media.dispatcher.conf.UserSetting;
@@ -21,9 +25,11 @@ import com.runjian.media.dispatcher.zlm.ZlmHttpHookSubscribe;
 import com.runjian.media.dispatcher.zlm.dto.HookSubscribeFactory;
 import com.runjian.media.dispatcher.zlm.dto.HookSubscribeForStreamChange;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
+import com.runjian.media.dispatcher.zlm.dto.dao.GatewayBind;
 import com.runjian.media.dispatcher.zlm.event.publisher.EventPublisher;
 import com.runjian.media.dispatcher.zlm.mapper.MediaServerMapper;
 import com.runjian.media.dispatcher.zlm.service.IGatewayBindService;
+import com.runjian.media.dispatcher.zlm.service.IRedisCatchStorageService;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -95,6 +101,8 @@ public class MediaServerServiceImpl implements ImediaServerService {
     @Autowired
     IGatewayBindService gatewayBindService;
 
+    @Autowired
+    IRedisCatchStorageService redisCatchStorageService;
 
 
     @Override
@@ -115,7 +123,16 @@ public class MediaServerServiceImpl implements ImediaServerService {
             String pushStreamId = json.getString("stream");
             StreamInfo streamInfoByAppAndStream = getStreamInfoByAppAndStream(mediaServerItem, VideoManagerConstants.GB28181_APP, pushStreamId);
             //todo 进行点播成功返回  通知网关mq
-//            rabbitMqSender.sendMsgByExchange();
+            GatewayBind gatewayBind = gatewayBindService.findOne(baseRtpServerDto.getGatewayId());
+            if(ObjectUtils.isEmpty(gatewayBind)){
+                logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"zlm回调点播成功异常","网关绑定异常",baseRtpServerDto);
+            }else {
+
+                GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_STREAM_CALLBACK.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null, baseRtpServerDto.getGatewayId());
+
+                rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
+
+            }
             // hook响应
             subscribe.removeSubscribe(hookSubscribe);
         });
