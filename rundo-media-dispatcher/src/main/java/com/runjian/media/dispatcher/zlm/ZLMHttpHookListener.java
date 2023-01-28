@@ -3,17 +3,18 @@ package com.runjian.media.dispatcher.zlm;
 import java.util.*;
 import java.text.ParseException;
 import com.alibaba.fastjson.JSON;
-import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.constant.MarkConstant;
-import com.runjian.common.constant.VideoManagerConstants;
+import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
+import com.runjian.common.constant.*;
+import com.runjian.common.mq.RabbitMqSender;
+import com.runjian.common.mq.domain.GatewayMqDto;
+import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.zlm.dto.*;
+import com.runjian.media.dispatcher.zlm.dto.dao.GatewayBind;
 import com.runjian.media.dispatcher.zlm.dto.hook.OnRtpServerTimeoutHookParam;
 import com.runjian.media.dispatcher.zlm.event.publisher.EventPublisher;
-import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
-import com.runjian.media.dispatcher.zlm.service.ImediaService;
-import com.runjian.media.dispatcher.zlm.service.IplayService;
+import com.runjian.media.dispatcher.zlm.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,34 +41,8 @@ public class ZLMHttpHookListener {
 
 
 	@Autowired
-	private IplayService playService;
-
-//	@Autowired
-//	private IVideoManagerStorage storager;
-//
-//	@Autowired
-//	private IRedisCatchStorage redisCatchStorage;
-//
-//	@Autowired
-//	private IDeviceService deviceService;
-
-	@Autowired
 	private ImediaServerService mediaServerService;
 
-//	@Autowired
-//	private IStreamProxyService streamProxyService;
-//
-//	@Autowired
-//	private IStreamPushService streamPushService;
-
-	@Autowired
-	private ImediaService mediaService;
-
-	@Autowired
-	private EventPublisher eventPublisher;
-
-	 @Autowired
-	 private ZLMMediaListManager zlmMediaListManager;
 
 	@Autowired
 	private ZlmHttpHookSubscribe subscribe;
@@ -75,24 +50,18 @@ public class ZLMHttpHookListener {
 	@Autowired
 	private UserSetting userSetting;
 
-//	@Autowired
-//	private VideoStreamSessionManager sessionManager;
+	@Autowired
+	IRedisCatchStorageService redisCatchStorageService;
+	@Autowired
+	RabbitMqSender rabbitMqSender;
 
 	@Autowired
-	private StringRedisTemplate stringRedisTemplate;
-
-
-
-//	@Autowired
-//	private RecordExportService recordExportService;
-
+	IGatewayBindService gatewayBindService;
 
 	@Qualifier("taskExecutor")
 	@Autowired
 	private ThreadPoolTaskExecutor taskExecutor;
 
-//	@Autowired
-//	private UserAuthService userAuthService;
 
 	@Autowired
 	private RedisTemplate redisTemplate;
@@ -347,6 +316,19 @@ public class ZLMHttpHookListener {
 
 		}
 		//todo 根据上层的判断进行是否进行无人观看的拉流关闭
+		NoneStreamReaderReq noneStreamReaderReq = new NoneStreamReaderReq();
+		noneStreamReaderReq.setApp(app);
+		noneStreamReaderReq.setMediaServerId(mediaServerId);
+		noneStreamReaderReq.setSchema(json.getString("schema"));
+		noneStreamReaderReq.setStreamId(streamId);
+		//获取绑定的网关信息 根据流媒体id
+		GatewayBind gatewayBind = gatewayBindService.findOneByMediaId(mediaServerId);
+		if(!ObjectUtils.isEmpty(gatewayBind)){
+			GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_NONE_STREAM_READER_CALLBACK.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null, gatewayBind.getGatewayId());
+			mqInfo.setData(noneStreamReaderReq);
+			rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
+		}
+
 		return ret;
 	}
 	

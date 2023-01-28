@@ -20,4 +20,11 @@ public interface IGatewayBindService {
      * @return
      */
     GatewayBind findOne(String gatewayId);
+
+    /**
+     * 查找网关信息
+     * @param mediaServerId
+     * @return
+     */
+    GatewayBind findOneByMediaId(String mediaServerId);
 }

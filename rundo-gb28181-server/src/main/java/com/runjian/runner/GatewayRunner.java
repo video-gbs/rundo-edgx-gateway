@@ -4,6 +4,7 @@ import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.GatewayMqDto;
 import com.runjian.common.utils.ConstantUtils;
+import com.runjian.common.utils.UuidUtil;
 import com.runjian.conf.GatewayInfoConf;
 import com.runjian.conf.SipConfig;
 import com.runjian.dao.GatewayInfoMapper;
@@ -78,6 +79,6 @@ public class GatewayRunner implements CommandLineRunner {
         dataRes.setData(config);
         dataRes.setTime(LocalDateTime.now());
         //消息组装
-        rabbitMqSender.sendMsg(MarkConstant.SIGIN_SG,  ""+Instant.now().toEpochMilli() + ConstantUtils.RANDOM_UTIL.nextInt(100), dataRes, true);
+        rabbitMqSender.sendMsg(MarkConstant.SIGIN_SG, UuidUtil.toUuid(), dataRes, true);
     }
 }

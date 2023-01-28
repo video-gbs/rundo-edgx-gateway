@@ -129,7 +129,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
             }else {
 
                 GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_STREAM_CALLBACK.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null, baseRtpServerDto.getGatewayId());
-
+                mqInfo.setData(streamInfoByAppAndStream);
                 rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
 
             }

@@ -42,4 +42,11 @@ public interface GatewayBindMapper {
     @Select("SELECT * FROM "+GATEWAY_BIND_TABLE_NAME+" WHERE gateway_id=#{gatewayId}")
     GatewayBind queryOneByGatewayId(String gatewayId);
 
+    /**
+     * 通过网关id获取信息
+     * @param mediaServerId
+     * @return
+     */
+    @Select("SELECT * FROM "+GATEWAY_BIND_TABLE_NAME+" WHERE media_server_id=#{mediaServerId}")
+    GatewayBind queryOneByMediaServerId(String mediaServerId);
 }

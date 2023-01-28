@@ -1,5 +1,6 @@
 package com.runjian.service;
 
+import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.domain.req.PlayReq;
@@ -19,7 +20,11 @@ public interface IplayService {
      */
     public void onStreamChanges(StreamInfo streamInfo,String msgId);
 
-    public void onStreamNoneReader();
+    /**
+     * 无人观看处理
+     * @param noneStreamReaderReq
+     */
+    public void onStreamNoneReader(NoneStreamReaderReq noneStreamReaderReq);
 
     public void playBusinessErrorScene(String businessKey, BusinessSceneResp businessSceneResp);
 

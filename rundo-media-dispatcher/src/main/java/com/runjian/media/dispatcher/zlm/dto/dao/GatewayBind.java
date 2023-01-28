@@ -16,6 +16,8 @@ public class GatewayBind {
 
     private String gatewayId;
 
+    private String mediaServerId;
+
     private String mqExchange;
 
     private String mqRouteKey;
