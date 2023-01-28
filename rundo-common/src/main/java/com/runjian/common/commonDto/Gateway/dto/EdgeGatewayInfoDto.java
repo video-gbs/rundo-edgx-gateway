@@ -1,7 +1,6 @@
-package com.runjian.domain.dto;
+package com.runjian.common.commonDto.Gateway.dto;
 
 import lombok.Data;
-import org.springframework.boot.test.web.server.LocalServerPort;
 
 /**
  * 网关的信息

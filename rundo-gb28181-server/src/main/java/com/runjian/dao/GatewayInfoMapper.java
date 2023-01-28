@@ -3,7 +3,7 @@ package com.runjian.dao;
 
 import com.runjian.conf.dao.SimpleInsertExtendedLanguageDriver;
 import com.runjian.conf.dao.SimpleUpdateExtendedLanguageDriver;
-import com.runjian.domain.dto.EdgeGatewayInfoDto;
+import com.runjian.common.commonDto.Gateway.dto.EdgeGatewayInfoDto;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 

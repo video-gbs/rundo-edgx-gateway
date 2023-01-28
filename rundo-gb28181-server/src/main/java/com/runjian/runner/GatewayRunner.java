@@ -3,12 +3,11 @@ package com.runjian.runner;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.GatewayMqDto;
-import com.runjian.common.utils.ConstantUtils;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.conf.GatewayInfoConf;
 import com.runjian.conf.SipConfig;
 import com.runjian.dao.GatewayInfoMapper;
-import com.runjian.domain.dto.EdgeGatewayInfoDto;
+import com.runjian.common.commonDto.Gateway.dto.EdgeGatewayInfoDto;
 import com.runjian.service.IRedisCatchStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +16,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 
 /**

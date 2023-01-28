@@ -1,6 +1,6 @@
 package com.runjian.conf;
 
-import com.runjian.domain.dto.EdgeGatewayInfoDto;
+import com.runjian.common.commonDto.Gateway.dto.EdgeGatewayInfoDto;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
