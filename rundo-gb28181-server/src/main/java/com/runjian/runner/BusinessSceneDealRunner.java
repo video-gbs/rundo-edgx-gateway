@@ -2,6 +2,7 @@ package com.runjian.runner;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.BusinessSceneConstants;
 import com.runjian.common.constant.BusinessSceneStatusEnum;
@@ -77,13 +78,26 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                     long threadId = businessSceneResp.getThreadId();
                     RLock lock = redissonClient.getLock(entrykey);
                     lock.unlockAsync(threadId);
-                    //删除跟踪完毕的消息
-                    RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey);
+
 
                     //针对点播失败的异常场景，需要：1.自行释放ssrc和2.删除相关的缓存，3.判断是否需要进行设备指令的bye和4.流媒体推流端口的关闭
                     if(businessSceneResp.getGatewayMsgType().equals(GatewayMsgType.PLAY)){
-                        iplayService.playBusinessErrorScene(entrykey,businessSceneResp);
+                        //businessSceneResp.getCode() == BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode()
+                        if(businessSceneResp.getCode() == BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode()){
+                            //BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode() 只处理超时的请求
+                            if(time.isBefore(now)){
+                                iplayService.playBusinessErrorScene(entrykey,businessSceneResp);
+                                //删除跟踪完毕的消息
+                                RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey);
+                            }
+                        }else {
+                            RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey);
+                        }
+                    }else {
+                        //删除跟踪完毕的消息
+                        RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey);
                     }
+
                     //异步处理消息的mq发送
                     gatewayBusinessAsyncSender.sendforAllScene(businessSceneResp);
 

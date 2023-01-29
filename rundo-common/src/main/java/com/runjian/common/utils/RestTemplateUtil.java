@@ -49,6 +49,32 @@ public class RestTemplateUtil {
         return CommonResponse.failure(BusinessErrorEnums.UNKNOWN_ERROR);
     }
 
+    public static CommonResponse<Boolean> postCloseRtpserverRespons(String url, Object obj, RestTemplate restTemplate) {
+        if (StringUtils.isEmpty(url) || ObjectUtils.isEmpty(obj)) {
+            return CommonResponse.failure(BusinessErrorEnums.VALID_BIND_EXCEPTION_ERROR);
+        }
+        long startTime = System.currentTimeMillis();
+
+        try {
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+            ParameterizedTypeReference<CommonResponse<Boolean>> typeRef = new ParameterizedTypeReference<CommonResponse<Boolean>>() {};
+
+            HttpEntity httpEntity = new HttpEntity(obj, httpHeaders);
+            ResponseEntity<CommonResponse<Boolean>> responseEntity = restTemplate.exchange(url, HttpMethod.POST, httpEntity, typeRef);
+            long endTime = System.currentTimeMillis();
+            log.info("post-json, 请求地址={}, 耗时={} ms, 参数={}, 响应信息={}", url,
+                    (endTime - startTime), obj.toString(), responseEntity.getBody());
+            if (responseEntity.getStatusCodeValue() == HttpStatus.OK.value()) {
+                return  responseEntity.getBody();
+            }
+        } catch (Exception e) {
+            log.error("post-json error, 请求地址={}, 耗时={} ms, 参数={}, 失败信息={}", url,
+                    (System.currentTimeMillis() - startTime), obj.toString(), e.getMessage());
+        }
+        return CommonResponse.failure(BusinessErrorEnums.UNKNOWN_ERROR);
+    }
 
     /**
      * post请求(json格式)

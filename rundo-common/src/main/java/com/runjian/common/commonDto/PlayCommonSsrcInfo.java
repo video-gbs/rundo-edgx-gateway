@@ -19,6 +19,10 @@ public class PlayCommonSsrcInfo {
      * UDP/TCP
      */
     private String transport;
+    /**
+     * 设备国标编号
+     */
+    private String deviceId;
 
 
 }

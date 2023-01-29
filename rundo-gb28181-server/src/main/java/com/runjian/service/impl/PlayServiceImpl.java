@@ -85,8 +85,8 @@ public class PlayServiceImpl implements IplayService {
     @Value("${mdeia-api-uri-list.close-rtp-server}")
     private String closeRtpServerApi;
 
-    @Value("${mdeia-api-uri-list.get-rtp-server}")
-    private String getRtpServerApi;
+    @Value("${mdeia-api-uri-list.get-rtp-info}")
+    private String getRtpInfoApi;
 
     @Autowired
     RestTemplate restTemplate;
@@ -122,6 +122,7 @@ public class PlayServiceImpl implements IplayService {
             Device device = new Device();
             device.setHostAddress(playCommonSsrcInfo.getHostAddress());
             device.setTransport(playCommonSsrcInfo.getTransport());
+            device.setDeviceId(playCommonSsrcInfo.getDeviceId());
             sipCommander.playStreamCmd(playReq.getStreamMode(),ssrcInfo,device, playReq.getChannelId(), ok->{
                 //成功业务处理
                 log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播成功", playReq);
@@ -174,6 +175,7 @@ public class PlayServiceImpl implements IplayService {
             Device device = new Device();
             device.setHostAddress(playCommonSsrcInfo.getHostAddress());
             device.setTransport(playCommonSsrcInfo.getTransport());
+            device.setDeviceId(playCommonSsrcInfo.getDeviceId());
             sipCommander.playStreamCmd(playBackReq.getStreamMode(),ssrcInfo,device, playBackReq.getChannelId(), ok->{
                 //成功业务处理
                 log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播成功", playBackReq);
@@ -251,7 +253,7 @@ public class PlayServiceImpl implements IplayService {
                 rtpInfoDto.setApp(VideoManagerConstants.GB28181_APP);
                 rtpInfoDto.setMediaServerId(ssrcTransaction.getMediaServerId());
                 rtpInfoDto.setStreamId(ssrcTransaction.getStream());
-                CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(mediaServerInfoConfig.getMediaUrl() + openRtpServerApi, rtpInfoDto, restTemplate);
+                CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(mediaServerInfoConfig.getMediaUrl() + getRtpInfoApi, rtpInfoDto, restTemplate);
                 if(commonResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
                     log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "zlm连接失败", commonResponse);
 
@@ -311,6 +313,8 @@ public class PlayServiceImpl implements IplayService {
         PlayCommonSsrcInfo playCommonSsrcInfo = new PlayCommonSsrcInfo();
         playCommonSsrcInfo.setHostAddress(device.getHostAddress());
         playCommonSsrcInfo.setTransport(device.getTransport());
+        playCommonSsrcInfo.setDeviceId(device.getDeviceId());
+
         playCommonSsrcInfo.setSsrcInfo(ssrcInfo);
 
         return playCommonSsrcInfo;
@@ -393,65 +397,64 @@ public class PlayServiceImpl implements IplayService {
         //点播相关的key的组合条件
         //String businessSceneKey = GatewayMsgType.PLAY.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+playReq.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_SPLICE_KEY+playReq.getChannelId();
 
-
+        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播失败，异常处理流程", businessSceneResp);
         //处理sip交互成功，但是流注册未返回的情况
-        if(businessSceneResp.getCode() == BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode()){
-            //获取businessKey的deviceId,和channelId
 
-            int deviceStart = businessKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY);
-            int channelStart = businessKey.indexOf(BusinessSceneConstants.SCENE_STREAM_KEY);
-            String deviceId = businessKey.substring(deviceStart,channelStart);
-            String channelId = businessKey.substring(channelStart);
-            Object data = businessSceneResp.getData();
-            if(ObjectUtils.isEmpty(data)){
-                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "错误点播场景处理失败,缓存信息异常", businessSceneResp);
-            }
-            //判断缓存是否存在
-            //1.自行释放ssrc和2.删除相关的缓存，3.设备指令的bye和4.流媒体推流端口的关闭
-            SsrcInfo ssrcInfo =  (SsrcInfo)data;
-            SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(deviceId, channelId, "null", ssrcInfo.getStreamId());
-            if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
-                //todo 重要，缓存异常，点播失败需要人工介入
-                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "错误点播场景处理失败,点播缓存异常", businessSceneResp);
-                return;
-            }
-            DeviceDto deviceDto = deviceService.getDevice(deviceId);
-            if(ObjectUtils.isEmpty(deviceDto)){
-                //todo 重要，缓存异常，点播失败需要人工介入
-                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "错误点播场景处理失败,设备信息未找到", businessSceneResp);
-            }
-            Device device = new Device();
-            BeanUtil.copyProperties(deviceDto,device);
+        //获取businessKey的deviceId,和channelId
+        int deviceStart = businessKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY);
+        int channelStart = businessKey.indexOf(BusinessSceneConstants.SCENE_STREAM_KEY);
 
-            //释放ssrc
-            redisCatchStorageService.ssrcRelease(ssrcInfo.getSsrc());
-            //设备指令 bye
-            try {
-                sipCommander.streamByeCmd(streamSessionSsrcTransaction,device,channelId,error->{
-                    //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
-                    ResponseEvent responseEvent = (ResponseEvent) error.event;
-                    SIPResponse response = (SIPResponse) responseEvent.getResponse();
-                    log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "bye指令点播失败", response);
+        Object data = businessSceneResp.getData();
+        if(ObjectUtils.isEmpty(data)){
+            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "错误点播场景处理失败,缓存信息异常", businessSceneResp);
+        }
+        //判断缓存是否存在
+        //1.自行释放ssrc和2.删除相关的缓存，3.设备指令的bye和4.流媒体推流端口的关闭
+        SsrcInfo ssrcInfo =  JSONObject.toJavaObject((JSONObject)businessSceneResp.getData(),SsrcInfo.class);
+        SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, ssrcInfo.getStreamId());
+        if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
+            //todo 重要，缓存异常，点播失败需要人工介入
+            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "错误点播场景处理失败,点播缓存异常", businessSceneResp);
+            return;
+        }
+        String deviceId = streamSessionSsrcTransaction.getDeviceId();
+        String channelId =streamSessionSsrcTransaction.getChannelId();
+        DeviceDto deviceDto = deviceService.getDevice(deviceId);
+        if(ObjectUtils.isEmpty(deviceDto)){
+            //todo 重要，缓存异常，点播失败需要人工介入
+            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "错误点播场景处理失败,设备信息未找到", businessSceneResp);
+        }
+        Device device = new Device();
+        BeanUtil.copyProperties(deviceDto,device);
 
-                });
-            } catch (InvalidArgumentException | SipException | ParseException e) {
-                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "国标设备点播", "[命令发送失败] 停止点播， 发送BYE", e);
+        //释放ssrc
+        redisCatchStorageService.ssrcRelease(ssrcInfo.getSsrc());
+        //设备指令 bye
+        try {
+            sipCommander.streamByeCmd(streamSessionSsrcTransaction,device,channelId,error->{
+                //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
+                ResponseEvent responseEvent = (ResponseEvent) error.event;
+                SIPResponse response = (SIPResponse) responseEvent.getResponse();
+                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "bye指令点播失败", response);
 
-            }
-            //关闭推流端口
-            closeGb28181RtpServer(ssrcInfo.getStreamId(),ssrcInfo.getMediaServerId());
-            //剔除缓存
-            streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
-
+            });
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "国标设备点播", "[命令发送失败] 停止点播， 发送BYE", e);
 
         }
+        //关闭推流端口
+        closeGb28181RtpServer(ssrcInfo.getStreamId(),ssrcInfo.getMediaServerId());
+        //剔除缓存
+        streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
+
+
     }
 
     private void closeGb28181RtpServer(String streamId,String mediaServerId) {
         CloseRtpServerDto closeRtpServerDto = new CloseRtpServerDto();
         closeRtpServerDto.setMediaServerId(mediaServerId);
         closeRtpServerDto.setStreamId(streamId);
-        CommonResponse closeResponse = RestTemplateUtil.postReturnCommonrespons(mediaServerInfoConfig.getMediaUrl() + closeRtpServerApi, closeRtpServerDto, restTemplate);
+        CommonResponse closeResponse = RestTemplateUtil.postCloseRtpserverRespons(mediaServerInfoConfig.getMediaUrl() + closeRtpServerApi, closeRtpServerDto, restTemplate);
         if(closeResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
             //后续这zlm也会进行关闭该端口
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "关闭推流端口失败", closeResponse);

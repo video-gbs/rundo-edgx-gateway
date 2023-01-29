@@ -57,7 +57,7 @@ public class VideoStreamSessionManager {
 		ssrcTransaction.setMediaServerId(mediaServerId);
 		ssrcTransaction.setType(type);
 
-		RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + MarkConstant.MARK_SPLIT_SEMICOLON +  deviceId + MarkConstant.MARK_SPLIT_SYMBOL + channelId + MarkConstant.MARK_SPLIT_SYMBOL + callId + MarkConstant.MARK_SPLIT_SYMBOL + stream, ssrcTransaction);
+		RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + MarkConstant.MARK_SPLIT_RAIL +  deviceId + MarkConstant.MARK_SPLIT_RAIL + channelId + MarkConstant.MARK_SPLIT_RAIL + callId + MarkConstant.MARK_SPLIT_RAIL + stream, ssrcTransaction);
 	}
 
 	/**
@@ -82,7 +82,7 @@ public class VideoStreamSessionManager {
 		if (ObjectUtils.isEmpty(stream)) {
 			stream ="*";
 		}
-		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + MarkConstant.MARK_SPLIT_SEMICOLON +  deviceId + MarkConstant.MARK_SPLIT_SYMBOL + channelId + MarkConstant.MARK_SPLIT_SYMBOL + callId + MarkConstant.MARK_SPLIT_SYMBOL + stream;
+		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + MarkConstant.MARK_SPLIT_RAIL +  deviceId + MarkConstant.MARK_SPLIT_RAIL + channelId + MarkConstant.MARK_SPLIT_RAIL + callId + MarkConstant.MARK_SPLIT_RAIL + stream;
 		List<Object> scanResult = RedisCommonUtil.scan(redisTemplate,key);
 		if (scanResult.size() == 0) {
 			return null;
@@ -96,10 +96,10 @@ public class VideoStreamSessionManager {
 		if (ssrcTransaction == null) {
 			return;
 		}
-		RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + MarkConstant.MARK_SPLIT_SEMICOLON +  deviceId + MarkConstant.MARK_SPLIT_SYMBOL + channelId + MarkConstant.MARK_SPLIT_SYMBOL + ssrcTransaction.getCallId() + MarkConstant.MARK_SPLIT_SYMBOL + stream);
+		RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + MarkConstant.MARK_SPLIT_RAIL +  deviceId + MarkConstant.MARK_SPLIT_RAIL + channelId + MarkConstant.MARK_SPLIT_RAIL + ssrcTransaction.getCallId() + MarkConstant.MARK_SPLIT_RAIL + stream);
 	}
 
 	public void removeSsrcTransaction(SsrcTransaction ssrcTransaction) {
-		RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + MarkConstant.MARK_SPLIT_SEMICOLON +  ssrcTransaction.getDeviceId() + MarkConstant.MARK_SPLIT_SYMBOL + ssrcTransaction.getChannelId() + MarkConstant.MARK_SPLIT_SYMBOL + ssrcTransaction.getCallId() + MarkConstant.MARK_SPLIT_SYMBOL + ssrcTransaction.getStream());
+		RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + MarkConstant.MARK_SPLIT_RAIL +  ssrcTransaction.getDeviceId() + MarkConstant.MARK_SPLIT_RAIL + ssrcTransaction.getChannelId() + MarkConstant.MARK_SPLIT_RAIL + ssrcTransaction.getCallId() + MarkConstant.MARK_SPLIT_RAIL + ssrcTransaction.getStream());
 	}
 }

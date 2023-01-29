@@ -563,13 +563,18 @@ public class MediaServerServiceImpl implements ImediaServerService {
     @Override
     public StreamInfo getRtpInfo(String mediaServerId, String streamId,String app) {
         MediaServerItem mediaInfo = this.getOne(mediaServerId);
-        StreamInfo streamInfo = new StreamInfo();
+        StreamInfo streamInfo = null;
         if(ObjectUtils.isEmpty(mediaInfo)){
-            return streamInfo;
+            return null;
         }
         JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaInfo, streamId);
+        logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "获取流存在信息服务", rtpInfo);
         if(rtpInfo.getInteger("code") == 0){
-            streamInfo = getStreamInfoByAppAndStream(mediaInfo, streamId, app);
+            if (rtpInfo.getBoolean("exist")) {
+                //判断是否正常
+                streamInfo = getStreamInfoByAppAndStream(mediaInfo, streamId, app);
+
+            }
         }
         return streamInfo;
 
