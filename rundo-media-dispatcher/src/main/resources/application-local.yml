@@ -90,14 +90,14 @@ media:
     # [必须修改] zlm服务器唯一id，用于触发hook时区别是哪台服务器,general.mediaServerId
     id: LORVY158beilorvy
     # [必须修改] zlm服务器的内网IP
-    ip: 192.168.0.72
+    ip: 192.168.0.73
 
     # [可选] 返回流地址时的ip，置空使用 media.ip
-    stream-ip: 192.168.0.72
+    stream-ip: 192.168.0.73
     # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
-    sdp-ip: 192.168.0.72
+    sdp-ip: 192.168.0.73
     # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
-    hook-ip: 127.0.0.1
+    hook-ip: 192.168.0.73
     # [必须修改] zlm服务器的http.port
     http-port: 80
 
@@ -127,7 +127,7 @@ logging:
 mq:
     enabled: true
     queue-data-list:
-        - #同流媒体调度服务交互的mq
+        #同流媒体调度服务交互的mq
         - id: mediaCallBack
           routing-key: rundo.meidia.dispatcher.playCallBack
           queue-name: rundo.meidia.dispatcher.playCallBack

@@ -15,7 +15,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 /**
  * @author chenjialing
  */
-@ServletComponentScan("com.runjian.conf")
 @SpringBootApplication
 @EnableScheduling
 //@EnableAsync

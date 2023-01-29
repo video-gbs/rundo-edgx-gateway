@@ -15,7 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableScheduling
 @EnableDruidSupport
-//@ComponentScan(value = {"com.runjian.common","com.runjian.timer"})
+@ComponentScan(value = {"com.runjian.*"})
 public class MediaDispatcher {
     public static void main(String[] args) {
         SpringApplication.run(MediaDispatcher.class, args);
