@@ -15,6 +15,7 @@ import com.runjian.gb28181.transmit.SIPSender;
 import com.runjian.gb28181.transmit.cmd.ISIPCommander;
 import com.runjian.gb28181.transmit.cmd.SIPRequestHeaderProvider;
 import com.runjian.gb28181.utils.SipUtils;
+import com.runjian.utils.DateUtil;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -349,4 +350,44 @@ public class SIPCommander implements ISIPCommander {
         });
     }
 
+    @Override
+    public void playbackStreamCmd(String streamMode, SsrcInfo ssrcInfo, Device device, String channelId, String startTime, String endTime, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+        StringBuffer content = new StringBuffer(200);
+        content.append("v=0\r\n");
+        content.append("o=" + channelId + " 0 0 IN IP4 " + ssrcInfo.getSdpIp() + "\r\n");
+        content.append("s=Playback\r\n");
+        content.append("u=" + channelId + ":0\r\n");
+        content.append("c=IN IP4 " + ssrcInfo.getSdpIp() + "\r\n");
+        content.append("t=" + DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime) + " "
+                + DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) + "\r\n");
+
+        if ("TCP".equalsIgnoreCase(streamMode)) {
+            content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 97 98 99\r\n");
+            content.append("a=setup:passive\r\n");
+            content.append("a=connection:new\r\n");
+        }  else if ("UDP".equalsIgnoreCase(streamMode)) {
+            content.append("m=video " + ssrcInfo.getPort() + " RTP/AVP 96 97 98 99\r\n");
+        }
+        content.append("a=recvonly\r\n");
+        content.append("a=rtpmap:96 PS/90000\r\n");
+        content.append("a=rtpmap:98 H264/90000\r\n");
+        content.append("a=rtpmap:97 MPEG4/90000\r\n");
+        content.append("a=rtpmap:99 H265/90000\r\n");
+
+        content.append("y=" + ssrcInfo.getSsrc() + "\r\n");//ssrc
+        // f字段:f= v/编码格式/分辨率/帧率/码率类型/码率大小a/编码格式/码率大小/采样率
+//			content.append("f=v/2/5/25/1/4000a/1/8/1" + "\r\n"); // 未发现支持此特性的设备
+
+
+
+        Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(),sipSender.getNewCallIdHeader(device.getTransport()));
+        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备能力接口", "请求回放视频流", request.toString());
+        //成功与否，均有业务侧进行处理
+        sipSender.transmitRequest( request, (e -> {
+            errorEvent.response(e);
+        }), ok -> {
+            // 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
+            okEvent.response(ok);
+        });
+    }
 }

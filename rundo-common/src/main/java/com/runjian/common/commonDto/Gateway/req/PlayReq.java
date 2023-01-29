@@ -1,4 +1,4 @@
-package com.runjian.domain.req;
+package com.runjian.common.commonDto.Gateway.req;
 
 import lombok.Data;
 

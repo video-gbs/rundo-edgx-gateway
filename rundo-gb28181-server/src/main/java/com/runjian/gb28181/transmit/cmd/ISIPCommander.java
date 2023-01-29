@@ -2,6 +2,7 @@ package com.runjian.gb28181.transmit.cmd;
 
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.conf.exception.SsrcTransactionNotFoundException;
+import com.runjian.domain.dto.MediaServerItem;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceAlarm;
 import com.runjian.gb28181.bean.SsrcTransaction;
@@ -328,5 +329,33 @@ public interface ISIPCommander {
 	 */
 	void sendAlarmMessage(Device device, DeviceAlarm deviceAlarm) throws InvalidArgumentException, SipException, ParseException;
 
+	/**
+	 *
+	 * @param streamMode
+	 * @param ssrcInfo
+	 * @param device
+	 * @param channelId
+	 * @param okEvent
+	 * @param errorEvent
+	 * @throws InvalidArgumentException
+	 * @throws SipException
+	 * @throws ParseException
+	 */
 	public void playStreamCmd(String streamMode,SsrcInfo ssrcInfo, Device device, String channelId, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
+
+	/**
+	 *
+	 * @param streamMode
+	 * @param ssrcInfo
+	 * @param device
+	 * @param channelId
+	 * @param startTime
+	 * @param endTime
+	 * @param okEvent
+	 * @param errorEvent
+	 * @throws InvalidArgumentException
+	 * @throws SipException
+	 * @throws ParseException
+	 */
+	void playbackStreamCmd(String streamMode,SsrcInfo ssrcInfo, Device device, String channelId, String startTime, String endTime, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
 }

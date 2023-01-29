@@ -1,9 +1,10 @@
 package com.runjian.service;
 
 import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
+import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.response.BusinessSceneResp;
-import com.runjian.domain.req.PlayReq;
+import com.runjian.common.commonDto.Gateway.req.PlayReq;
 
 public interface IplayService {
 
@@ -13,6 +14,11 @@ public interface IplayService {
      */
     public void play(PlayReq playReq);
 
+    /**
+     * 点播接口处理
+     * @param playBackReq
+     */
+    public void playBack(PlayBackReq playBackReq);
     /**
      * 流注册事件
      * @param streamInfo
