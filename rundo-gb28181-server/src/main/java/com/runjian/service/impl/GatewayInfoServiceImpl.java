@@ -17,6 +17,7 @@ import java.util.List;
 public class GatewayInfoServiceImpl implements IGatewayInfoService {
 
     @Autowired
+    @Qualifier("gatewayBusinessMqListenerContainer")
     SimpleMessageListenerContainer container;
 
     @Autowired
