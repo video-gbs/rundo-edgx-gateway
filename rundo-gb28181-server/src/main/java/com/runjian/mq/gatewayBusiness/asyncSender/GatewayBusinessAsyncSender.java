@@ -52,7 +52,7 @@ public class GatewayBusinessAsyncSender {
     public void sendforAllScene(BusinessSceneResp businessSceneResp){
         //先进先出，处理消息队列未能发送失败的场景
         taskQueue.offer(businessSceneResp);
-        String mqGetQueue = gatewaySignInConf.getMqGetQueue();
+        String mqGetQueue = gatewaySignInConf.getMqSetQueue();
         if(ObjectUtils.isEmpty(mqGetQueue)){
             //业务队列暂时未创建成功，无法发送消息 todo 后续做补偿机制，顺序进行消息的推送
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送失败，业务队列暂时未初始化", businessSceneResp);
@@ -71,97 +71,8 @@ public class GatewayBusinessAsyncSender {
         });
     }
 
-    //注册mq消息发送
-    @Async("taskExecutor")
-    public void sendRegister(Device device){
-        //构造消息请求体
-        String mqGetQueue = gatewaySignInConf.getMqGetQueue();
-        if(ObjectUtils.isEmpty(mqGetQueue)){
-            //业务队列暂时未创建成功，无法发送消息 todo 后续做补偿机制，顺序进行消息的推送
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "设备注册-信令发送失败，业务队列暂时未初始化", device);
-            return;
-        }
-        GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.REGISTER.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
-        mqInfo.setData(device);
-        rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),mqInfo,true);
-    }
 
-    /**
-     * 通道消息发送
-     * @param device
-     */
-    @Async("taskExecutor")
-    public void sendCatalog(Device device){
-        //优化catalogData的数据结构
-        String deviceId = device.getDeviceId();
-        boolean syncRunning = catalogDataCatch.isSyncRunning(deviceId);
-        while (!syncRunning){
-            try{
-                Thread.sleep(10);
-            }catch (InterruptedException e){
 
-            }
-            syncRunning = catalogDataCatch.isSyncRunning(deviceId);
-        }
-        //进行mq消息发送
-        CatalogData data = catalogDataCatch.getData(deviceId);
-        GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.CATALOG.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
-        mqInfo.setCode(data.getCode());
-        mqInfo.setMsg(data.getErrorMsg());
-        mqInfo.setData(data.getChannelList());
-        rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), gatewaySignInConf.getMqGetQueue(), UuidUtil.toUuid(),mqInfo,true);
-    }
 
-    /**
-     * 设备信息的mq消息发送
-     * @param device
-     */
-    @Async("taskExecutor")
-    public void sendDeviceInfo(Device device){
-        //
-//        String deviceId = device.getDeviceId();
-//        //
-//        //获取指令发送的缓存状态
-//        BusinessSceneResp businessSceneResp = (BusinessSceneResp<Device>)RedisCommonUtil.get(redisTemplate, BusinessSceneConstants.DEVICE_INFO_SCENE_KEY + deviceId);
-//        GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.DEVICEINFO.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix);
-//
-//        if(ObjectUtils.isEmpty(businessSceneResp)){
-//            //缓存异常 发送失败指令
-//            mqInfo.setCode(BusinessErrorEnums.REDIS_EXCEPTION.getErrCode());
-//            mqInfo.setMsg(BusinessErrorEnums.REDIS_EXCEPTION.toString());
-//            mqInfo.setData(null);
-//            rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), gatewaySignInConf.getMqGetQueue(), UuidUtil.toUuid(),mqInfo,true);
-//            return;
-//        }
-//        int i = 0;
-//        while (businessSceneResp.getStatus().equals(BusinessSceneStatusEnum.ready)){
-//            try{
-//                Thread.sleep(sleepTime);
-//            }catch (InterruptedException e){
-//                e.printStackTrace();
-//            }
-//            i+=sleepTime;
-//
-//            //sleep时间大于5s结束循环
-//            if(i>=maxSleepTime){
-//                //判断
-//                businessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.BUSINESS_SCENE_EXCEPTION,null);
-//                break;
-//            }else {
-//                businessSceneResp = (BusinessSceneResp<Device>)RedisCommonUtil.get(redisTemplate, BusinessSceneConstants.DEVICE_INFO_SCENE_KEY + deviceId);
-//            }
-//        }
-//        //进行mq消息发送
-//        if(ObjectUtils.isEmpty(businessSceneResp)){
-//            mqInfo.setCode(BusinessErrorEnums.REDIS_EXCEPTION.getErrCode());
-//            mqInfo.setMsg(BusinessErrorEnums.REDIS_EXCEPTION.toString());
-//            mqInfo.setData(null);
-//        }else {
-//            mqInfo.setCode(businessSceneResp.getCode());
-//            mqInfo.setMsg(businessSceneResp.getMsg());
-//            mqInfo.setData(businessSceneResp.getData());
-//        }
-//        rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), gatewaySignInConf.getMqGetQueue(), UuidUtil.toUuid(),mqInfo,true);
-    }
 }
 
