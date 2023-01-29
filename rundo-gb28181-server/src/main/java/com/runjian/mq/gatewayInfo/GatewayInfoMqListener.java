@@ -78,7 +78,7 @@ public class GatewayInfoMqListener implements ChannelAwareMessageListener {
 
 
 
-            }else if(msgType.equals(GatewayMsgType.HEARTBEAT.getTypeName())) {
+            }else if(msgType.equals(GatewayMsgType.GATEWAY_HEARTBEAT.getTypeName())) {
                 //心跳todo  暂时不处理
             }else {
 

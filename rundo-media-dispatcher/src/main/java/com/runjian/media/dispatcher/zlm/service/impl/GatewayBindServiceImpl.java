@@ -19,16 +19,20 @@ public class GatewayBindServiceImpl implements IGatewayBindService {
     String mediaServerId;
     @Override
     public int edit(GatewayBindReq gatewayBindReq) {
-        GatewayBind gatewayBind = gatewayBindMapper.queryOneByGatewayId(gatewayBindReq.getGatewayId());
-        BeanUtil.copyProperties(gatewayBindReq,gatewayBind);
+        GatewayBind gatewayBind = new GatewayBind();
+        GatewayBind gatewayBindDb = gatewayBindMapper.queryOneByGatewayId(gatewayBindReq.getGatewayId());
         //获取zlm的id
-
-        gatewayBind.setMediaServerId(mediaServerId);
         int i;
-        if(ObjectUtils.isEmpty(gatewayBind)){
-            i = gatewayBindMapper.update(gatewayBind);
-        }else {
+        if(ObjectUtils.isEmpty(gatewayBindDb)){
+            BeanUtil.copyProperties(gatewayBindReq,gatewayBind);
+
             i = gatewayBindMapper.add(gatewayBind);
+
+        }else {
+            BeanUtil.copyProperties(gatewayBindReq,gatewayBindDb);
+            gatewayBindDb.setMediaServerId(mediaServerId);
+
+            i = gatewayBindMapper.update(gatewayBindDb);
         }
 
         return i;

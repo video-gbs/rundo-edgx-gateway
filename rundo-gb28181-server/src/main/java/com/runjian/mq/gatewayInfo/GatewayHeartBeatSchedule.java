@@ -30,7 +30,7 @@ public class GatewayHeartBeatSchedule {
     @Scheduled(cron="0 0/1 * * * ?")   //每1分钟执行一次
     public void sendMsg(){
         GatewayMqDto gatewayMqDto = new GatewayMqDto();
-        gatewayMqDto.setMsgType(GatewayMsgType.HEARTBEAT.getTypeName());
+        gatewayMqDto.setMsgType(GatewayMsgType.GATEWAY_HEARTBEAT.getTypeName());
         gatewayMqDto.setTime(LocalDateTime.now());
         gatewayMqDto.setSerialNum(serialNum);
 

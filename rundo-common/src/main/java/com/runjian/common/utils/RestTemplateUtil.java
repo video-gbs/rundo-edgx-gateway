@@ -1,5 +1,6 @@
 package com.runjian.common.utils;
 
+import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.CommonResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -21,7 +22,7 @@ public class RestTemplateUtil {
 
     public static CommonResponse postReturnCommonrespons(String url, Object obj, RestTemplate restTemplate) {
         if (StringUtils.isEmpty(url) || ObjectUtils.isEmpty(obj)) {
-            return null;
+            return CommonResponse.failure(BusinessErrorEnums.VALID_BIND_EXCEPTION_ERROR);
         }
         long startTime = System.currentTimeMillis();
 
@@ -40,7 +41,7 @@ public class RestTemplateUtil {
             log.error("post-json error, 请求地址={}, 耗时={} ms, 参数={}, 失败信息={}", url,
                     (System.currentTimeMillis() - startTime), obj.toString(), e.getMessage());
         }
-        return null;
+        return CommonResponse.failure(BusinessErrorEnums.UNKNOWN_ERROR);
     }
 
     /**
