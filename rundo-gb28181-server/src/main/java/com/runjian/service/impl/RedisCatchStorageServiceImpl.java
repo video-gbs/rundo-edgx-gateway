@@ -81,7 +81,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
         Object o = RedisCommonUtil.get(redisTemplate, VideoManagerConstants.SSRC_CACHE_KEY+sipConfig.getDomain());
         if(ObjectUtils.isEmpty(o)){
             SsrcConfig ssrcConfig = new SsrcConfig(null, sipConfig.getDomain());
-            RedisCommonUtil.set(redisTemplate, VideoManagerConstants.SSRC_CACHE_KEY,ssrcConfig);
+            RedisCommonUtil.set(redisTemplate, VideoManagerConstants.SSRC_CACHE_KEY+sipConfig.getDomain(),ssrcConfig);
 
         }
         return true;
@@ -97,7 +97,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
         SsrcConfig ssrcConfig = (SsrcConfig)o;
         Boolean aBoolean = ssrcConfig.releaseSsrc(ssrc);
         if(aBoolean){
-            RedisCommonUtil.set(redisTemplate, VideoManagerConstants.SSRC_CACHE_KEY,ssrcConfig);
+            RedisCommonUtil.set(redisTemplate, VideoManagerConstants.SSRC_CACHE_KEY+sipConfig.getDomain(),ssrcConfig);
         }
         return aBoolean;
 
