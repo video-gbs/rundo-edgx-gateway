@@ -291,6 +291,8 @@ public class PlayServiceImpl implements IplayService {
                 String streamId = String.format("%08x", Integer.parseInt(baseRtpServerDto.getSsrc())).toUpperCase();
                 baseRtpServerDto.setStreamId(streamId);
             }
+            //更新ssrc的缓存
+            redisCatchStorageService.setSsrcConfig(ssrcConfig);
         }
         //todo 待定这个流程 判断观看的服务到底是哪里进行判断
         CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(mediaServerInfoConfig.getMediaUrl() + openRtpServerApi, baseRtpServerDto, restTemplate);

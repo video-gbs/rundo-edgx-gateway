@@ -33,6 +33,7 @@ public interface IRedisCatchStorageService {
 
     SsrcConfig getSsrcConfig();
 
+    Boolean setSsrcConfig(SsrcConfig ssrcConfig);
     /**
      * 操作业务场景的redis修改
      * @param businessSceneKey
