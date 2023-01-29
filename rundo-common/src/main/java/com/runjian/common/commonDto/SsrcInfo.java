@@ -14,6 +14,7 @@ public class SsrcInfo {
     private String streamId;
     private String mediaServerId;
 
+    public SsrcInfo(){}
     public SsrcInfo(int port, String ssrc, String streamId,String mediaServerId) {
         this.port = port;
         this.ssrc = ssrc;

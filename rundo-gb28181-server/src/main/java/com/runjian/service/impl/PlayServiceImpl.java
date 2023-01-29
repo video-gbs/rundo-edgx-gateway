@@ -1,5 +1,7 @@
 package com.runjian.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
 import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
@@ -101,6 +103,10 @@ public class PlayServiceImpl implements IplayService {
     @Autowired
     private VideoStreamSessionManager streamSession;
 
+    @Value("${gateway-info.serialNum}")
+    private String serialNum;
+
+
     @Override
     public void play(PlayReq playReq) {
         String businessSceneKey = GatewayMsgType.PLAY.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+playReq.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+playReq.getChannelId();
@@ -143,7 +149,7 @@ public class PlayServiceImpl implements IplayService {
             });
 
         }catch (Exception e){
-            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播失败", playReq);
+            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "点播服务", "点播失败", playReq,e);
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.UNKNOWN_ERROR,null);
         }
 
@@ -271,6 +277,7 @@ public class PlayServiceImpl implements IplayService {
         baseRtpServerDto.setDeviceId(playReq.getDeviceId());
         baseRtpServerDto.setChannelId(playReq.getChannelId());
         baseRtpServerDto.setEnableAudio(playReq.getEnableAudio());
+        baseRtpServerDto.setGatewayId(serialNum);
         if(playReq.getSsrcCheck()){
             SsrcConfig ssrcConfig = redisCatchStorageService.getSsrcConfig();
             if(isPlay){
@@ -291,7 +298,10 @@ public class PlayServiceImpl implements IplayService {
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.MEDIA_SERVER_COLLECT_ERROR,null);
             return null;
         }
-        SsrcInfo ssrcInfo = (SsrcInfo)commonResponse.getData();
+        //返回数据为json 进行组装
+
+        SsrcInfo ssrcInfo = (SsrcInfo) commonResponse.getData();
+
         if (ssrcInfo.getPort() <= 0) {
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播端口分配异常", ssrcInfo);
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.MEDIA_ZLM_RTPSERVER_CREATE_ERROR,null);

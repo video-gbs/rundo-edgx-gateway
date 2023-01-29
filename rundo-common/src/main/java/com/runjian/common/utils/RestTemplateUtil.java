@@ -1,8 +1,10 @@
 package com.runjian.common.utils;
 
+import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.CommonResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
@@ -20,7 +22,7 @@ import java.util.Map;
 public class RestTemplateUtil {
 
 
-    public static CommonResponse postReturnCommonrespons(String url, Object obj, RestTemplate restTemplate) {
+    public static CommonResponse<SsrcInfo> postReturnCommonrespons(String url, Object obj, RestTemplate restTemplate) {
         if (StringUtils.isEmpty(url) || ObjectUtils.isEmpty(obj)) {
             return CommonResponse.failure(BusinessErrorEnums.VALID_BIND_EXCEPTION_ERROR);
         }
@@ -29,13 +31,16 @@ public class RestTemplateUtil {
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+            ParameterizedTypeReference<CommonResponse<SsrcInfo>> typeRef = new ParameterizedTypeReference<CommonResponse<SsrcInfo>>() {};
+
             HttpEntity httpEntity = new HttpEntity(obj, httpHeaders);
-            ResponseEntity<CommonResponse> responseEntity = restTemplate.postForEntity(url, httpEntity, CommonResponse.class);
+            ResponseEntity<CommonResponse<SsrcInfo>> responseEntity = restTemplate.exchange(url, HttpMethod.POST, httpEntity, typeRef);
             long endTime = System.currentTimeMillis();
             log.info("post-json, 请求地址={}, 耗时={} ms, 参数={}, 响应信息={}", url,
                     (endTime - startTime), obj.toString(), responseEntity.getBody());
             if (responseEntity.getStatusCodeValue() == HttpStatus.OK.value()) {
-                return responseEntity.getBody();
+                return  responseEntity.getBody();
             }
         } catch (Exception e) {
             log.error("post-json error, 请求地址={}, 耗时={} ms, 参数={}, 失败信息={}", url,
@@ -43,6 +48,7 @@ public class RestTemplateUtil {
         }
         return CommonResponse.failure(BusinessErrorEnums.UNKNOWN_ERROR);
     }
+
 
     /**
      * post请求(json格式)

@@ -4,13 +4,14 @@ import com.runjian.common.constant.ConfigConst;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
 @Schema(description = "ssrc信息")
-public class SsrcConfig {
+public class SsrcConfig implements Serializable {
 
 
     @Schema(description = "SSRC前缀")
@@ -54,13 +55,18 @@ public class SsrcConfig {
         }
     }
 
+    private String playSsrc;
+
+    private String playBackSsrc;
+
+    private String sn;
 
     /**
      * 获取视频预览的SSRC值,第一位固定为0
      * @return ssrc
      */
     public String getPlaySsrc() {
-        return "0" + getSsrcPrefix() + getSN();
+        return "0" + getSsrcPrefix() + getSn();
     }
 
     /**
@@ -68,7 +74,7 @@ public class SsrcConfig {
      *
      */
     public String getPlayBackSsrc() {
-        return "1" + getSsrcPrefix() + getSN();
+        return "1" + getSsrcPrefix() + getSn();
     }
 
     /**
@@ -102,7 +108,7 @@ public class SsrcConfig {
      * 获取后四位数SN,随机数
      *
      */
-    private String getSN() {
+    private String getSn() {
         String sn = null;
         int index = 0;
         if (notUsed.size() == 0) {
@@ -144,5 +150,18 @@ public class SsrcConfig {
 
     public boolean checkSsrc(String ssrcInResponse) {
         return !isUsed.contains(ssrcInResponse);
+    }
+
+
+    public void setPlaySsrc(String playSsrc) {
+        this.playSsrc = playSsrc;
+    }
+
+    public void setPlayBackSsrc(String playBackSsrc) {
+        this.playBackSsrc = playBackSsrc;
+    }
+
+    public void setSn(String sn) {
+        this.sn = sn;
     }
 }
