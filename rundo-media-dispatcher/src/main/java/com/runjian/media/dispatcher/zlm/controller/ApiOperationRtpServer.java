@@ -38,7 +38,7 @@ public class ApiOperationRtpServer {
      *
      */
     @PostMapping(value = "/media/gatewayBind",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    public CommonResponse<SsrcInfo> gaetwayBind(@RequestBody GatewayBindReq gatewayBindReq){
+    public CommonResponse gaetwayBind(@RequestBody GatewayBindReq gatewayBindReq){
         validatorService.validateRequest(gatewayBindReq);
         gatewayBindService.edit(gatewayBindReq);
 
