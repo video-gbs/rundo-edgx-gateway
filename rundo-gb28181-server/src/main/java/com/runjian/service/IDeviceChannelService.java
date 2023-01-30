@@ -1,6 +1,8 @@
 package com.runjian.service;
 
+import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
 import com.runjian.gb28181.bean.DeviceChannel;
+import com.runjian.gb28181.bean.RecordInfo;
 
 import java.util.List;
 
@@ -29,4 +31,10 @@ public interface IDeviceChannelService {
      * @return
      */
     DeviceChannel getOne(String deviceId,String channelId);
+
+    /**
+     * 录像列表
+     * @param recordInfoReq
+     */
+    void recordInfo(RecordInfoReq recordInfoReq);
 }

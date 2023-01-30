@@ -1,8 +1,14 @@
 package com.runjian.gb28181.transmit.event.request.impl.message.response.cmd;
 
+import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.common.constant.BusinessSceneConstants;
+import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.DateUtils;
+import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.UserSetting;
 import com.runjian.gb28181.bean.*;
 import com.runjian.gb28181.event.EventPublisher;
@@ -12,6 +18,7 @@ import com.runjian.gb28181.transmit.callback.RequestMessage;
 import com.runjian.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.runjian.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.runjian.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
+import com.runjian.service.IRedisCatchStorageService;
 import com.runjian.utils.DateUtil;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
@@ -21,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -51,7 +59,6 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
     private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
-    private boolean taskQueueHandlerRun = false;
     @Autowired
     private ResponseMessageHandler responseMessageHandler;
 
@@ -59,8 +66,6 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
     @Autowired
     private RecordDataCatch recordDataCatch;
 
-    @Autowired
-    private DeferredResultHolder deferredResultHolder;
 
     @Autowired
     private EventPublisher eventPublisher;
@@ -71,6 +76,10 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
     @Autowired
     private UserSetting userSetting;
+
+
+    @Autowired
+    IRedisCatchStorageService redisCatchStorageService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -86,87 +95,91 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
             logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "国标级联-国标录像", "命令发送失败", e);
         }
         taskQueue.offer(new HandlerCatchData(evt, device, rootElement));
-        if (!taskQueueHandlerRun) {
-            taskQueueHandlerRun = true;
-            taskExecutor.execute(()->{
-                while (!taskQueue.isEmpty()) {
-                    try {
-                        HandlerCatchData take = taskQueue.poll();
-                        Element rootElementForCharset = getRootElement(take.getEvt(), take.getDevice().getCharset());
-                        if (rootElement == null) {
-                            logger.warn(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "国标级联-国标录像", "content cannot be null", evt.getRequest());
-                            continue;
-                        }
-                        String sn = getText(rootElementForCharset, "SN");
-                        String channelId = getText(rootElementForCharset, "DeviceID");
-                        RecordInfo recordInfo = new RecordInfo();
-                        recordInfo.setChannelId(channelId);
-                        recordInfo.setDeviceId(take.getDevice().getDeviceId());
-                        recordInfo.setSn(sn);
-                        recordInfo.setName(getText(rootElementForCharset, "Name"));
-                        String sumNumStr = getText(rootElementForCharset, "SumNum");
-                        int sumNum = 0;
-                        if (!ObjectUtils.isEmpty(sumNumStr)) {
-                            sumNum = Integer.parseInt(sumNumStr);
-                        }
-                        recordInfo.setSumNum(sumNum);
-                        Element recordListElement = rootElementForCharset.element("RecordList");
-                        if (recordListElement == null || sumNum == 0) {
-                            logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "国标级联-国标录像", "无录像数据");
-                            eventPublisher.recordEndEventPush(recordInfo);
-                            recordDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, new ArrayList<>());
-                            releaseRequest(take.getDevice().getDeviceId(), sn);
-                        } else {
-                            Iterator<Element> recordListIterator = recordListElement.elementIterator();
-                            if (recordListIterator != null) {
-                                List<RecordItem> recordList = new ArrayList<>();
-                                // 遍历DeviceList
-                                while (recordListIterator.hasNext()) {
-                                    Element itemRecord = recordListIterator.next();
-                                    Element recordElement = itemRecord.element("DeviceID");
-                                    if (recordElement == null) {
-                                        logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "国标级联-国标录像", "记录为空，下一个...");
-                                        continue;
-                                    }
-                                    RecordItem record = new RecordItem();
-                                    record.setDeviceId(getText(itemRecord, "DeviceID"));
-                                    record.setName(getText(itemRecord, "Name"));
-                                    record.setFilePath(getText(itemRecord, "FilePath"));
-                                    record.setFileSize(getText(itemRecord, "FileSize"));
-                                    record.setAddress(getText(itemRecord, "Address"));
+        taskExecutor.execute(()->{
+            while (!taskQueue.isEmpty()) {
+                try {
+                    //获取录像的设备数据
 
-                                    String startTimeStr = getText(itemRecord, "StartTime");
-                                    record.setStartTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(startTimeStr));
-
-                                    String endTimeStr = getText(itemRecord, "EndTime");
-                                    record.setEndTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(endTimeStr));
-
-                                    record.setSecrecy(itemRecord.element("Secrecy") == null ? 0
-                                            : Integer.parseInt(getText(itemRecord, "Secrecy")));
-                                    record.setType(getText(itemRecord, "Type"));
-                                    record.setRecorderId(getText(itemRecord, "RecorderID"));
-                                    recordList.add(record);
-                                }
-                                recordInfo.setRecordList(recordList);
-                                // 发送消息，如果是上级查询此录像，则会通过这里通知给上级
-                                eventPublisher.recordEndEventPush(recordInfo);
-                                int count = recordDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, recordList);
-                                logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "国标级联-国标录像", "日志记录", "设备id:" + take.getDevice().getDeviceId() + " sn:" + sn + " count:" + count + " sumNum:" + sumNum);
-                            }
-
-                            if (recordDataCatch.isComplete(take.getDevice().getDeviceId(), sn)){
-                                releaseRequest(take.getDevice().getDeviceId(), sn);
-                            }
-                        }
-                    } catch (DocumentException e) {
-                        logger.info(LogTemplate.ERROR_LOG_TEMPLATE, "国标级联-国标录像", "xml解析异常", e);
-                    }catch (Exception e){
-                        logger.info(LogTemplate.ERROR_LOG_TEMPLATE, "国标级联-国标录像", "处理异常", e);
+                    HandlerCatchData take = taskQueue.poll();
+                    Element rootElementForCharset = getRootElement(take.getEvt(), take.getDevice().getCharset());
+                    if (rootElement == null) {
+                        logger.warn(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "国标级联-国标录像", "content cannot be null", evt.getRequest());
+                        continue;
                     }
+                    String sn = getText(rootElementForCharset, "SN");
+                    String channelId = getText(rootElementForCharset, "DeviceID");
+                    //录像场景的key
+                    String businessSceneKey = GatewayMsgType.RECORD_INFO.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId()+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
+
+
+
+                    RecordInfo recordInfo = new RecordInfo();
+                    recordInfo.setChannelId(channelId);
+                    recordInfo.setDeviceId(take.getDevice().getDeviceId());
+                    recordInfo.setSn(sn);
+                    recordInfo.setName(getText(rootElementForCharset, "Name"));
+                    String sumNumStr = getText(rootElementForCharset, "SumNum");
+                    int sumNum = 0;
+                    if (!ObjectUtils.isEmpty(sumNumStr)) {
+                        sumNum = Integer.parseInt(sumNumStr);
+                    }
+                    recordInfo.setSumNum(sumNum);
+                    Element recordListElement = rootElementForCharset.element("RecordList");
+                    if (recordListElement == null || sumNum == 0) {
+                        logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "国标级联-国标录像", "无录像数据");
+                        //国标级联场景处理 暂时不做
+                        eventPublisher.recordEndEventPush(recordInfo);
+                        recordDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, new ArrayList<>());
+                        releaseRequest(businessSceneKey, take.getDevice().getDeviceId(), sn);
+                    } else {
+                        Iterator<Element> recordListIterator = recordListElement.elementIterator();
+                        if (recordListIterator != null) {
+                            List<RecordItem> recordList = new ArrayList<>();
+                            // 遍历DeviceList
+                            while (recordListIterator.hasNext()) {
+                                Element itemRecord = recordListIterator.next();
+                                Element recordElement = itemRecord.element("DeviceID");
+                                if (recordElement == null) {
+                                    logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "国标级联-国标录像", "记录为空，下一个...");
+                                    continue;
+                                }
+                                RecordItem record = new RecordItem();
+                                record.setDeviceId(getText(itemRecord, "DeviceID"));
+                                record.setName(getText(itemRecord, "Name"));
+                                record.setFilePath(getText(itemRecord, "FilePath"));
+                                record.setFileSize(getText(itemRecord, "FileSize"));
+                                record.setAddress(getText(itemRecord, "Address"));
+
+                                String startTimeStr = getText(itemRecord, "StartTime");
+                                record.setStartTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(startTimeStr));
+
+                                String endTimeStr = getText(itemRecord, "EndTime");
+                                record.setEndTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(endTimeStr));
+
+                                record.setSecrecy(itemRecord.element("Secrecy") == null ? 0
+                                        : Integer.parseInt(getText(itemRecord, "Secrecy")));
+                                record.setType(getText(itemRecord, "Type"));
+                                record.setRecorderId(getText(itemRecord, "RecorderID"));
+                                recordList.add(record);
+                            }
+                            recordInfo.setRecordList(recordList);
+                            // 发送消息，如果是上级查询此录像，则会通过这里通知给上级
+                            eventPublisher.recordEndEventPush(recordInfo);
+                            int count = recordDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, recordList);
+                            logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "国标级联-国标录像", "日志记录", "设备id:" + take.getDevice().getDeviceId() + " sn:" + sn + " count:" + count + " sumNum:" + sumNum);
+                        }
+
+                        if (recordDataCatch.isComplete(take.getDevice().getDeviceId(), sn)){
+                            releaseRequest(businessSceneKey,take.getDevice().getDeviceId(), sn);
+                        }
+                    }
+                } catch (DocumentException e) {
+                    logger.info(LogTemplate.ERROR_LOG_TEMPLATE, "国标级联-国标录像", "xml解析异常", e);
+                }catch (Exception e){
+                    logger.info(LogTemplate.ERROR_LOG_TEMPLATE, "国标级联-国标录像", "处理异常", e);
                 }
-                taskQueueHandlerRun = false;
-            });
-        }
+            }
+        });
     }
 
     @Override
@@ -174,8 +187,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
     }
 
-    public void releaseRequest(String deviceId, String sn){
-        String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + deviceId + sn;
+    public void releaseRequest(String businessSceneKey,String deviceId, String sn){
         // 对数据进行排序
         RecordInfo recordInfo = recordDataCatch.getRecordInfo(deviceId, sn);
         List<RecordItem> recordList = recordInfo.getRecordList();
@@ -186,12 +198,8 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
             recordItems = packingRecordTime(recordList);
         }
         recordInfo.setRecordList(recordItems);
+        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.RECORD_INFO, BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
 
-        RequestMessage msg = new RequestMessage();
-        msg.setKey(key);
-        msg.setData(recordDataCatch.getRecordInfo(deviceId, sn));
-        deferredResultHolder.invokeAllResult(msg);
-        recordDataCatch.remove(deviceId, sn);
     }
 
     /**

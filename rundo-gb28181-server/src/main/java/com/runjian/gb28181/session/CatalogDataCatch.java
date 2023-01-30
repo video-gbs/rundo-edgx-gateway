@@ -21,8 +21,7 @@ public class CatalogDataCatch {
 
     public static Map<String, CatalogData> data = new ConcurrentHashMap<>();
 
-    @Autowired
-    private IDeviceChannelService storager;
+
 
     public void addReady(Device device, int sn ) {
         CatalogData catalogData = data.get(device.getDeviceId());

@@ -48,29 +48,6 @@ public class RecordDataCatch {
         return recordInfo.getRecordList().size();
     }
 
-    @Scheduled(fixedRate = 5 * 1000)   //每5秒执行一次, 发现数据5秒未更新则移除数据并认为数据接收超时
-    private void timerTask(){
-        Set<String> keys = data.keySet();
-        // 获取五秒前的时刻
-        Instant instantBefore5S = Instant.now().minusMillis(TimeUnit.SECONDS.toMillis(5));
-        for (String key : keys) {
-            RecordInfo recordInfo = data.get(key);
-            // 超过五秒收不到消息任务超时， 只更新这一部分数据
-            if ( recordInfo.getLastTime().isBefore(instantBefore5S)) {
-                // 处理录像数据， 返回给前端
-                String msgKey = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + recordInfo.getDeviceId() + recordInfo.getSn();
-
-                // 对数据进行排序
-                Collections.sort(recordInfo.getRecordList());
-
-                RequestMessage msg = new RequestMessage();
-                msg.setKey(msgKey);
-                msg.setData(recordInfo);
-                deferredResultHolder.invokeAllResult(msg);
-                data.remove(key);
-            }
-        }
-    }
 
     public boolean isComplete(String deviceId, String sn) {
         RecordInfo recordInfo = data.get(deviceId + sn);

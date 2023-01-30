@@ -262,8 +262,42 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public void recordInfoQuery(Device device, String channelId, String startTime, String endTime, int sn, Integer Secrecy, String type, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void recordInfoQuery(Device device, String channelId, String startTime, String endTime, int sn, Integer secrecy, String type, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+        if (secrecy == null) {
+            secrecy = 0;
+        }
+        if (type == null) {
+            type = "all";
+        }
 
+        StringBuffer recordInfoXml = new StringBuffer(200);
+        String charset = device.getCharset();
+        recordInfoXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
+        recordInfoXml.append("<Query>\r\n");
+        recordInfoXml.append("<CmdType>RecordInfo</CmdType>\r\n");
+        recordInfoXml.append("<SN>" + sn + "</SN>\r\n");
+        recordInfoXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+        if (startTime != null) {
+            recordInfoXml.append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(startTime) + "</StartTime>\r\n");
+        }
+        if (endTime != null) {
+            recordInfoXml.append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(endTime) + "</EndTime>\r\n");
+        }
+        if (secrecy != null) {
+            recordInfoXml.append("<Secrecy> " + secrecy + " </Secrecy>\r\n");
+        }
+        if (type != null) {
+            // 大华NVR要求必须增加一个值为all的文本元素节点Type
+            recordInfoXml.append("<Type>" + type + "</Type>\r\n");
+        }
+        recordInfoXml.append("</Query>\r\n");
+
+
+
+        Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(),
+                SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(device.getTransport()));
+
+        sipSender.transmitRequest( request, errorEvent, okEvent);
     }
 
     @Override

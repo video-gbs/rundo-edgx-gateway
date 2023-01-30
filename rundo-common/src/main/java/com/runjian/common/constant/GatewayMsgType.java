@@ -37,7 +37,7 @@ public enum GatewayMsgType {
     STOP_PLAY("CHANNEL_STOP_PLAY"),
     //云台控制
     PTZ_CONTROL("CHANNEL_PTZ_CONTROL"),
-
+    RECORD_INFO("CHANNEL_RECORD_INFO"),
     /********调度服务相关*************/
     //流注册
     PLAY_STREAM_CALLBACK("PLAY_STREAM_CALLBACK"),
