@@ -193,6 +193,16 @@ public class DateUtils {
         LocalDateTime nowDateTime = LocalDateTime.now().plusSeconds(expire);
         return formatter.format(nowDateTime);
     }
+
+    /**
+     * 未来过期时间
+     * @param expire
+     * @return
+     */
+    public static long getExpireTimestamp(int expire) {
+        return LocalDateTime.now().plusSeconds(expire).toInstant(ZoneOffset.of("+8")).toEpochMilli();
+
+    }
     /**
      * 格式校验
      * @param timeStr 时间字符串

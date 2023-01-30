@@ -30,6 +30,6 @@ public class EdgeGatewayInfoDto {
     /**
      * 过期时间
      */
-    private String outTime;
+    private long outTime;
 
 }

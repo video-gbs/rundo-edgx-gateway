@@ -77,7 +77,7 @@ public class GatewayInfoServiceImpl implements IGatewayInfoService {
         config.setIp(ip);
         config.setGatewayType(GatewayTypeEnum.OTHER.getTypeName());
         config.setProtocol(GatewayProtocalEnum.GB28181.getTypeName());
-        config.setOutTime(DateUtils.getExpireNow(expire));
+        config.setOutTime(DateUtils.getExpireTimestamp(expire));
         gatewayInfoConf.setEdgeGatewayInfoDto(config);
 
         //进行mq消息发送
