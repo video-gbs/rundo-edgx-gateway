@@ -115,6 +115,7 @@ public class PlayServiceImpl implements IplayService {
             //阻塞型,默认是30s无返回参数
             lock.lock();
             PlayCommonSsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayMsgType.PLAY, playReq,true);
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "端口创建结果", playCommonSsrcInfo);
             if(ObjectUtils.isEmpty(playCommonSsrcInfo)){
                 return;
             }

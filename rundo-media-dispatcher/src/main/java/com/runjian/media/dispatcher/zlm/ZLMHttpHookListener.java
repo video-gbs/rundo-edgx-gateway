@@ -74,7 +74,7 @@ public class ZLMHttpHookListener {
 	@PostMapping(value = "/on_server_keepalive", produces = "application/json;charset=UTF-8")
 	public JSONObject onServerKeepalive(@RequestBody JSONObject json){
 
-		logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ZLM HOOK", "on_server_keepalive API调用", json);
+//		logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ZLM HOOK", "on_server_keepalive API调用", json);
 		String mediaServerId = json.getString("mediaServerId");
 		List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_keepalive);
 		if (subscribes != null  && subscribes.size() > 0) {
@@ -315,7 +315,6 @@ public class ZLMHttpHookListener {
 		String app = json.getString("app");
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
-		// 录像下载
 		ret.put("close", userSetting.getStreamOnDemand());
 		if (VideoManagerConstants.GB28181_APP.equals(app)){
 			// 国标流， 点播/录像回放/录像下载
@@ -336,6 +335,7 @@ public class ZLMHttpHookListener {
 		if(!ObjectUtils.isEmpty(gatewayBind)){
 			GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_NONE_STREAM_READER_CALLBACK.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null, gatewayBind.getGatewayId());
 			mqInfo.setData(noneStreamReaderReq);
+			logger.info("流无人观看调用={}",mqInfo);
 			rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
 		}
 

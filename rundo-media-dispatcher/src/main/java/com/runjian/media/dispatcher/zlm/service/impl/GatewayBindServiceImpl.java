@@ -15,7 +15,7 @@ public class GatewayBindServiceImpl implements IGatewayBindService {
     @Autowired
     GatewayBindMapper gatewayBindMapper;
 
-    @Value("media.id")
+    @Value("${media.id}")
     String mediaServerId;
     @Override
     public int edit(GatewayBindReq gatewayBindReq) {
