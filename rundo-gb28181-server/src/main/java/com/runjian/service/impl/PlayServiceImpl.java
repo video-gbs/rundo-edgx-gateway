@@ -324,10 +324,9 @@ public class PlayServiceImpl implements IplayService {
     /**
      * 流注册事件，修改业务状态
      * @param streamInfo
-     * @param msgId
      */
     @Override
-    public void onStreamChanges(StreamInfo streamInfo, String msgId) {
+    public void onStreamChanges(StreamInfo streamInfo) {
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "流注册事件", streamInfo);
 
         //获取点播的ssrc信息值

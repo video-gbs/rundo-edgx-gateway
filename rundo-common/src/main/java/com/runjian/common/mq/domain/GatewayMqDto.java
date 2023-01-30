@@ -1,5 +1,6 @@
 package com.runjian.common.mq.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.CommonResponse;
 import lombok.AllArgsConstructor;
@@ -35,6 +36,7 @@ public class GatewayMqDto{
     /**
      * time
      */
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private LocalDateTime time;
 
     /**

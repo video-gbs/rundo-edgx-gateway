@@ -22,9 +22,8 @@ public interface IplayService {
     /**
      * 流注册事件
      * @param streamInfo
-     * @param msgId
      */
-    public void onStreamChanges(StreamInfo streamInfo,String msgId);
+    public void onStreamChanges(StreamInfo streamInfo);
 
     /**
      * 无人观看处理
