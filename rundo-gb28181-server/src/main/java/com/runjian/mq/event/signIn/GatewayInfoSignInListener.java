@@ -64,4 +64,5 @@ public class GatewayInfoSignInListener implements ApplicationListener<GatewayInf
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "媒体调度服务", "创建绑定信息失败，将导致点播服务异常", commonResponse);
         }
     }
+
 }

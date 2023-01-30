@@ -58,12 +58,20 @@ public class GatewayInfoServiceImpl implements IGatewayInfoService {
     public void addMqListener(String queueName) {
         String[] strings = container.getQueueNames();
         List<String> list= Arrays.asList(strings);
+
         if (!list.contains(queueName)) {
             container.addQueueNames(queueName);
             container.setMessageListener(gatewayBusinessMqListener);
             container.setConcurrentConsumers(1);
             container.setMaxConcurrentConsumers(1);
             container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        }else {
+            for (String queueString : list) {
+                if(!queueString.equals(queueName)){
+                    container.removeQueueNames(queueString);
+                }
+            }
+
         }
     }
 
