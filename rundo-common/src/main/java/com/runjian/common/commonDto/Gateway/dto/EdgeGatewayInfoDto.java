@@ -2,6 +2,8 @@ package com.runjian.common.commonDto.Gateway.dto;
 
 import lombok.Data;
 
+import javax.validation.constraints.Pattern;
+
 /**
  * 网关的信息
  * @author chenjialing
@@ -10,10 +12,7 @@ import lombok.Data;
 public class EdgeGatewayInfoDto {
     private int id;
 
-    /**
-     * 网关的id
-     */
-    private String gatewayId;
+
 
     private String ip;
 
@@ -22,10 +21,15 @@ public class EdgeGatewayInfoDto {
     /**
      * 协议类型
      */
-    private String protocal;
+    private String protocol;
     /**
      * 网关类型
      */
-    private int gatewayType;
+    private String gatewayType;
+
+    /**
+     * 过期时间
+     */
+    private String outTime;
 
 }

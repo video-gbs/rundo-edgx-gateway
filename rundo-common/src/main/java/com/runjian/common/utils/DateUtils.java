@@ -185,6 +185,15 @@ public class DateUtils {
     }
 
     /**
+     * 未来过期时间
+     * @param expire
+     * @return
+     */
+    public static String getExpireNow(int expire) {
+        LocalDateTime nowDateTime = LocalDateTime.now().plusSeconds(expire);
+        return formatter.format(nowDateTime);
+    }
+    /**
      * 格式校验
      * @param timeStr 时间字符串
      * @param dateTimeFormatter 待校验的格式

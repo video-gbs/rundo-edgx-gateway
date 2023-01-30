@@ -8,6 +8,7 @@ import com.runjian.conf.GatewayInfoConf;
 import com.runjian.conf.SipConfig;
 import com.runjian.dao.GatewayInfoMapper;
 import com.runjian.common.commonDto.Gateway.dto.EdgeGatewayInfoDto;
+import com.runjian.service.IGatewayInfoService;
 import com.runjian.service.IRedisCatchStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +49,8 @@ public class GatewayRunner implements CommandLineRunner {
     private IRedisCatchStorageService iRedisCatchStorageService;
 
     @Autowired
+    private IGatewayInfoService gatewayInfoService;
+    @Autowired
     private RedisTemplate redisTemplate;
 
     @Override
@@ -55,28 +58,7 @@ public class GatewayRunner implements CommandLineRunner {
         //初始化ssrconfig  并使用redis缓存进行统一管理 防止未来集群化调用同一个流媒体使用ssrc推流冲突
         iRedisCatchStorageService.ssrcInit();
 
-        //获取配置并装配
-        String ip = sipConfig.getIp();
-        int port = Integer.parseInt(serverPort);
-
-        EdgeGatewayInfoDto config = new EdgeGatewayInfoDto();
-        config.setPort(port);
-        config.setIp(ip);
-        config.setGatewayId(serialNum);
-        config.setGatewayType(0);
-        config.setProtocal(GatewayProtocalEnum.GB28181.getTypeName());
-        gatewayInfoConf.setEdgeGatewayInfoDto(config);
-
-        //进行mq消息发送
-        String sn = iRedisCatchStorageService.getSn(GatewayCacheConstants.GATEWAY_INFO_SN_INCR);
-        GatewayMqDto dataRes = new GatewayMqDto();
-
-        dataRes.setMsgId(GatewayCacheConstants.GATEWAY_INFO_SN_prefix+sn);
-        dataRes.setSerialNum(serialNum);
-        dataRes.setMsgType(GatewayMsgType.GATEWAY_SIGN_IN.getTypeName());
-        dataRes.setData(config);
-        dataRes.setTime(LocalDateTime.now());
-        //消息组装
-        rabbitMqSender.sendMsg(MarkConstant.SIGIN_SG, UuidUtil.toUuid(), dataRes, true);
+        //发送注册
+        gatewayInfoService.sendRegisterInfo();
     }
 }
