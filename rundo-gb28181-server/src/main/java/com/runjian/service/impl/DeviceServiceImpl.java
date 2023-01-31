@@ -19,6 +19,7 @@ import com.runjian.gb28181.session.CatalogDataCatch;
 import com.runjian.gb28181.transmit.cmd.ISIPCommander;
 import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
 import com.runjian.service.IDeviceService;
+import com.runjian.service.IRedisCatchStorageService;
 import com.runjian.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
@@ -77,6 +78,10 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     UserSetting userSetting;
+
+    @Autowired
+    IRedisCatchStorageService redisCatchStorageService;
+
 
     @Override
     public void online(DeviceDto device) {
@@ -177,11 +182,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 catalogDataCatch.setChannelSyncEnd(device.getDeviceId(), errorMsg, BusinessErrorEnums.SIP_CATALOG_EXCEPTION.getErrCode());
             });
         }catch (Exception e){
-
-            String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey);
-            BusinessSceneResp businessSceneResp = JSONObject.parseObject(businessSceneString, BusinessSceneResp.class);
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.CATALOG,BusinessErrorEnums.SIP_SEND_EXCEPTION, msgId,businessSceneResp.getThreadId(),businessSceneResp.getTime(),null);
-            RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CATALOG,BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
 
         }
 
@@ -220,10 +221,7 @@ public class DeviceServiceImpl implements IDeviceService {
             sipCommander.deviceInfoQuery(device);
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-            String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey);
-            BusinessSceneResp businessSceneResp = JSONObject.parseObject(businessSceneString, BusinessSceneResp.class);
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION, msgId,businessSceneResp.getThreadId(),businessSceneResp.getTime(),null);
-            RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
 
         }
         //在异步线程进行解锁
