@@ -1,6 +1,7 @@
 package com.runjian.gb28181.transmit.event.request.impl.message.response.cmd;
 
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.Gateway.dto.ChannelRecordInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.BusinessSceneConstants;
@@ -114,16 +115,11 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
 
                     RecordInfo recordInfo = new RecordInfo();
-                    recordInfo.setChannelId(channelId);
-                    recordInfo.setDeviceId(take.getDevice().getDeviceId());
-                    recordInfo.setSn(sn);
-                    recordInfo.setName(getText(rootElementForCharset, "Name"));
                     String sumNumStr = getText(rootElementForCharset, "SumNum");
                     int sumNum = 0;
                     if (!ObjectUtils.isEmpty(sumNumStr)) {
                         sumNum = Integer.parseInt(sumNumStr);
                     }
-                    recordInfo.setSumNum(sumNum);
                     Element recordListElement = rootElementForCharset.element("RecordList");
                     if (recordListElement == null || sumNum == 0) {
                         logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "国标级联-国标录像", "无录像数据");
@@ -198,7 +194,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
             recordItems = packingRecordTime(recordList);
         }
         recordInfo.setRecordList(recordItems);
-        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.RECORD_INFO, BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
+        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.RECORD_INFO, BusinessErrorEnums.SUCCESS,recordInfo);
 
     }
 

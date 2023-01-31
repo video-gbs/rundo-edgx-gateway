@@ -160,7 +160,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                         CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
                                         catalogMqSyncDto.setTotal(catalogData.getTotal());
                                         catalogMqSyncDto.setSucessTotal(catalogData.getChannelList().size());
-                                        catalogMqSyncDto.setChannelList(catalogData.getChannelList());
+                                        catalogMqSyncDto.setChannelDetailList(catalogData.getChannelList());
                                         //更新redis
                                         BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS, businessSceneRedis.getMsgId(),businessSceneRedis.getThreadId(),businessSceneRedis.getTime(),catalogMqSyncDto);
                                         RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
@@ -186,7 +186,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                             CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
                             catalogMqSyncDto.setTotal(sumNum);
                             catalogMqSyncDto.setSucessTotal(sumNum);
-                            catalogMqSyncDto.setChannelList(deviceChannels);
+                            catalogMqSyncDto.setChannelDetailList(deviceChannels);
                             BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS, businessSceneRedis.getMsgId(),businessSceneRedis.getThreadId(),businessSceneRedis.getTime(),catalogMqSyncDto);
                             RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
                             //该结束状态用于删除之前的本地缓存数据

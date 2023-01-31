@@ -8,9 +8,8 @@ import java.time.Instant;
 import java.time.temporal.TemporalAccessor;
 
 /**
- * @description:设备录像bean 
- * @author: swwheihei
- * @date:   2020年5月8日 下午2:06:54     
+ * 单个录像列表
+ * @author chenjialing
  */
 public class RecordItem  implements Comparable<RecordItem>{
 

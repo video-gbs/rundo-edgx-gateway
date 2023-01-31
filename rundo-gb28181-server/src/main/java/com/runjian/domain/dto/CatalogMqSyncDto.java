@@ -13,7 +13,7 @@ import java.util.List;
 public class CatalogMqSyncDto {
 
     private int total;
-    private List<DeviceChannel> channelList;
+    private List<DeviceChannel> channelDetailList;
     private int sucessTotal;
 
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.rabbitmq.client.Channel;
 import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
+import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.CommonResponse;
@@ -11,6 +12,7 @@ import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.mq.domain.GatewayMqDto;
 import com.runjian.gb28181.bean.Device;
+import com.runjian.service.IDeviceChannelService;
 import com.runjian.service.IplayService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -28,6 +30,9 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
 
     @Autowired
     IplayService iplayService;
+
+    @Autowired
+    IDeviceChannelService deviceChannelService;
 
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
@@ -54,6 +59,10 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
             }else if(msgType.equals(GatewayMsgType.PLAY_NONE_STREAM_READER_CALLBACK.getTypeName())){
                 NoneStreamReaderReq noneStreamReaderReq = JSONObject.toJavaObject((JSONObject)gatewayMqDto.getData(),NoneStreamReaderReq.class);
                 iplayService.onStreamNoneReader(noneStreamReaderReq);
+            }if(msgType.equals(GatewayMsgType.RECORD_INFO.getTypeName())){
+                RecordInfoReq recordInfoReq = JSONObject.toJavaObject((JSONObject)gatewayMqDto.getData(), RecordInfoReq.class);
+                recordInfoReq.setMsgId(gatewayMqDto.getMsgId());
+                deviceChannelService.recordInfo(recordInfoReq);
             }
 
 
