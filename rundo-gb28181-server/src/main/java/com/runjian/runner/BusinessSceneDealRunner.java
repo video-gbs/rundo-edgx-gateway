@@ -77,7 +77,7 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
 
 
                     //针对点播失败的异常场景，需要：1.自行释放ssrc和2.删除相关的缓存，3.判断是否需要进行设备指令的bye和4.流媒体推流端口的关闭
-                    if(businessSceneResp.getGatewayMsgType().equals(GatewayMsgType.PLAY)){
+                    if(businessSceneResp.getGatewayMsgType().equals(GatewayMsgType.PLAY) || businessSceneResp.getGatewayMsgType().equals(GatewayMsgType.PLAY_BACK)){
                         //businessSceneResp.getCode() == BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode()
                         if(businessSceneResp.getCode() == BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode()){
                             //BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode() 只处理超时的请求
