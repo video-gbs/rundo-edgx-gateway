@@ -44,7 +44,7 @@ public class GatewayHeartBeatSchedule {
         String sn = iRedisCatchStorageService.getSn(GatewayCacheConstants.GATEWAY_INFO_SN_INCR);
 
         gatewayMqDto.setMsgId(GatewayCacheConstants.GATEWAY_INFO_SN_prefix+sn);
-        gatewayMqDto.setData(DateUtils.getExpireTimestamp(expire));
+        gatewayMqDto.setData(String.valueOf(DateUtils.getExpireTimestamp(expire)));
         //消息组装
         rabbitMqSender.sendMsg(MarkConstant.SIGIN_SG, UuidUtil.toUuid(), gatewayMqDto, true);
     }
