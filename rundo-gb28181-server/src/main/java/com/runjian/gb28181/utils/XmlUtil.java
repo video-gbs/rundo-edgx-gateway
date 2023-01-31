@@ -531,7 +531,7 @@ public class XmlUtil {
         }
 
 
-        deviceChannel.setManufacture(XmlUtil.getText(itemDevice, "Manufacturer"));
+        deviceChannel.setManufacturer(XmlUtil.getText(itemDevice, "Manufacturer"));
         deviceChannel.setModel(XmlUtil.getText(itemDevice, "Model"));
         deviceChannel.setOwner(XmlUtil.getText(itemDevice, "Owner"));
         deviceChannel.setCertNum(XmlUtil.getText(itemDevice, "CertNum"));

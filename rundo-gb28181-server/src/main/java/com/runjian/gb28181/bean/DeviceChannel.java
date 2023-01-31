@@ -3,6 +3,9 @@ package com.runjian.gb28181.bean;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+/**
+ * @author chenjialing
+ */
 @Schema(description = "通道信息")
 @Data
 public class DeviceChannel {
@@ -36,8 +39,7 @@ public class DeviceChannel {
 	 * 生产厂商
 	 */
 	@Schema(description = "生产厂商")
-	private String manufacture;
-	
+	private String manufacturer;
 	/**
 	 * 型号
 	 */

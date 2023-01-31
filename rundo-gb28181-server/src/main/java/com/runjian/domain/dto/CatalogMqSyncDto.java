@@ -14,6 +14,6 @@ public class CatalogMqSyncDto {
 
     private int total;
     private List<DeviceChannel> channelDetailList;
-    private int sucessTotal;
+    private int num;
 
 }

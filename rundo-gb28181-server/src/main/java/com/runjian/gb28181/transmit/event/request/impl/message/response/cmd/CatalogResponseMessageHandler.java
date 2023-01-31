@@ -159,7 +159,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
                                         CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
                                         catalogMqSyncDto.setTotal(catalogData.getTotal());
-                                        catalogMqSyncDto.setSucessTotal(catalogData.getChannelList().size());
+                                        catalogMqSyncDto.setNum(catalogData.getChannelList().size());
                                         catalogMqSyncDto.setChannelDetailList(catalogData.getChannelList());
                                         //更新redis
                                         BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS, businessSceneRedis.getMsgId(),businessSceneRedis.getThreadId(),businessSceneRedis.getTime(),catalogMqSyncDto);
@@ -185,7 +185,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
                             CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
                             catalogMqSyncDto.setTotal(sumNum);
-                            catalogMqSyncDto.setSucessTotal(sumNum);
+                            catalogMqSyncDto.setNum(sumNum);
                             catalogMqSyncDto.setChannelDetailList(deviceChannels);
                             BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS, businessSceneRedis.getMsgId(),businessSceneRedis.getThreadId(),businessSceneRedis.getTime(),catalogMqSyncDto);
                             RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);

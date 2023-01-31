@@ -34,8 +34,8 @@ public class GatewayBusinessMqConfig {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.setMessageListener(gatewayBusinessMqListener);
-        container.setConcurrentConsumers(1);
-        container.setMaxConcurrentConsumers(1);
+        container.setConcurrentConsumers(8);
+        container.setMaxConcurrentConsumers(32);
         container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         return container;
     }

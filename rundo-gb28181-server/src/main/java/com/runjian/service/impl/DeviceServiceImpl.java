@@ -117,7 +117,7 @@ public class DeviceServiceImpl implements IDeviceService {
             deviceMapper.update(device);
 
         }
-        sync(deviceBean,null);
+//        sync(deviceBean,null);
         // 刷新过期任务
         if(deviceCompatibleMapper.getByDeviceId(device.getDeviceId(), DeviceCompatibleEnum.HUAWEI_NVR_800.getType()) == null){
             //华为nvr800 不做定时过期限制
@@ -167,6 +167,7 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void sync(Device device,String msgId) {
         String businessSceneKey = GatewayMsgType.CATALOG.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"通道信息同步请求",device);
         RLock lock = redissonClient.getLock(businessSceneKey);
         try {
             //阻塞型,默认是30s无返回参数
@@ -211,6 +212,7 @@ public class DeviceServiceImpl implements IDeviceService {
     public void deviceInfoQuery(Device device,String msgId) {
         //同设备同类型业务消息，加上全局锁
         String businessSceneKey = GatewayMsgType.DEVICEINFO.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求",device);
         RLock lock = redissonClient.getLock(businessSceneKey);
         try {
             //阻塞型,默认是30s无返回参数

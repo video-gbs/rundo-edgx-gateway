@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.rabbitmq.client.Channel;
 import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
+import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
@@ -11,8 +12,11 @@ import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.mq.domain.GatewayMqDto;
+import com.runjian.common.utils.BeanUtil;
+import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.service.IDeviceChannelService;
+import com.runjian.service.IDeviceService;
 import com.runjian.service.IplayService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -34,6 +38,9 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
     @Autowired
     IDeviceChannelService deviceChannelService;
 
+    @Autowired
+    IDeviceService deviceService;
+
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
         try {
@@ -52,6 +59,8 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
                 log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "网关业务消息监听服务", "消息接收成功，上层服务创建队列失败", jsonMsg, "");
                 return;
             }
+            JSONObject dataJson = (JSONObject)gatewayMqDto.getData();
+            JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
             String msgType = gatewayMqDto.getMsgType();
             if(msgType.equals(GatewayMsgType.PLAY_STREAM_CALLBACK.getTypeName())){
                 StreamInfo streamInfo = JSONObject.toJavaObject((JSONObject)gatewayMqDto.getData(),StreamInfo.class);
@@ -59,10 +68,31 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
             }else if(msgType.equals(GatewayMsgType.PLAY_NONE_STREAM_READER_CALLBACK.getTypeName())){
                 NoneStreamReaderReq noneStreamReaderReq = JSONObject.toJavaObject((JSONObject)gatewayMqDto.getData(),NoneStreamReaderReq.class);
                 iplayService.onStreamNoneReader(noneStreamReaderReq);
-            }if(msgType.equals(GatewayMsgType.RECORD_INFO.getTypeName())){
+            }else if(msgType.equals(GatewayMsgType.RECORD_INFO.getTypeName())){
+                //录像列表
                 RecordInfoReq recordInfoReq = JSONObject.toJavaObject((JSONObject)gatewayMqDto.getData(), RecordInfoReq.class);
                 recordInfoReq.setMsgId(gatewayMqDto.getMsgId());
                 deviceChannelService.recordInfo(recordInfoReq);
+            }else if(msgType.equals(GatewayMsgType.DEVICEINFO.getTypeName())){
+                //设备信息同步  获取设备信息
+                String deviceId = dataJson.getString("deviceId");
+                DeviceDto deviceDto = deviceService.getDevice(deviceId);
+                Device device = new Device();
+                BeanUtil.copyProperties(deviceDto,device);
+                deviceService.deviceInfoQuery(device, gatewayMqDto.getMsgId());
+
+            }else if (msgType.equals(GatewayMsgType.CATALOG.getTypeName())){
+                //设备通道信息同步
+                String deviceId = dataJson.getString("deviceId");
+                DeviceDto deviceDto = deviceService.getDevice(deviceId);
+                Device device = new Device();
+                BeanUtil.copyProperties(deviceDto,device);
+                deviceService.sync(device, gatewayMqDto.getMsgId());
+            }else if (msgType.equals(GatewayMsgType.PLAY.getTypeName())){
+                //设备通道信息同步
+                PlayReq playReq = JSONObject.toJavaObject((JSONObject)gatewayMqDto.getData(), PlayReq.class);
+                playReq.setMsgId(gatewayMqDto.getMsgId());
+                iplayService.play(playReq);
             }
 
 
