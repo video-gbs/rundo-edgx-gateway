@@ -108,6 +108,8 @@ public enum BusinessErrorEnums {
 
     SIP_SEND_SUCESS(500,232010,"sip信令发送成功"),
 
+    SIP_DELETE_SUCESS(500,232011,"设备删除失败"),
+
     /************************** media异常 CODE:233xx ****************************/
     MEDIA_ZLM_EXSITED_ERROR(500,23300,"流媒体服务已存在"),
     MEDIA_ZLM_COLLECT_ERROR(500,23301,"流媒体服务连接失败"),

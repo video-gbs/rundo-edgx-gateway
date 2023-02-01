@@ -31,4 +31,12 @@ public interface DeviceMapper {
     @Update("UPDATE "+DEVICE_TABLE_NAME+" (#{device}) where id= #{id}")
     @Lang(SimpleUpdateExtendedLanguageDriver.class)
     int update(DeviceDto device);
+
+    /**
+     * 删除
+     * @param deviceId
+     * @return
+     */
+    @Delete("DELETE FROM device WHERE deviceId=#{deviceId}")
+    int remove(String deviceId);
 }

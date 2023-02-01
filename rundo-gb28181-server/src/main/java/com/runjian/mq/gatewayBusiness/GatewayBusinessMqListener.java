@@ -93,6 +93,9 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
                 PlayReq playReq = JSONObject.toJavaObject((JSONObject)gatewayMqDto.getData(), PlayReq.class);
                 playReq.setMsgId(gatewayMqDto.getMsgId());
                 iplayService.play(playReq);
+            }else if (msgType.equals(GatewayMsgType.DEVICE_DELETE.getTypeName())) {
+                String deviceId = dataJson.getString("deviceId");
+                deviceService.deviceDelete(deviceId,gatewayMqDto.getMsgId());
             }
 
 

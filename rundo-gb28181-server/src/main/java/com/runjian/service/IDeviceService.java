@@ -48,4 +48,11 @@ public interface IDeviceService {
      * @param device
      */
     void deviceInfoQuery(Device device,String msgId);
+
+    /**
+     *
+     * @param deviceId
+     * @return
+     */
+    Void deviceDelete(String deviceId,String msgId);
 }

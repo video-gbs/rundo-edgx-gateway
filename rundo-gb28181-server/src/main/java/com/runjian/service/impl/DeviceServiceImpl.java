@@ -27,6 +27,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -231,5 +232,44 @@ public class DeviceServiceImpl implements IDeviceService {
         //在异步线程进行解锁
 
 
+    }
+
+    @Override
+    public Void deviceDelete(String deviceId,String msgId) {
+        //同设备同类型业务消息，加上全局锁
+        String businessSceneKey = GatewayMsgType.DEVICE_DELETE.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+deviceId;
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求",deviceId+"|"+msgId);
+        RLock lock = redissonClient.getLock(businessSceneKey);
+        try {
+            //阻塞型,默认是30s无返回参数
+            lock.lock();
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICE_DELETE,msgId,userSetting.getBusinessSceneTimeout());
+            boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
+            if(!hset){
+                throw new Exception("redis操作hashmap失败");
+            }
+            DeviceDto deviceDto = deviceMapper.getDeviceByDeviceId(deviceId);
+            if(ObjectUtils.isEmpty(deviceDto)){
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_DELETE,BusinessErrorEnums.DB_NOT_FOUND,null);
+            }
+            if(deviceDto.getOnline() == 0){
+                //可以删除
+                deviceMapper.remove(deviceId);
+                deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_DELETE,BusinessErrorEnums.SUCCESS,true);
+
+            }else {
+                //不要删除
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_DELETE,BusinessErrorEnums.SUCCESS,false);
+            }
+
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_DELETE,BusinessErrorEnums.UNKNOWN_ERROR,null);
+
+        }
+
+
+        return null;
     }
 }
