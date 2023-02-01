@@ -37,6 +37,6 @@ public interface DeviceMapper {
      * @param deviceId
      * @return
      */
-    @Delete("DELETE FROM device WHERE deviceId=#{deviceId}")
+    @Delete("DELETE FROM "+DEVICE_TABLE_NAME+" WHERE device_id=#{deviceId}")
     int remove(String deviceId);
 }

@@ -10,7 +10,7 @@ import lombok.Data;
 public class DeviceControlReq {
     private String deviceId;
     private String channelId;
-    private String command;
+    private int cmdCode;
     private int horizonSpeed;
     private int verticalSpeed;
     private int zoomSpeed;

@@ -47,7 +47,7 @@ public class GatewayMqDto{
     /**
      * 消息
      */
-    private String msg =BusinessErrorEnums.SUCCESS.toString();
+    private String msg =BusinessErrorEnums.SUCCESS.getErrMsg();
     /**
      * 数据
      */

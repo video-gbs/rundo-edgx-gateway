@@ -3,6 +3,7 @@ package com.runjian.mq.gatewayBusiness;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.rabbitmq.client.Channel;
+import com.runjian.common.commonDto.Gateway.req.DeviceControlReq;
 import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
@@ -17,6 +18,7 @@ import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.service.IDeviceChannelService;
 import com.runjian.service.IDeviceService;
+import com.runjian.service.IPtzService;
 import com.runjian.service.IplayService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -41,6 +43,9 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
     @Autowired
     IDeviceService deviceService;
 
+    @Autowired
+    IPtzService ptzService;
+
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
         try {
@@ -60,6 +65,7 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
                 return;
             }
             JSONObject dataJson = (JSONObject)gatewayMqDto.getData();
+            //实际的请求参数
             JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
             String msgType = gatewayMqDto.getMsgType();
             if(msgType.equals(GatewayMsgType.PLAY_STREAM_CALLBACK.getTypeName())){
@@ -70,7 +76,12 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
                 iplayService.onStreamNoneReader(noneStreamReaderReq);
             }else if(msgType.equals(GatewayMsgType.RECORD_INFO.getTypeName())){
                 //录像列表
-                RecordInfoReq recordInfoReq = JSONObject.toJavaObject((JSONObject)gatewayMqDto.getData(), RecordInfoReq.class);
+                String deviceId = dataJson.getString("deviceId");
+                String channelId = dataJson.getString("channelId");
+                RecordInfoReq recordInfoReq = JSONObject.toJavaObject(dataMapJson, RecordInfoReq.class);
+                recordInfoReq.setChannelId(channelId);
+                recordInfoReq.setDeviceId(deviceId);
+                recordInfoReq.setMsgId(gatewayMqDto.getMsgId());
                 recordInfoReq.setMsgId(gatewayMqDto.getMsgId());
                 deviceChannelService.recordInfo(recordInfoReq);
             }else if(msgType.equals(GatewayMsgType.DEVICEINFO.getTypeName())){
@@ -89,13 +100,25 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
                 BeanUtil.copyProperties(deviceDto,device);
                 deviceService.sync(device, gatewayMqDto.getMsgId());
             }else if (msgType.equals(GatewayMsgType.PLAY.getTypeName())){
-                //设备通道信息同步
-                PlayReq playReq = JSONObject.toJavaObject((JSONObject)gatewayMqDto.getData(), PlayReq.class);
+                //设备点播同步
+                String deviceId = dataJson.getString("deviceId");
+                String channelId = dataJson.getString("channelId");
+                PlayReq playReq = JSONObject.toJavaObject(dataMapJson, PlayReq.class);
+                playReq.setDeviceId(deviceId);
+                playReq.setChannelId(channelId);
                 playReq.setMsgId(gatewayMqDto.getMsgId());
                 iplayService.play(playReq);
             }else if (msgType.equals(GatewayMsgType.DEVICE_DELETE.getTypeName())) {
                 String deviceId = dataJson.getString("deviceId");
                 deviceService.deviceDelete(deviceId,gatewayMqDto.getMsgId());
+            }else if (msgType.equals(GatewayMsgType.PTZ_CONTROL.getTypeName())) {
+                String deviceId = dataJson.getString("deviceId");
+                String channelId = dataJson.getString("channelId");
+                DeviceControlReq deviceControlReq = JSONObject.toJavaObject(dataMapJson, DeviceControlReq.class);
+                deviceControlReq.setDeviceId(deviceId);
+                deviceControlReq.setChannelId(channelId);
+                deviceControlReq.setMsgId(gatewayMqDto.getMsgId());
+                ptzService.deviceControl(deviceControlReq);
             }
 
 

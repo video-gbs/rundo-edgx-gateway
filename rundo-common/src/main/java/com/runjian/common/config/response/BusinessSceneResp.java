@@ -73,7 +73,7 @@ public class BusinessSceneResp<T> {
     public static<T> BusinessSceneResp<T> addSceneReady(GatewayMsgType gatewayMsgType,String msgId,int timeOut){
         long id = Thread.currentThread().getId();
         LocalDateTime now = LocalDateTime.now().plusSeconds(timeOut);
-        return create(BusinessErrorEnums.BUSINESS_SCENE_EXCEPTION.getErrCode(), BusinessErrorEnums.BUSINESS_SCENE_EXCEPTION.toString(), BusinessSceneStatusEnum.ready, gatewayMsgType,msgId,id,now,null);
+        return create(BusinessErrorEnums.BUSINESS_SCENE_EXCEPTION.getErrCode(), BusinessErrorEnums.BUSINESS_SCENE_EXCEPTION.getErrMsg(), BusinessSceneStatusEnum.ready, gatewayMsgType,msgId,id,now,null);
     }
 
     /**
@@ -82,7 +82,7 @@ public class BusinessSceneResp<T> {
      * @return
      */
     public static<T> BusinessSceneResp<T> addSceneEnd(GatewayMsgType gatewayMsgType,BusinessErrorEnums businessErrorEnums,String msgId,long threadId, LocalDateTime time,T data){
-        return create(businessErrorEnums.getErrCode(), businessErrorEnums.toString(), BusinessSceneStatusEnum.end,gatewayMsgType,msgId,threadId,time ,data);
+        return create(businessErrorEnums.getErrCode(), businessErrorEnums.getErrMsg(), BusinessSceneStatusEnum.end,gatewayMsgType,msgId,threadId,time ,data);
     }
 
     /**

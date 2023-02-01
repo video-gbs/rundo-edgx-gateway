@@ -65,6 +65,8 @@ public class GatewayBusinessAsyncSender {
                 String msgId = businessSceneRespPoll.getMsgId();
                 GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
                 mqInfo.setData(businessSceneRespPoll.getData());
+                mqInfo.setCode(businessSceneRespPoll.getCode());
+                mqInfo.setMsg(businessSceneResp.getMsg());
                 log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", businessSceneResp);
                 rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),mqInfo,true);
             }

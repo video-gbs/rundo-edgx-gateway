@@ -160,7 +160,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             sipCommander.recordInfoQuery(device, channelId, startTime, endTime, sn, null, null, null, null);
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.RECORD_INFO,BusinessErrorEnums.UNKNOWN_ERROR,null);
 
         }
         //在异步线程进行解锁
