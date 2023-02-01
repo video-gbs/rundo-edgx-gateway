@@ -235,7 +235,7 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public Void deviceDelete(String deviceId,String msgId) {
+    public void deviceDelete(String deviceId,String msgId) {
         //同设备同类型业务消息，加上全局锁
         String businessSceneKey = GatewayMsgType.DEVICE_DELETE.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+deviceId;
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求",deviceId+"|"+msgId);
@@ -250,7 +250,8 @@ public class DeviceServiceImpl implements IDeviceService {
             }
             DeviceDto deviceDto = deviceMapper.getDeviceByDeviceId(deviceId);
             if(ObjectUtils.isEmpty(deviceDto)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_DELETE,BusinessErrorEnums.DB_NOT_FOUND,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_DELETE,BusinessErrorEnums.SUCCESS,true);
+                return ;
             }
             if(deviceDto.getOnline() == 0){
                 //可以删除
@@ -270,6 +271,5 @@ public class DeviceServiceImpl implements IDeviceService {
         }
 
 
-        return null;
     }
 }

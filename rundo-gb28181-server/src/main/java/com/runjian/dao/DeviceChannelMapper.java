@@ -52,7 +52,7 @@ public interface DeviceChannelMapper {
      * @param deviceId
      * @return
      */
-    @Delete("DELETE FROM device_channel WHERE device_id=#{deviceId}")
+    @Delete("DELETE FROM "+DEVICE_CHANNEL_TABLE_NAME+" WHERE device_id=#{deviceId}")
     int cleanChannelsByDeviceId(String deviceId);
     /**
      * 批量进行数据添加

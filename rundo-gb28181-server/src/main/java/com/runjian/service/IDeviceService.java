@@ -54,5 +54,5 @@ public interface IDeviceService {
      * @param deviceId
      * @return
      */
-    Void deviceDelete(String deviceId,String msgId);
+    void deviceDelete(String deviceId,String msgId);
 }

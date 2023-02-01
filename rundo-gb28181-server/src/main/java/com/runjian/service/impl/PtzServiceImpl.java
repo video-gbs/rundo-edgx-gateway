@@ -26,6 +26,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  *
  * @author chenjialing
@@ -50,6 +53,40 @@ public class PtzServiceImpl implements IPtzService {
     @Autowired
     SIPCommander sipCommander;
 
+//    case "left":
+//        cmdCode = 2;
+//        break;
+//    case "right":
+//        cmdCode = 1;
+//        break;
+//    case "up":
+//        cmdCode = 8;
+//        break;
+//    case "down":
+//        cmdCode = 4;
+//        break;
+//    case "upleft":
+//        cmdCode = 10;
+//        break;
+//    case "upright":
+//        cmdCode = 9;
+//        break;
+//    case "downleft":
+//        cmdCode = 6;
+//        break;
+//    case "downright":
+//        cmdCode = 5;
+//        break;
+//    case "zoomin":
+//        cmdCode = 16;
+//        break;
+//    case "zoomout":
+//        cmdCode = 32;
+//        break;
+//    case "stop":
+//        cmdCode = 0;
+    private List<Integer> commomCodeArray = Arrays.asList(2,1,8,4,10,9,6,5,16,32,0);
+
     @Override
     public void deviceControl(DeviceControlReq deviceControlReq) {
 
@@ -61,7 +98,7 @@ public class PtzServiceImpl implements IPtzService {
             BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.PTZ_CONTROL, deviceControlReq.getMsgId(), userSetting.getBusinessSceneTimeout());
             boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
             if (!hset) {
-                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "点播失败", "redis操作hashmap失败");
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "ptz服务", "ptz操作失败", "redis操作hashmap失败");
                 return;
             }
             //参数校验
@@ -75,43 +112,12 @@ public class PtzServiceImpl implements IPtzService {
             }
             Device deviceBean = new Device();
             BeanUtil.copyProperties(device,deviceBean);
-            String command = deviceControlReq.getCommand();
-            int cmdCode = 0;
-            switch (command){
-                case "left":
-                    cmdCode = 2;
-                    break;
-                case "right":
-                    cmdCode = 1;
-                    break;
-                case "up":
-                    cmdCode = 8;
-                    break;
-                case "down":
-                    cmdCode = 4;
-                    break;
-                case "upleft":
-                    cmdCode = 10;
-                    break;
-                case "upright":
-                    cmdCode = 9;
-                    break;
-                case "downleft":
-                    cmdCode = 6;
-                    break;
-                case "downright":
-                    cmdCode = 5;
-                    break;
-                case "zoomin":
-                    cmdCode = 16;
-                    break;
-                case "zoomout":
-                    cmdCode = 32;
-                    break;
-                case "stop":
-                    break;
-                default:
-                    break;
+            int cmdCode = deviceControlReq.getCmdCode();
+            if(!commomCodeArray.contains(cmdCode)){
+
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "ptz服务", "ptz操作失败", deviceControlReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL,BusinessErrorEnums.VALID_BIND_EXCEPTION_ERROR,null);
+                return;
             }
             sipCommander.frontEndCmd(deviceBean, deviceControlReq.getChannelId(), cmdCode, deviceControlReq.getHorizonSpeed(), deviceControlReq.getVerticalSpeed(), deviceControlReq.getZoomSpeed());
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL,BusinessErrorEnums.SUCCESS,null);
