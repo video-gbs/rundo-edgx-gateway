@@ -37,6 +37,9 @@ public class GatewayInfoMqListener implements ChannelAwareMessageListener {
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
+    @Autowired
+    IGatewayInfoService gatewayInfoService;
+
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
         String msg = new String(message.getBody());
@@ -70,8 +73,9 @@ public class GatewayInfoMqListener implements ChannelAwareMessageListener {
 
             }else if(msgType.equals(GatewayMsgType.GATEWAY_HEARTBEAT.getTypeName())) {
                 //心跳todo  暂时不处理
-            }else {
-
+            }else if(msgType.equals(GatewayMsgType.GATEWAY_RE_SIGN_IN.getTypeName())){
+                //重新发送注册信息
+                gatewayInfoService.sendRegisterInfo();
             }
 
 
