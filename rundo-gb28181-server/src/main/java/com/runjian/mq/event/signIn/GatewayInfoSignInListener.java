@@ -1,14 +1,6 @@
 package com.runjian.mq.event.signIn;
 
-import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
-import com.runjian.common.config.exception.BusinessErrorEnums;
-import com.runjian.common.config.response.CommonResponse;
-import com.runjian.common.constant.GatewayMsgType;
-import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.utils.BeanUtil;
-import com.runjian.common.utils.RestTemplateUtil;
-import com.runjian.conf.GatewayInfoConf;
-import com.runjian.conf.MediaServerInfoConfig;
+
 import com.runjian.conf.mq.GatewaySignInConf;
 import com.runjian.domain.resp.GatewaySignInRsp;
 import com.runjian.service.IGatewayInfoService;

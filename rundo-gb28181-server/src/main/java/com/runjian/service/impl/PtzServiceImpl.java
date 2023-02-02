@@ -8,7 +8,6 @@ import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
-import com.runjian.conf.MediaServerInfoConfig;
 import com.runjian.conf.UserSetting;
 import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;

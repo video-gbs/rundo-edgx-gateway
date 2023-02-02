@@ -42,8 +42,7 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
     IPtzService ptzService;
 
     @Autowired
-    IGatewayInfoService gatewayInfoService;
-
+    IGatewayBaseService gatewayBaseService;
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
         try {
@@ -129,7 +128,7 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
             }else if(msgType.equals(GatewayMsgType.GATEWAY_BIND_MEDIA.getTypeName())){
                 GatewayBindMedia gatewayBindMedia = JSONObject.toJavaObject(dataMapJson, GatewayBindMedia.class);
                 gatewayBindMedia.setMsgId(gatewayBindMedia.getMsgId());
-                gatewayInfoService.gatewayBindMedia(gatewayBindMedia);
+                gatewayBaseService.gatewayBindMedia(gatewayBindMedia);
             }
 
 

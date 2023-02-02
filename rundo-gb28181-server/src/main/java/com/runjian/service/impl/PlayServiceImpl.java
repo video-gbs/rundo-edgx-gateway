@@ -21,7 +21,6 @@ import com.runjian.common.constant.VideoManagerConstants;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.RestTemplateUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
-import com.runjian.conf.MediaServerInfoConfig;
 import com.runjian.conf.SsrcConfig;
 import com.runjian.conf.UserSetting;
 import com.runjian.domain.dto.DeviceDto;

@@ -11,9 +11,5 @@ public interface IGatewayInfoService {
      */
     void sendRegisterInfo();
 
-    /**
-     * 网关绑定调度服务
-     * @param gatewayBindMedia
-     */
-    void gatewayBindMedia(GatewayBindMedia gatewayBindMedia);
+
 }
