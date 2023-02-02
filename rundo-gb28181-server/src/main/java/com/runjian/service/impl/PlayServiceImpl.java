@@ -2,6 +2,7 @@ package com.runjian.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.Gateway.dto.GatewayBindMedia;
 import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
 import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
@@ -91,8 +92,6 @@ public class PlayServiceImpl implements IplayService {
     @Autowired
     RestTemplate restTemplate;
 
-    @Autowired
-    MediaServerInfoConfig mediaServerInfoConfig;
 
     @Autowired
     SIPCommander sipCommander;
@@ -105,6 +104,7 @@ public class PlayServiceImpl implements IplayService {
 
     @Value("${gateway-info.serialNum}")
     private String serialNum;
+
 
 
     @Override
@@ -236,9 +236,9 @@ public class PlayServiceImpl implements IplayService {
             return null;
 
         }
-
+        GatewayBindMedia gatewayBindMedia =  (GatewayBindMedia)RedisCommonUtil.get(redisTemplate,BusinessSceneConstants.BIND_GATEWAY_MEDIA+serialNum);
         //判断调度服务的相关信息是否完成了初始化
-        if(ObjectUtils.isEmpty(mediaServerInfoConfig)){
+        if(ObjectUtils.isEmpty(gatewayBindMedia)){
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.MEDIA_SERVER_BIND_ERROR,null);
             return null;
         }
@@ -254,7 +254,7 @@ public class PlayServiceImpl implements IplayService {
                 rtpInfoDto.setApp(VideoManagerConstants.GB28181_APP);
                 rtpInfoDto.setMediaServerId(ssrcTransaction.getMediaServerId());
                 rtpInfoDto.setStreamId(ssrcTransaction.getStream());
-                CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(mediaServerInfoConfig.getMediaUrl() + getRtpInfoApi, rtpInfoDto, restTemplate);
+                CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(gatewayBindMedia.getUrl() + getRtpInfoApi, rtpInfoDto, restTemplate);
                 if(commonResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
                     log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "zlm连接失败", commonResponse);
 
@@ -296,7 +296,7 @@ public class PlayServiceImpl implements IplayService {
             redisCatchStorageService.setSsrcConfig(ssrcConfig);
         }
         //todo 待定这个流程 判断观看的服务到底是哪里进行判断
-        CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(mediaServerInfoConfig.getMediaUrl() + openRtpServerApi, baseRtpServerDto, restTemplate);
+        CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(gatewayBindMedia.getUrl() + openRtpServerApi, baseRtpServerDto, restTemplate);
         if(commonResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "创建推流端口失败", commonResponse);
 
@@ -465,7 +465,8 @@ public class PlayServiceImpl implements IplayService {
         CloseRtpServerDto closeRtpServerDto = new CloseRtpServerDto();
         closeRtpServerDto.setMediaServerId(mediaServerId);
         closeRtpServerDto.setStreamId(streamId);
-        CommonResponse closeResponse = RestTemplateUtil.postCloseRtpserverRespons(mediaServerInfoConfig.getMediaUrl() + closeRtpServerApi, closeRtpServerDto, restTemplate);
+        GatewayBindMedia gatewayBindMedia =  (GatewayBindMedia)RedisCommonUtil.get(redisTemplate,BusinessSceneConstants.BIND_GATEWAY_MEDIA+serialNum);
+        CommonResponse closeResponse = RestTemplateUtil.postCloseRtpserverRespons(gatewayBindMedia.getUrl() + closeRtpServerApi, closeRtpServerDto, restTemplate);
         if(closeResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
             //后续这zlm也会进行关闭该端口
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "关闭推流端口失败", closeResponse);
