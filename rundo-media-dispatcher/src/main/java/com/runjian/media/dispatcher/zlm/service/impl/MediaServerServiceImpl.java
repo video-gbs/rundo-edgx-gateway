@@ -113,7 +113,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
         Boolean ssrcCheck = baseRtpServerDto.getSsrcCheck();
         Integer port = baseRtpServerDto.getPort();
         //缓存相关的请求参数
-        RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_RTP_SERVER_REQ+ BusinessSceneConstants.SCENE_SEM_KEY+baseRtpServerDto.getStreamId(),baseRtpServerDto,5);
+        RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_RTP_SERVER_REQ+ BusinessSceneConstants.SCENE_SEM_KEY+baseRtpServerDto.getStreamId(),baseRtpServerDto,10);
 
 
         HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.GB28181_APP, baseRtpServerDto.getStreamId(), true, VideoManagerConstants.GB28181_SCHEAM, mediaServerItem.getId());
@@ -525,7 +525,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
 
     public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream) {
         StreamInfo streamInfoResult = new StreamInfo();
-        streamInfoResult.setStream(stream);
+        streamInfoResult.setStreamId(stream);
         String addr = mediaInfo.getStreamIp();
         streamInfoResult.setMediaServerId(mediaInfo.getId());
         streamInfoResult.setRtmp(String.format("rtmp://%s:%s/%s/%s", addr, mediaInfo.getRtmpPort(), app,  stream));

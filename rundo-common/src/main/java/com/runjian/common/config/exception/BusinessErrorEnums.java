@@ -106,7 +106,7 @@ public enum BusinessErrorEnums {
 
     DB_DEVICE_NOT_FOUND(500,232009,"设备数据查找失败"),
 
-    SIP_SEND_SUCESS(500,232010,"sip信令发送成功"),
+    SIP_SEND_SUCESS(500,232010,"信令交互成功，推流失败"),
 
     SIP_DELETE_SUCESS(500,232011,"设备删除失败"),
 

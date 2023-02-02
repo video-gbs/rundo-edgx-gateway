@@ -124,6 +124,10 @@ media:
 logging:
     config: classpath:logback-spring-local.xml
 
+
+response:
+    exclude-url: "/v3/api-docs,/api/v1,/index/hook"
+
 mq:
     enabled: true
     queue-data-list:

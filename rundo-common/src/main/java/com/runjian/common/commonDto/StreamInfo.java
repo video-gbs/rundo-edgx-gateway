@@ -9,7 +9,7 @@ import lombok.Data;
 public class StreamInfo {
 
 
-    private String stream;
+    private String streamId;
 
     private String flv;
 
