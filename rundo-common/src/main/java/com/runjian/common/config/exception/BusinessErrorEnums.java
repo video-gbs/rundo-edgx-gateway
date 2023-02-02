@@ -89,7 +89,7 @@ public enum BusinessErrorEnums {
     REDIS_EXCEPTION(500,23100,"redis缓存异常"),
     BUSINESS_SCENE_EXCEPTION(500,23101,"业务场景处理异常"),
 
-    /************************** sip自定义s事件异常 CODE:232xx ****************************/
+    /************************** 网关自定义s事件异常 CODE:232xx ****************************/
     SIP_TIMEOUT_EVENT(500,232001,"消息超时未回复"),
     SIP_TRASACTION_TERMINATED_EVENT(500,232002,"事务已结束"),
     SIP_DIALOG_TERMINATED_EVENT(500,232003,"会话已结束"),
@@ -109,6 +109,8 @@ public enum BusinessErrorEnums {
     SIP_SEND_SUCESS(500,232010,"信令交互成功，推流失败"),
 
     SIP_DELETE_SUCESS(500,232011,"设备删除失败"),
+
+    BIND_GATEWAY_ERROR(500,232012,"网关绑定流媒体服务失败"),
 
     /************************** media异常 CODE:233xx ****************************/
     MEDIA_ZLM_EXSITED_ERROR(500,23300,"流媒体服务已存在"),

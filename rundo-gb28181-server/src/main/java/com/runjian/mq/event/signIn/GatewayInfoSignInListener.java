@@ -33,14 +33,7 @@ public class GatewayInfoSignInListener implements ApplicationListener<GatewayInf
     @Autowired
     IGatewayInfoService gatewayInfoService;
 
-    @Autowired
-    MediaServerInfoConfig mediaServerInfoConfig;
 
-    @Value("${mdeia-api-uri-list.gateway-bind}")
-    private String gatewayBind;
-
-    @Autowired
-    private RestTemplate restTemplate;
 
 
 
@@ -53,16 +46,7 @@ public class GatewayInfoSignInListener implements ApplicationListener<GatewayInf
         //进行动态业务队列队列创建
 
         gatewayInfoService.addMqListener(gatewaySignInRsp.getMqGetQueue());
-        //进行网关业务队列与流媒体的绑定接口绑定
-        GatewayBindReq gatewayBindReq = new GatewayBindReq();
-        gatewayBindReq.setGatewayId(gatewaySignInConf.getGatewayId());
-        gatewayBindReq.setMqExchange(gatewaySignInConf.getMqExchange());
-        gatewayBindReq.setMqRouteKey(gatewaySignInConf.getMqGetQueue());
-        gatewayBindReq.setMqQueueName(gatewaySignInConf.getMqGetQueue());
-        CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(mediaServerInfoConfig.getMediaUrl() + gatewayBind, gatewayBindReq, restTemplate);
-        if(commonResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "媒体调度服务", "创建绑定信息失败，将导致点播服务异常", commonResponse);
-        }
+
     }
 
 }

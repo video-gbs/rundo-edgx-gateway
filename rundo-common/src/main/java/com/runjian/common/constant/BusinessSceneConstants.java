@@ -19,4 +19,9 @@ public class BusinessSceneConstants {
     public static final String  SCENE_STREAM_KEY= "-";
 
     public static final String  SCENE_STREAM_SPLICE_KEY= "_";
+
+    /**
+     * zset的key的全部场景值
+     */
+    public static final String  BIND_GATEWAY_MEDIA = "bind_gateway_media:";
 }

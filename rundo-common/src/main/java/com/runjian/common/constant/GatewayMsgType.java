@@ -46,7 +46,8 @@ public enum GatewayMsgType {
     PLAY_STREAM_CALLBACK("PLAY_STREAM_CALLBACK"),
     //流无人观看
     PLAY_NONE_STREAM_READER_CALLBACK("PLAY_NONE_STREAM_READER_CALLBACK"),
-
+    //调度服务绑定
+    GATEWAY_BIND_MEDIA("GATEWAY_BIND_MEDIA"),
 
     /******调度服务相关*************/
 

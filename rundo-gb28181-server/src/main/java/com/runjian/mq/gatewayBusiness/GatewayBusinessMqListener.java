@@ -3,10 +3,8 @@ package com.runjian.mq.gatewayBusiness;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.rabbitmq.client.Channel;
-import com.runjian.common.commonDto.Gateway.req.DeviceControlReq;
-import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
-import com.runjian.common.commonDto.Gateway.req.PlayReq;
-import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
+import com.runjian.common.commonDto.Gateway.dto.GatewayBindMedia;
+import com.runjian.common.commonDto.Gateway.req.*;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.CommonResponse;
@@ -16,10 +14,7 @@ import com.runjian.common.mq.domain.GatewayMqDto;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
-import com.runjian.service.IDeviceChannelService;
-import com.runjian.service.IDeviceService;
-import com.runjian.service.IPtzService;
-import com.runjian.service.IplayService;
+import com.runjian.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
@@ -45,6 +40,9 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
 
     @Autowired
     IPtzService ptzService;
+
+    @Autowired
+    IGatewayInfoService gatewayInfoService;
 
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
@@ -108,6 +106,15 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
                 playReq.setChannelId(channelId);
                 playReq.setMsgId(gatewayMqDto.getMsgId());
                 iplayService.play(playReq);
+            }else if (msgType.equals(GatewayMsgType.PLAY_BACK.getTypeName())){
+                //设备点播同步
+                String deviceId = dataJson.getString("deviceId");
+                String channelId = dataJson.getString("channelId");
+                PlayBackReq playBackReq = JSONObject.toJavaObject(dataMapJson, PlayBackReq.class);
+                playBackReq.setDeviceId(deviceId);
+                playBackReq.setChannelId(channelId);
+                playBackReq.setMsgId(gatewayMqDto.getMsgId());
+                iplayService.playBack(playBackReq);
             }else if (msgType.equals(GatewayMsgType.DEVICE_DELETE.getTypeName())) {
                 String deviceId = dataJson.getString("deviceId");
                 deviceService.deviceDelete(deviceId,gatewayMqDto.getMsgId());
@@ -119,6 +126,10 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
                 deviceControlReq.setChannelId(channelId);
                 deviceControlReq.setMsgId(gatewayMqDto.getMsgId());
                 ptzService.deviceControl(deviceControlReq);
+            }else if(msgType.equals(GatewayMsgType.GATEWAY_BIND_MEDIA.getTypeName())){
+                GatewayBindMedia gatewayBindMedia = JSONObject.toJavaObject(dataMapJson, GatewayBindMedia.class);
+                gatewayBindMedia.setMsgId(gatewayBindMedia.getMsgId());
+                gatewayInfoService.gatewayBindMedia(gatewayBindMedia);
             }
 
 
