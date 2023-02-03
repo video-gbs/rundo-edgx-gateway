@@ -127,7 +127,7 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
                 ptzService.deviceControl(deviceControlReq);
             }else if(msgType.equals(GatewayMsgType.GATEWAY_BIND_MEDIA.getTypeName())){
                 GatewayBindMedia gatewayBindMedia = JSONObject.toJavaObject(dataMapJson, GatewayBindMedia.class);
-                gatewayBindMedia.setMsgId(gatewayBindMedia.getMsgId());
+                gatewayBindMedia.setMsgId(gatewayMqDto.getMsgId());
                 gatewayBaseService.gatewayBindMedia(gatewayBindMedia);
             }
 

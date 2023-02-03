@@ -67,6 +67,7 @@ public class GatewayInfoMqListener implements ChannelAwareMessageListener {
             if(msgType.equals(GatewayMsgType.GATEWAY_SIGN_IN.getTypeName())){
                 //注册返回 进行业务队列的动态监听
                 GatewaySignInRsp gatewaySignInRsp = JSONObject.toJavaObject((JSONObject)gatewayMqDto.getData(),GatewaySignInRsp.class);
+                gatewaySignInRsp.setSerialNum(serialNum);
                 GatewayInfoSignInEvent gatewayInfoSignInEvent = new GatewayInfoSignInEvent(this);
                 gatewayInfoSignInEvent.setGatewaySignInRsp(gatewaySignInRsp);
                 applicationEventPublisher.publishEvent(gatewayInfoSignInEvent);

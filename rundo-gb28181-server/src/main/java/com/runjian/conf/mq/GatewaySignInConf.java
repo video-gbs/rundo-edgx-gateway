@@ -16,9 +16,9 @@ public class GatewaySignInConf {
     private Boolean isFirstSignIn;
 
     /**
-     * 网关id
+     * 网关序列号
      */
-    private String gatewayId;
+    private String serialNum;;
 
     /**
      * 注册类型 MQ RESTFUL

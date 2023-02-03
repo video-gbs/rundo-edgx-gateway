@@ -79,7 +79,7 @@ public class IGatewayBaseServiceImpl implements IGatewayBaseService {
                 RedisCommonUtil.set(redisTemplate,BusinessSceneConstants.BIND_GATEWAY_MEDIA+serialNum,gatewayBindMedia);
                 //调度服务进行网关服务的mq信息绑定
                 GatewayBindReq gatewayBindReq = new GatewayBindReq();
-                gatewayBindReq.setGatewayId(gatewaySignInConf.getGatewayId());
+                gatewayBindReq.setGatewayId(gatewaySignInConf.getSerialNum());
                 gatewayBindReq.setMqExchange(gatewaySignInConf.getMqExchange());
                 gatewayBindReq.setMqRouteKey(gatewaySignInConf.getMqGetQueue());
                 gatewayBindReq.setMqQueueName(gatewaySignInConf.getMqGetQueue());
