@@ -39,4 +39,8 @@ public class VideoManagerConstants {
 
 	public static final String SSRC_CACHE_KEY = "SSRC_CACHE_KEY_";
 	/***ssrc缓存  end****/
+
+	/*****设备缓存 start*****/
+	public static final String REGISTER_EXPIRE_TASK_KEY_PREFIX = "device_register_expire_";
+	/****设备缓存 end*****/
 }

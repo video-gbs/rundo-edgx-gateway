@@ -99,6 +99,11 @@ public class Device {
 	@Schema(description = "心跳时间")
 	private String keepaliveTime;
 
+	/**
+	 * 注册有效期
+	 */
+	@Schema(description = "心跳有效期")
+	private long keepaliveIntervalTime;
 
 
 	/**

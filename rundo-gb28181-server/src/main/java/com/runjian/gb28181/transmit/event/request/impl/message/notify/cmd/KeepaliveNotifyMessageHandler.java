@@ -2,7 +2,9 @@ package com.runjian.gb28181.transmit.event.request.impl.message.notify.cmd;
 
 import com.runjian.common.constant.DeviceCompatibleEnum;
 import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.constant.VideoManagerConstants;
 import com.runjian.common.utils.BeanUtil;
+import com.runjian.conf.DynamicTask;
 import com.runjian.dao.DeviceCompatibleMapper;
 import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
@@ -46,6 +48,8 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
     @Autowired
     private DeviceCompatibleMapper deviceCompatibleMapper;
 
+    @Autowired
+    private DynamicTask dynamicTask;
     @Override
     public void afterPropertiesSet() throws Exception {
         notifyMessageHandler.addHandler(cmdType, this);
@@ -77,24 +81,29 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             device.setPort(rPort);
             device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
         }
-        device.setKeepaliveTime(DateUtil.getNow());
 
+        if (device.getKeepaliveTime() == null) {
+            device.setKeepaliveIntervalTime(60);
+        }else {
+            long lastTime = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(device.getKeepaliveTime());
+            device.setKeepaliveIntervalTime(Long.valueOf(System.currentTimeMillis()/1000-lastTime));
+        }
+        device.setKeepaliveTime(DateUtil.getNow());
+        DeviceDto deviceDto = new DeviceDto();
+        BeanUtil.copyProperties(device,deviceDto);
         if (device.getOnline() == 1) {
             deviceService.updateDevice(device);
         }else {
-            DeviceDto deviceDto = new DeviceDto();
-            BeanUtil.copyProperties(device,deviceDto);
-            //判断是否华为nvr800 --有心跳即恢复上线
-            if(deviceCompatibleMapper.getByDeviceId(device.getDeviceId(), DeviceCompatibleEnum.HUAWEI_NVR_800.getType())!=null){
 
+            // 对于已经离线的设备判断他的注册是否已经过期
+            if (!deviceService.expire(device)){
                 deviceService.online(deviceDto);
-            }else {
-                // 对于已经离线的设备判断他的注册是否已经过期
-                if (!deviceService.expire(device)){
-                    deviceService.online(deviceDto);
-                }
             }
         }
+        // 刷新过期任务
+        String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
+        // 如果三次心跳失败，则设置设备离线
+        dynamicTask.startDelay(registerExpireTaskKey, ()-> deviceService.offline(deviceDto),  (int)device.getKeepaliveIntervalTime()*1000*3);
     }
 
     @Override

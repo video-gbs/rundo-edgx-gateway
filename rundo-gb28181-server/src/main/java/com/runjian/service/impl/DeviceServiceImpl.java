@@ -118,13 +118,14 @@ public class DeviceServiceImpl implements IDeviceService {
             deviceMapper.update(device);
 
         }
-//        sync(deviceBean,null);
-        // 刷新过期任务
-        if(deviceCompatibleMapper.getByDeviceId(device.getDeviceId(), DeviceCompatibleEnum.HUAWEI_NVR_800.getType()) == null){
-            //华为nvr800 不做定时过期限制
-            String registerExpireTaskKey = registerExpireTaskKeyPrefix + device.getDeviceId();
-            dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device), device.getExpires() * 1000);
+        if (device.getKeepaliveTime() == null) {
+            device.setKeepaliveIntervalTime(60);
         }
+
+        // 刷新过期任务
+        String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
+        // 如果三次心跳失败，则设置设备离线
+        dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device),  (int)device.getKeepaliveIntervalTime()*1000*3);
 
     }
 
@@ -137,7 +138,7 @@ public class DeviceServiceImpl implements IDeviceService {
             return;
         }
         String deviceId = device.getDeviceId();
-        String registerExpireTaskKey = registerExpireTaskKeyPrefix + deviceId;
+        String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + deviceId;
         dynamicTask.stop(registerExpireTaskKey);
         device.setOnline(0);
         deviceMapper.update(device);

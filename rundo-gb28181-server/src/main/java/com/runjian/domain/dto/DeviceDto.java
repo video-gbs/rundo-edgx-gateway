@@ -100,6 +100,12 @@ public class DeviceDto {
     /**
      * 注册有效期
      */
+    @Schema(description = "心跳有效期")
+    private long keepaliveIntervalTime;
+
+    /**
+     * 注册有效期
+     */
     @Schema(description = "注册有效期")
     private int expires;
 
