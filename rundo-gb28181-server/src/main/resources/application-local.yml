@@ -164,33 +164,24 @@ mq:
     queue-data-list:
         #同平台能力层服务交互的mq
         - id: PUBLIC-GS
-          routing-key: rundo.gateway.public-gs
-          queue-name: rundo.gateway.public-gs
-          exchange-id: GATEWAY
+          routing-key: rundo.public.gs
+          queue-name: rundo.public.gs
+          exchange-id: PUBLIC
         #同平台能力层服务交互的mq
         - id: PUBLIC-SG
-          routing-key: rundo.gateway.public-sg
-          queue-name: rundo.gateway.public-sg
-          exchange-id: GATEWAY
-          #网关监听
-        - id: BS-GS
-          #未来需要扩展网关的路由和队列的名称编号 多个相同的网关编号增加!!!!!
-          routing-key: GATEWAY_GS_2
-          queue-name: GATEWAY_GS_2
-          exchange-id: GATEWAY
-        #网关发送
-        - id: BS-SG
-            #未来需要扩展网关的路由和队列的名称编号 多个相同的网关编号增加!!!!!
-          routing-key: GATEWAY_SG_2
-          queue-name: GATEWAY_SG_2
-          exchange-id: GATEWAY
+          routing-key: rundo.public.sg
+          queue-name: rundo.public.sg
+          exchange-id: PUBLIC
     exchange-data-list:
-        - id: GATEWAY
-          name: rundo.gateway
+        - id: PUBLIC
+          name: rundo.public
           type: topic
-        - id: MEDIA
-          name: rundo.meidia
-          type: topic
+mq-defualt:
+    public:
+        # 服务队列监听
+        queue-id-get: PUBLIC-GS
+        # 服务队列发送
+        queue-id-set: PUBLIC-SG
 
 gateway-info:
 #   网关的唯一id

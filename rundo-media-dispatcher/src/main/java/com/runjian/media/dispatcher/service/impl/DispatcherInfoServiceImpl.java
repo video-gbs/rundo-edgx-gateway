@@ -65,25 +65,33 @@ public class DispatcherInfoServiceImpl implements DispatcherInfoService {
 
     @Autowired
     DispatcherBusinessMqListener dispatcherBusinessMqListener;
+
+    //发送队列
+    @Value("${mq-defualt.public.queue-id-set:PUBLIC-SG}")
+    private String queueId;
     @Override
     public void addMqListener(String queueName) {
         String[] strings = container.getQueueNames();
         List<String> list= Arrays.asList(strings);
-
-        if (!list.contains(queueName)) {
-            container.addQueueNames(queueName);
-            container.setMessageListener(dispatcherBusinessMqListener);
-            container.setConcurrentConsumers(8);
-            container.setMaxConcurrentConsumers(32);
-            container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
-        }else {
-            for (String queueString : list) {
-                if(!queueString.equals(queueName)){
-                    container.removeQueueNames(queueString);
+        try{
+            if (!list.contains(queueName)) {
+                container.addQueueNames(queueName);
+                container.setMessageListener(dispatcherBusinessMqListener);
+                container.setConcurrentConsumers(8);
+                container.setMaxConcurrentConsumers(32);
+                container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+            }else {
+                for (String queueString : list) {
+                    if(!queueString.equals(queueName)){
+                        container.removeQueueNames(queueString);
+                    }
                 }
-            }
 
+            }
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"调度服务动态业务队列创建","创建失败",e);
         }
+
     }
 
     @Override
@@ -112,7 +120,7 @@ public class DispatcherInfoServiceImpl implements DispatcherInfoService {
         dataRes.setTime(LocalDateTime.now());
         //消息组装
         log.info("注册信息发送:={}",dataRes);
-        rabbitMqSender.sendMsg(MarkConstant.SIGIN_SG, UuidUtil.toUuid(), dataRes, true);
+        rabbitMqSender.sendMsg(queueId, UuidUtil.toUuid(), dataRes, true);
     }
 
 

@@ -24,7 +24,7 @@ public enum GatewayMsgType {
 
     //调度服务的消息  start
     //注册
-    DISPATCH_SIGN_IN  ("DISPATCH_SIGN_IN  "),
+    DISPATCH_SIGN_IN  ("DISPATCH_SIGN_IN"),
     //心跳
     DISPATCH_HEARTBEAT("DISPATCH_HEARTBEAT"),
     //重新注册

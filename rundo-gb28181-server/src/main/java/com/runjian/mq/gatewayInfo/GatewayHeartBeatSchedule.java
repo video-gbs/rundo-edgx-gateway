@@ -32,6 +32,10 @@ public class GatewayHeartBeatSchedule {
     @Value("${gateway-info.expire}")
     private int expire;
 
+    //发送队列
+    @Value("${mq-defualt.public.queue-id-set:PUBLIC-SG}")
+    private String queueId;
+
     @Scheduled(cron="0 0/1 * * * ?")   //每1分钟执行一次
     public void sendMsg(){
         CommonMqDto commonMqDto = new CommonMqDto();
@@ -44,6 +48,6 @@ public class GatewayHeartBeatSchedule {
         commonMqDto.setMsgId(GatewayCacheConstants.GATEWAY_INFO_SN_prefix+sn);
         commonMqDto.setData(String.valueOf(DateUtils.getExpireTimestamp(expire)));
         //消息组装
-        rabbitMqSender.sendMsg(MarkConstant.SIGIN_SG, UuidUtil.toUuid(), commonMqDto, true);
+        rabbitMqSender.sendMsg(queueId, UuidUtil.toUuid(), commonMqDto, true);
     }
 }

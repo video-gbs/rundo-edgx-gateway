@@ -7,6 +7,7 @@ import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -25,7 +26,8 @@ public class GatewayInfoMqConfig {
     GatewayInfoMqListener gatewayInfoMqListener;
 
     //监听队列
-    private String queueName = MarkConstant.SIGIN_GS;
+    @Value("${mq-defualt.public.queue-id-get:PUBLIC-GS}")
+    private String queueName;
 
     @Bean
     @DependsOn("createExchangeQueue")

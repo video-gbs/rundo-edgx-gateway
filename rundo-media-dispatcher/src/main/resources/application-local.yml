@@ -139,13 +139,13 @@ mq:
     queue-data-list:
         #同平台能力层服务交互的mq
         - id: PUBLIC-GS
-          routing-key: rundo.public-gs
-          queue-name: rundo.public-gs
+          routing-key: rundo.public.gs
+          queue-name: rundo.public.gs
           exchange-id: PUBLIC
         #同平台能力层服务交互的mq
         - id: PUBLIC-SG
-          routing-key: rundo.public-sg
-          queue-name: rundo.public-sg
+          routing-key: rundo.public.sg
+          queue-name: rundo.public.sg
           exchange-id: PUBLIC
     exchange-data-list:
         - id: PUBLIC

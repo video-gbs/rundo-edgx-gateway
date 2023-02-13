@@ -77,6 +77,9 @@ public class GatewayInfoServiceImpl implements IGatewayInfoService {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Value("${mq-defualt.public.queue-id-set:PUBLIC-SG}")
+    private String queueId;
     /**
      * 动态监听mq的队列
      * @param queueName
@@ -126,7 +129,7 @@ public class GatewayInfoServiceImpl implements IGatewayInfoService {
         dataRes.setTime(LocalDateTime.now());
         //消息组装
         log.info("注册信息发送:={}",dataRes);
-        rabbitMqSender.sendMsg(MarkConstant.SIGIN_SG, UuidUtil.toUuid(), dataRes, true);
+        rabbitMqSender.sendMsg(queueId, UuidUtil.toUuid(), dataRes, true);
     }
 
 

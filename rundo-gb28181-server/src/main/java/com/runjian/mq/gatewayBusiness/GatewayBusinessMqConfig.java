@@ -25,8 +25,7 @@ public class GatewayBusinessMqConfig {
     @Autowired
     GatewayBusinessMqListener gatewayBusinessMqListener;
 
-    //监听队列
-    private String queueName = MarkConstant.PLAY_CALL_BACK_QUEUE;
+
 
     @Bean
     @DependsOn("createExchangeQueue")
