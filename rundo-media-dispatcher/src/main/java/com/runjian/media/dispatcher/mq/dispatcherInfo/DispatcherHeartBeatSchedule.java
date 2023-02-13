@@ -1,4 +1,4 @@
-package com.runjian.mq.gatewayInfo;
+package com.runjian.media.dispatcher.mq.dispatcherInfo;
 
 import com.runjian.common.constant.GatewayCacheConstants;
 import com.runjian.common.constant.GatewayMsgType;
@@ -7,7 +7,7 @@ import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.DateUtils;
 import com.runjian.common.utils.UuidUtil;
-import com.runjian.service.IRedisCatchStorageService;
+import com.runjian.media.dispatcher.zlm.service.IRedisCatchStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,22 +20,25 @@ import java.time.LocalDateTime;
  * @author chenjialing
  */
 @Component
-public class GatewayHeartBeatSchedule {
+public class DispatcherHeartBeatSchedule {
 
-    @Value("${gateway-info.serialNum}")
+    @Value("${dispatcher-info.serialNum}")
     private String serialNum;
     @Autowired
     private IRedisCatchStorageService iRedisCatchStorageService;
     @Autowired
     private RabbitMqSender rabbitMqSender;
 
-    @Value("${gateway-info.expire}")
+    @Value("${dispatcher-info.expire}")
     private int expire;
+    //监听队列
+    @Value("${mq-defualt.public.queue-id-set:PUBLIC-SG}")
+    private String queueId;
 
     @Scheduled(cron="0 0/1 * * * ?")   //每1分钟执行一次
     public void sendMsg(){
         CommonMqDto commonMqDto = new CommonMqDto();
-        commonMqDto.setMsgType(GatewayMsgType.GATEWAY_HEARTBEAT.getTypeName());
+        commonMqDto.setMsgType(GatewayMsgType.DISPATCH_HEARTBEAT.getTypeName());
         commonMqDto.setTime(LocalDateTime.now());
         commonMqDto.setSerialNum(serialNum);
 
@@ -44,6 +47,6 @@ public class GatewayHeartBeatSchedule {
         commonMqDto.setMsgId(GatewayCacheConstants.GATEWAY_INFO_SN_prefix+sn);
         commonMqDto.setData(String.valueOf(DateUtils.getExpireTimestamp(expire)));
         //消息组装
-        rabbitMqSender.sendMsg(MarkConstant.SIGIN_SG, UuidUtil.toUuid(), commonMqDto, true);
+        rabbitMqSender.sendMsg(queueId, UuidUtil.toUuid(), commonMqDto, true);
     }
 }

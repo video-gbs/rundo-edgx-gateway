@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.*;
-import com.runjian.common.mq.domain.GatewayMqDto;
+import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.SipConfig;
 import com.runjian.conf.SsrcConfig;
@@ -58,21 +58,21 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     }
 
     @Override
-    public GatewayMqDto getMqInfo(String msgType, String snIncr, String snPrefix,String msgId) {
-        GatewayMqDto gatewayMqDto = new GatewayMqDto();
-        gatewayMqDto.setMsgType(msgType);
-        gatewayMqDto.setTime(LocalDateTime.now());
-        gatewayMqDto.setSerialNum(serialNum);
+    public CommonMqDto getMqInfo(String msgType, String snIncr, String snPrefix, String msgId) {
+        CommonMqDto commonMqDto = new CommonMqDto();
+        commonMqDto.setMsgType(msgType);
+        commonMqDto.setTime(LocalDateTime.now());
+        commonMqDto.setSerialNum(serialNum);
 
         String sn = getSn(snIncr);
         if(ObjectUtils.isEmpty(msgId)){
-            gatewayMqDto.setMsgId(snPrefix+sn);
+            commonMqDto.setMsgId(snPrefix+sn);
 
         }else {
-            gatewayMqDto.setMsgId(msgId);
+            commonMqDto.setMsgId(msgId);
 
         }
-        return gatewayMqDto;
+        return commonMqDto;
     }
 
     @Override

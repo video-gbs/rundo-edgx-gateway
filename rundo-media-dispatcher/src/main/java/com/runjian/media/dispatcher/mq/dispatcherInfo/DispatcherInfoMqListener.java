@@ -1,4 +1,4 @@
-package com.runjian.mq.gatewayInfo;
+package com.runjian.media.dispatcher.mq.dispatcherInfo;
 
 import com.alibaba.fastjson.JSONObject;
 import com.rabbitmq.client.Channel;
@@ -6,9 +6,9 @@ import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.mq.domain.CommonMqDto;
-import com.runjian.domain.resp.GatewaySignInRsp;
-import com.runjian.mq.event.signIn.GatewayInfoSignInEvent;
-import com.runjian.service.IGatewayInfoService;
+import com.runjian.media.dispatcher.dto.resp.DispatcherSignInRsp;
+import com.runjian.media.dispatcher.mq.event.signIn.DispatcherInfoSignInEvent;
+import com.runjian.media.dispatcher.service.DispatcherInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
@@ -22,16 +22,16 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class GatewayInfoMqListener implements ChannelAwareMessageListener {
+public class DispatcherInfoMqListener implements ChannelAwareMessageListener {
 
-    @Value("${gateway-info.serialNum}")
+    @Value("${dispatcher-info.serialNum}")
     private String serialNum;
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
-    IGatewayInfoService gatewayInfoService;
+    DispatcherInfoService dispatcherInfoService;
 
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
@@ -57,19 +57,19 @@ public class GatewayInfoMqListener implements ChannelAwareMessageListener {
             }
             //判断是否是注册返回
             String msgType = commonMqDto.getMsgType();
-            if(msgType.equals(GatewayMsgType.GATEWAY_SIGN_IN.getTypeName())){
+            if(msgType.equals(GatewayMsgType.DISPATCH_SIGN_IN.getTypeName())){
                 //注册返回 进行业务队列的动态监听
-                GatewaySignInRsp gatewaySignInRsp = JSONObject.toJavaObject((JSONObject) commonMqDto.getData(),GatewaySignInRsp.class);
+                DispatcherSignInRsp gatewaySignInRsp = JSONObject.toJavaObject((JSONObject) commonMqDto.getData(),DispatcherSignInRsp.class);
                 gatewaySignInRsp.setSerialNum(serialNum);
-                GatewayInfoSignInEvent gatewayInfoSignInEvent = new GatewayInfoSignInEvent(this);
+                DispatcherInfoSignInEvent gatewayInfoSignInEvent = new DispatcherInfoSignInEvent(this);
                 gatewayInfoSignInEvent.setGatewaySignInRsp(gatewaySignInRsp);
                 applicationEventPublisher.publishEvent(gatewayInfoSignInEvent);
 
-            }else if(msgType.equals(GatewayMsgType.GATEWAY_HEARTBEAT.getTypeName())) {
+            }else if(msgType.equals(GatewayMsgType.DISPATCH_HEARTBEAT.getTypeName())) {
                 //心跳todo  暂时不处理
-            }else if(msgType.equals(GatewayMsgType.GATEWAY_RE_SIGN_IN.getTypeName())){
+            }else if(msgType.equals(GatewayMsgType.DISPATCH_RE_SIGN_IN.getTypeName())){
                 //重新发送注册信息
-                gatewayInfoService.sendRegisterInfo();
+                dispatcherInfoService.sendRegisterInfo();
             }
 
 

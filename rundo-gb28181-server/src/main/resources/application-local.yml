@@ -1,6 +1,6 @@
 spring:
     application:
-        name: rundo-wvp-pro
+        name: gb28181-server
     web:
         resources:
             static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:./static
@@ -197,11 +197,3 @@ gateway-info:
     serialNum: eb48104ddf2b4760be541783b3621041
     #a网关过期时间 默认3分钟
     expire: 180
-
-JApiDocs:
-    enable: true
-    docs:
-        path: D:\DevTool\Environment\Nginx\nginx-1.22.0\html
-        version: V1.0.0
-    project:
-        path: D:\Project\Work\Rundo-Video\DevCode\rundo-gms-pro\rundo-wvp-pro

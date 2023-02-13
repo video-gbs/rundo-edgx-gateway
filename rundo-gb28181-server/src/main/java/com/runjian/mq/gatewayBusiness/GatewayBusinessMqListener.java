@@ -10,7 +10,7 @@ import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.mq.domain.GatewayMqDto;
+import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
@@ -52,24 +52,24 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
             JSONObject jsonMsg = JSONObject.parseObject(msg);
 
             //转化为接收的通用mq信息
-            GatewayMqDto gatewayMqDto = JSONObject.toJavaObject(jsonMsg, GatewayMqDto.class);
+            CommonMqDto commonMqDto = JSONObject.toJavaObject(jsonMsg, CommonMqDto.class);
 
             //目前的消息，注册返回，心跳返回(code,data,msg),data(GatewayMqDto中判断消息的类型)
-            Integer code = gatewayMqDto.getCode();
+            Integer code = commonMqDto.getCode();
             if(!code.equals(BusinessErrorEnums.SUCCESS.getErrCode())){
                 //注册信息失败，无法进行业务队列的监听于发送 todo
                 log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "网关业务消息监听服务", "消息接收成功，上层服务创建队列失败", jsonMsg, "");
                 return;
             }
-            JSONObject dataJson = (JSONObject)gatewayMqDto.getData();
+            JSONObject dataJson = (JSONObject) commonMqDto.getData();
             //实际的请求参数
             JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
-            String msgType = gatewayMqDto.getMsgType();
+            String msgType = commonMqDto.getMsgType();
             if(msgType.equals(GatewayMsgType.PLAY_STREAM_CALLBACK.getTypeName())){
-                StreamInfo streamInfo = JSONObject.toJavaObject((JSONObject)gatewayMqDto.getData(),StreamInfo.class);
+                StreamInfo streamInfo = JSONObject.toJavaObject((JSONObject) commonMqDto.getData(),StreamInfo.class);
                 iplayService.onStreamChanges(streamInfo);
             }else if(msgType.equals(GatewayMsgType.PLAY_NONE_STREAM_READER_CALLBACK.getTypeName())){
-                NoneStreamReaderReq noneStreamReaderReq = JSONObject.toJavaObject((JSONObject)gatewayMqDto.getData(),NoneStreamReaderReq.class);
+                NoneStreamReaderReq noneStreamReaderReq = JSONObject.toJavaObject((JSONObject) commonMqDto.getData(),NoneStreamReaderReq.class);
                 iplayService.onStreamNoneReader(noneStreamReaderReq);
             }else if(msgType.equals(GatewayMsgType.RECORD_INFO.getTypeName())){
                 //录像列表
@@ -78,8 +78,8 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
                 RecordInfoReq recordInfoReq = JSONObject.toJavaObject(dataMapJson, RecordInfoReq.class);
                 recordInfoReq.setChannelId(channelId);
                 recordInfoReq.setDeviceId(deviceId);
-                recordInfoReq.setMsgId(gatewayMqDto.getMsgId());
-                recordInfoReq.setMsgId(gatewayMqDto.getMsgId());
+                recordInfoReq.setMsgId(commonMqDto.getMsgId());
+                recordInfoReq.setMsgId(commonMqDto.getMsgId());
                 deviceChannelService.recordInfo(recordInfoReq);
             }else if(msgType.equals(GatewayMsgType.DEVICEINFO.getTypeName())){
                 //设备信息同步  获取设备信息
@@ -87,7 +87,7 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
                 DeviceDto deviceDto = deviceService.getDevice(deviceId);
                 Device device = new Device();
                 BeanUtil.copyProperties(deviceDto,device);
-                deviceService.deviceInfoQuery(device, gatewayMqDto.getMsgId());
+                deviceService.deviceInfoQuery(device, commonMqDto.getMsgId());
 
             }else if (msgType.equals(GatewayMsgType.CATALOG.getTypeName())){
                 //设备通道信息同步
@@ -95,7 +95,7 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
                 DeviceDto deviceDto = deviceService.getDevice(deviceId);
                 Device device = new Device();
                 BeanUtil.copyProperties(deviceDto,device);
-                deviceService.sync(device, gatewayMqDto.getMsgId());
+                deviceService.sync(device, commonMqDto.getMsgId());
             }else if (msgType.equals(GatewayMsgType.PLAY.getTypeName())){
                 //设备点播同步
                 String deviceId = dataJson.getString("deviceId");
@@ -103,7 +103,7 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
                 PlayReq playReq = JSONObject.toJavaObject(dataMapJson, PlayReq.class);
                 playReq.setDeviceId(deviceId);
                 playReq.setChannelId(channelId);
-                playReq.setMsgId(gatewayMqDto.getMsgId());
+                playReq.setMsgId(commonMqDto.getMsgId());
                 iplayService.play(playReq);
             }else if (msgType.equals(GatewayMsgType.PLAY_BACK.getTypeName())){
                 //设备点播同步
@@ -112,22 +112,22 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
                 PlayBackReq playBackReq = JSONObject.toJavaObject(dataMapJson, PlayBackReq.class);
                 playBackReq.setDeviceId(deviceId);
                 playBackReq.setChannelId(channelId);
-                playBackReq.setMsgId(gatewayMqDto.getMsgId());
+                playBackReq.setMsgId(commonMqDto.getMsgId());
                 iplayService.playBack(playBackReq);
             }else if (msgType.equals(GatewayMsgType.DEVICE_DELETE.getTypeName())) {
                 String deviceId = dataJson.getString("deviceId");
-                deviceService.deviceDelete(deviceId,gatewayMqDto.getMsgId());
+                deviceService.deviceDelete(deviceId, commonMqDto.getMsgId());
             }else if (msgType.equals(GatewayMsgType.PTZ_CONTROL.getTypeName())) {
                 String deviceId = dataJson.getString("deviceId");
                 String channelId = dataJson.getString("channelId");
                 DeviceControlReq deviceControlReq = JSONObject.toJavaObject(dataMapJson, DeviceControlReq.class);
                 deviceControlReq.setDeviceId(deviceId);
                 deviceControlReq.setChannelId(channelId);
-                deviceControlReq.setMsgId(gatewayMqDto.getMsgId());
+                deviceControlReq.setMsgId(commonMqDto.getMsgId());
                 ptzService.deviceControl(deviceControlReq);
             }else if(msgType.equals(GatewayMsgType.GATEWAY_BIND_MEDIA.getTypeName())){
                 GatewayBindMedia gatewayBindMedia = JSONObject.toJavaObject(dataMapJson, GatewayBindMedia.class);
-                gatewayBindMedia.setMsgId(gatewayMqDto.getMsgId());
+                gatewayBindMedia.setMsgId(commonMqDto.getMsgId());
                 gatewayBaseService.gatewayBindMedia(gatewayBindMedia);
             }
 
@@ -141,15 +141,15 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
     }
 
     public static void main(String[] args) {
-        GatewayMqDto gatewayMqDto = new GatewayMqDto();
-        gatewayMqDto.setMsgType("sign-in");
-        gatewayMqDto.setSerialNum("asdasd");
-        gatewayMqDto.setMsgId("b_123123");
+        CommonMqDto commonMqDto = new CommonMqDto();
+        commonMqDto.setMsgType("sign-in");
+        commonMqDto.setSerialNum("asdasd");
+        commonMqDto.setMsgId("b_123123");
         Device device = new Device();
         device.setCharset("asdas");
         device.setDeviceId("12112312");
-        gatewayMqDto.setData(device);
-        CommonResponse<GatewayMqDto> success = CommonResponse.success(gatewayMqDto);
+        commonMqDto.setData(device);
+        CommonResponse<CommonMqDto> success = CommonResponse.success(commonMqDto);
         String s = JSON.toJSONString(success);
 
         JSONObject jsonObject = JSON.parseObject(s);

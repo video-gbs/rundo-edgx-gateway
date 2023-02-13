@@ -2,7 +2,7 @@ package com.runjian.service;
 
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.GatewayMsgType;
-import com.runjian.common.mq.domain.GatewayMqDto;
+import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.conf.SsrcConfig;
 
 /**
@@ -25,7 +25,7 @@ public interface IRedisCatchStorageService {
      */
     String getSn(String key);
 
-    GatewayMqDto getMqInfo(String msgType,String snIncr,String snPrefix,String msgId);
+    CommonMqDto getMqInfo(String msgType, String snIncr, String snPrefix, String msgId);
 
     Boolean ssrcInit();
 

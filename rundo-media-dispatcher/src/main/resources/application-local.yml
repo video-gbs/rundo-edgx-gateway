@@ -128,16 +128,32 @@ logging:
 response:
     exclude-url: "/v3/api-docs,/api/v1,/index/hook"
 
+dispatcher-info:
+    #   网关的唯一id
+    serialNum: eb48104ddf2b4760be123783b3621041
+    #a网关过期时间 默认3分钟
+    expire: 180
+
 mq:
     enabled: true
     queue-data-list:
-        #同流媒体调度服务交互的mq
-        - id: mediaCallBack
-          routing-key: rundo.meidia.dispatcher.playCallBack
-          queue-name: rundo.meidia.dispatcher.playCallBack
-          exchange-id: GATEWAY-MEDIA-DISPATCHER
+        #同平台能力层服务交互的mq
+        - id: PUBLIC-GS
+          routing-key: rundo.public-gs
+          queue-name: rundo.public-gs
+          exchange-id: PUBLIC
+        #同平台能力层服务交互的mq
+        - id: PUBLIC-SG
+          routing-key: rundo.public-sg
+          queue-name: rundo.public-sg
+          exchange-id: PUBLIC
     exchange-data-list:
-        - id: GATEWAY-MEDIA-DISPATCHER
-          name: rundo.meidia.dispatcher
+        - id: PUBLIC
+          name: rundo.public
           type: topic
-
+mq-defualt:
+    public:
+        # 服务队列监听
+        queue-id-get: PUBLIC-GS
+        # 服务队列发送
+        queue-id-set: PUBLIC-SG

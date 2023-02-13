@@ -10,11 +10,10 @@ import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
-import com.runjian.common.mq.domain.GatewayMqDto;
+import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.DynamicTask;
-import com.runjian.media.dispatcher.conf.MediaConfig;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.zlm.ZLMRESTfulUtils;
 import com.runjian.media.dispatcher.zlm.ZLMRTPServerFactory;
@@ -129,7 +128,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
                 logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"zlm回调点播成功异常","网关绑定异常",baseRtpServerDto);
             }else {
 
-                GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_STREAM_CALLBACK.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null, baseRtpServerDto.getGatewayId());
+                CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_STREAM_CALLBACK.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null, baseRtpServerDto.getGatewayId());
                 mqInfo.setData(streamInfoByAppAndStream);
                 rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
 

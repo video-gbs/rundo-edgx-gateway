@@ -20,8 +20,16 @@ public enum GatewayMsgType {
     GATEWAY_HEARTBEAT("GATEWAY_HEARTBEAT"),
     //重新注册
     GATEWAY_RE_SIGN_IN("GATEWAY_RE_SIGN_IN"),
+//    网关自身的消息  end
 
-
+    //调度服务的消息  start
+    //注册
+    DISPATCH_SIGN_IN  ("DISPATCH_SIGN_IN  "),
+    //心跳
+    DISPATCH_HEARTBEAT("DISPATCH_HEARTBEAT"),
+    //重新注册
+    DISPATCH_RE_SIGN_IN("DISPATCH_RE_SIGN_IN"),
+    //调度服务的消息  end
     /********设备通道服务相关*************/
 //    设备注册
     REGISTER("DEVICE_SIGN_IN"),

@@ -1,26 +1,24 @@
 package com.runjian.media.dispatcher.zlm;
 
 import java.util.*;
-import java.text.ParseException;
+
 import com.alibaba.fastjson.JSON;
 import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
-import com.runjian.common.mq.domain.GatewayMqDto;
+import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.zlm.dto.*;
 import com.runjian.media.dispatcher.zlm.dto.dao.GatewayBind;
 import com.runjian.media.dispatcher.zlm.dto.hook.OnRtpServerTimeoutHookParam;
-import com.runjian.media.dispatcher.zlm.event.publisher.EventPublisher;
 import com.runjian.media.dispatcher.zlm.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ObjectUtils;
@@ -333,7 +331,7 @@ public class ZLMHttpHookListener {
 		//获取绑定的网关信息 根据流媒体id
 		GatewayBind gatewayBind = gatewayBindService.findOneByMediaId(mediaServerId);
 		if(!ObjectUtils.isEmpty(gatewayBind)){
-			GatewayMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_NONE_STREAM_READER_CALLBACK.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null, gatewayBind.getGatewayId());
+			CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_NONE_STREAM_READER_CALLBACK.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null, gatewayBind.getGatewayId());
 			mqInfo.setData(noneStreamReaderReq);
 			logger.info("流无人观看调用={}",mqInfo);
 			rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);

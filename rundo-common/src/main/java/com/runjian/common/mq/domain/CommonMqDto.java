@@ -11,11 +11,12 @@ import java.time.LocalDateTime;
 
 /**
  * 网关传输消息体
+ * @author chenjialing
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class GatewayMqDto{
+public class CommonMqDto {
 
 
     /**

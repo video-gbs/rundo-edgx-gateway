@@ -1,9 +1,11 @@
 package com.runjian.test;
 
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
+import com.runjian.common.constant.LogTemplate;
 import com.runjian.service.IplayService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/test")
 @Tag(name = "点播测试")
+@Slf4j
 public class PlayController {
     @Autowired
     IplayService playService;
@@ -28,13 +31,13 @@ public class PlayController {
     @RequestMapping("/play")
     public void play() {
         PlayReq playReq = new PlayReq();
-        playReq.setChannelId("34020000001320000009");
-        playReq.setDeviceId("34020000001320000010");
+        playReq.setChannelId("34020000001310000001");
+        playReq.setDeviceId("34020000001180000241");
         playReq.setEnableAudio(false);
         playReq.setMsgId("12345678");
         playReq.setSsrcCheck(Boolean.TRUE);
         playReq.setStreamMode("UDP");
-
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"请求进入","无");
         playService.play(playReq);
 
 

@@ -1,6 +1,6 @@
 package com.runjian.media.dispatcher.zlm.service;
 
-import com.runjian.common.mq.domain.GatewayMqDto;
+import com.runjian.common.mq.domain.CommonMqDto;
 
 /**
  * @author chenjialing
@@ -22,7 +22,7 @@ public interface IRedisCatchStorageService {
      */
     String getSn(String key);
 
-    GatewayMqDto getMqInfo(String msgType,String snIncr,String snPrefix,String msgId,String gatewayNum);
+    CommonMqDto getMqInfo(String msgType, String snIncr, String snPrefix, String msgId, String gatewayNum);
 
 
 

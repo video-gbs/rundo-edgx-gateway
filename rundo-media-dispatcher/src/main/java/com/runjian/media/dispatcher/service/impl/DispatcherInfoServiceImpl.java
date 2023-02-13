@@ -1,4 +1,4 @@
-package com.runjian.service.impl;
+package com.runjian.media.dispatcher.service.impl;
 
 import com.runjian.common.commonDto.Gateway.dto.EdgeGatewayInfoDto;
 import com.runjian.common.constant.*;
@@ -6,13 +6,9 @@ import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.DateUtils;
 import com.runjian.common.utils.UuidUtil;
-import com.runjian.conf.GatewayInfoConf;
-import com.runjian.conf.SipConfig;
-import com.runjian.conf.UserSetting;
-import com.runjian.conf.mq.GatewaySignInConf;
-import com.runjian.mq.gatewayBusiness.GatewayBusinessMqListener;
-import com.runjian.service.IGatewayInfoService;
-import com.runjian.service.IRedisCatchStorageService;
+import com.runjian.media.dispatcher.mq.dispatcherBusiness.DispatcherBusinessMqListener;
+import com.runjian.media.dispatcher.service.DispatcherInfoService;
+import com.runjian.media.dispatcher.zlm.service.IRedisCatchStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.core.AcknowledgeMode;
@@ -24,41 +20,38 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * @author chenjialing
+ */
 @Service
 @Slf4j
-public class GatewayInfoServiceImpl implements IGatewayInfoService {
+public class DispatcherInfoServiceImpl implements DispatcherInfoService {
 
-    @Autowired
-    @Qualifier("gatewayBusinessMqListenerContainer")
-    SimpleMessageListenerContainer container;
 
-    @Autowired
-    GatewayBusinessMqListener gatewayBusinessMqListener;
-    @Autowired
-    SipConfig sipConfig;
+
     @Value("${server.port}")
     private String serverPort;
-    @Autowired
-    private GatewayInfoConf gatewayInfoConf;
+
     @Autowired
     private RabbitMqSender rabbitMqSender;
 
     @Autowired
     private IRedisCatchStorageService iRedisCatchStorageService;
-    @Value("${gateway-info.serialNum}")
+    @Value("${dispatcher-info.serialNum}")
     private String serialNum;
 
-    @Value("${gateway-info.expire}")
+    @Value("${dispatcher-info.expire}")
     private int expire;
 
     @Autowired
     RedissonClient redissonClient;
-    @Autowired
-    UserSetting userSetting;
+
 
     @Autowired
     RedisTemplate redisTemplate;
@@ -66,21 +59,12 @@ public class GatewayInfoServiceImpl implements IGatewayInfoService {
     @Autowired
     IRedisCatchStorageService redisCatchStorageService;
 
-
-    @Value("${mdeia-api-uri-list.gateway-bind}")
-    private String gatewayBind;
+    @Autowired
+    @Qualifier("dispatcherBusinessMqListenerContainer")
+    SimpleMessageListenerContainer container;
 
     @Autowired
-    GatewaySignInConf gatewaySignInConf;
-
-
-
-    @Autowired
-    private RestTemplate restTemplate;
-    /**
-     * 动态监听mq的队列
-     * @param queueName
-     */
+    DispatcherBusinessMqListener dispatcherBusinessMqListener;
     @Override
     public void addMqListener(String queueName) {
         String[] strings = container.getQueueNames();
@@ -88,9 +72,9 @@ public class GatewayInfoServiceImpl implements IGatewayInfoService {
 
         if (!list.contains(queueName)) {
             container.addQueueNames(queueName);
-            container.setMessageListener(gatewayBusinessMqListener);
-            container.setConcurrentConsumers(1);
-            container.setMaxConcurrentConsumers(1);
+            container.setMessageListener(dispatcherBusinessMqListener);
+            container.setConcurrentConsumers(8);
+            container.setMaxConcurrentConsumers(32);
             container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         }else {
             for (String queueString : list) {
@@ -104,24 +88,26 @@ public class GatewayInfoServiceImpl implements IGatewayInfoService {
 
     @Override
     public void sendRegisterInfo() {
-        String ip = sipConfig.getIp();
-        int port = Integer.parseInt(serverPort);
+        String ip = "127.0.0.1";
+        try{
+            ip = InetAddress.getLocalHost().getHostAddress();
+        }catch (UnknownHostException e){
+            log.info("获取ip失败,={}",e);
+        }
 
-        EdgeGatewayInfoDto config = new EdgeGatewayInfoDto();
-        config.setPort(port);
-        config.setIp(ip);
-        config.setGatewayType(GatewayTypeEnum.OTHER.getTypeName());
-        config.setProtocol(GatewayProtocalEnum.GB28181.getTypeName());
-        config.setOutTime(DateUtils.getExpireTimestamp(expire));
-        gatewayInfoConf.setEdgeGatewayInfoDto(config);
+        int port = Integer.parseInt(serverPort);
 
         //进行mq消息发送
         String sn = iRedisCatchStorageService.getSn(GatewayCacheConstants.GATEWAY_INFO_SN_INCR);
+        EdgeGatewayInfoDto config = new EdgeGatewayInfoDto();
+        config.setPort(port);
+        config.setIp(ip);
+        config.setOutTime(DateUtils.getExpireTimestamp(expire));
         CommonMqDto dataRes = new CommonMqDto();
 
         dataRes.setMsgId(GatewayCacheConstants.GATEWAY_INFO_SN_prefix+sn);
         dataRes.setSerialNum(serialNum);
-        dataRes.setMsgType(GatewayMsgType.GATEWAY_SIGN_IN.getTypeName());
+        dataRes.setMsgType(GatewayMsgType.DISPATCH_SIGN_IN.getTypeName());
         dataRes.setData(config);
         dataRes.setTime(LocalDateTime.now());
         //消息组装

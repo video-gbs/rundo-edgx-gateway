@@ -9,16 +9,16 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Data
-public class GatewaySignInConf {
+public class DispatcherSignInConf {
     /**
      * 是否第一次注册
      */
     private Boolean isFirstSignIn;
 
     /**
-     * 网关id
+     * 网关序列号
      */
-    private Long gatewayId;
+    private String serialNum;;
 
     /**
      * 注册类型 MQ RESTFUL
@@ -31,12 +31,12 @@ public class GatewaySignInConf {
     private String mqExchange;
 
     /**
-     * 发送消息 --客户端监听队列
+     * 发送消息 --网关监听队列
      */
     private String mqSetQueue;
 
     /**
-     * 监听消息 --客户端发送队列
+     * 监听消息 --网关发送队列
      */
     private String mqGetQueue;
 }
