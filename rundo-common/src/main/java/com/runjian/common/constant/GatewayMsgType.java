@@ -50,14 +50,21 @@ public enum GatewayMsgType {
     //录像列表
     RECORD_INFO("CHANNEL_RECORD_INFO"),
     /********调度服务相关*************/
-    //流注册
+    //流注册  调度终于网关均需要处理
     PLAY_STREAM_CALLBACK("PLAY_STREAM_CALLBACK"),
     //流无人观看
     PLAY_NONE_STREAM_READER_CALLBACK("PLAY_NONE_STREAM_READER_CALLBACK"),
     //调度服务绑定
     GATEWAY_BIND_MEDIA("GATEWAY_BIND_MEDIA"),
 
-    /******调度服务相关*************/
+    /********调度服务业务队列场景*************/
+    //推流的结果 推流至gateway网关 isSuccess true或则false
+    STREAM_PLAY_RESULT("STREAM_PLAY_RESULT"),
+    //无人观看isError=false 和异常断流isError=true
+    STREAM_CLOSE("STREAM_CLOSE"),
+    //流停止场景
+    STREAM_PLAY_STOP("STREAM_PLAY_STOP"),
+    /******调度服务业务队列场景*************/
 
 
     ;

@@ -9,12 +9,11 @@ import com.alibaba.fastjson.JSONObject;
  */
 public class HookSubscribeFactory {
 
-    public static HookSubscribeForStreamChange on_stream_changed(String app, String stream, boolean regist, String scheam, String mediaServerId) {
+    public static HookSubscribeForStreamChange on_stream_changed(String app, String stream, String scheam, String mediaServerId) {
         HookSubscribeForStreamChange hookSubscribe = new HookSubscribeForStreamChange();
         JSONObject subscribeKey = new JSONObject();
         subscribeKey.put("app", app);
         subscribeKey.put("stream", stream);
-        subscribeKey.put("regist", regist);
         if (scheam != null) {
             subscribeKey.put("schema", scheam);
         }

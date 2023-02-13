@@ -1,5 +1,6 @@
 package com.runjian.common.commonDto.Gb28181Media;
 
+import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -46,8 +47,15 @@ public class BaseRtpServerDto {
      * 默认进行ssrc校验
      */
     private Boolean ssrcCheck = true;
+    /**
+     * 录像状态
+     */
+    private Integer recordState;
 
-
+    /**
+     * 业务队列信息
+     */
+    private GatewayBindReq gatewayBindReq;
 
 
 }

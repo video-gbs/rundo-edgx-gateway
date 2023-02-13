@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
+import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
@@ -112,34 +113,36 @@ public class MediaServerServiceImpl implements ImediaServerService {
         Boolean ssrcCheck = baseRtpServerDto.getSsrcCheck();
         Integer port = baseRtpServerDto.getPort();
         //缓存相关的请求参数
-        RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_RTP_SERVER_REQ+ BusinessSceneConstants.SCENE_SEM_KEY+baseRtpServerDto.getStreamId(),baseRtpServerDto,10);
+        RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_RTP_SERVER_REQ+ BusinessSceneConstants.SCENE_SEM_KEY+baseRtpServerDto.getStreamId(),baseRtpServerDto);
 
-
-        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.GB28181_APP, baseRtpServerDto.getStreamId(), true, VideoManagerConstants.GB28181_SCHEAM, mediaServerItem.getId());
+        //流注册成功 回调
+        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.GB28181_APP, baseRtpServerDto.getStreamId(), VideoManagerConstants.GB28181_SCHEAM, mediaServerItem.getId());
         subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
             //流注册处理  发送指定mq消息
-            logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm推流成功", "收到推流订阅消息", json.toJSONString());
+            logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm推流注册成功通知", "收到推流订阅消息", json.toJSONString());
             //拼接拉流的地址
             String pushStreamId = json.getString("stream");
-            StreamInfo streamInfoByAppAndStream = getStreamInfoByAppAndStream(mediaServerItem, VideoManagerConstants.GB28181_APP, pushStreamId);
-            //todo 进行点播成功返回  通知网关mq
-            GatewayBind gatewayBind = gatewayBindService.findOne(baseRtpServerDto.getGatewayId());
+            //推流开始还是结束
+            Boolean regist = json.getBoolean("regist");
+
+            GatewayBindReq gatewayBind = baseRtpServerDto.getGatewayBindReq();
             if(ObjectUtils.isEmpty(gatewayBind)){
                 logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"zlm回调点播成功异常","网关绑定异常",baseRtpServerDto);
-            }else {
-
+                return;
+            }
+            if(regist){
+                StreamInfo streamInfoByAppAndStream = getStreamInfoByAppAndStream(mediaServerItem, VideoManagerConstants.GB28181_APP, pushStreamId);
                 CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_STREAM_CALLBACK.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null, baseRtpServerDto.getGatewayId());
                 mqInfo.setData(streamInfoByAppAndStream);
                 rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
 
+            }else {
+                //推流自动结束 通知网关和调度服务
             }
             // hook响应
             subscribe.removeSubscribe(hookSubscribe);
         });
 
-        if (streamId == null) {
-            streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
-        }
         int rtpServerPort;
         if (mediaServerItem.isRtpEnable()) {
             rtpServerPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck?Integer.parseInt(ssrc):0, port);

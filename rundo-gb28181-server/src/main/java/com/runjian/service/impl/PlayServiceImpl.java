@@ -8,6 +8,7 @@ import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.CloseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.RtpInfoDto;
+import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
 import com.runjian.common.commonDto.PlayCommonSsrcInfo;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
@@ -23,6 +24,7 @@ import com.runjian.common.utils.RestTemplateUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.SsrcConfig;
 import com.runjian.conf.UserSetting;
+import com.runjian.conf.mq.GatewaySignInConf;
 import com.runjian.domain.dto.DeviceDto;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.gb28181.bean.Device;
@@ -104,6 +106,9 @@ public class PlayServiceImpl implements IplayService {
     @Value("${gateway-info.serialNum}")
     private String serialNum;
 
+
+    @Autowired
+    GatewaySignInConf gatewaySignInConf;
 
 
     @Override
@@ -235,12 +240,12 @@ public class PlayServiceImpl implements IplayService {
             return null;
 
         }
-        GatewayBindMedia gatewayBindMedia =  (GatewayBindMedia)RedisCommonUtil.get(redisTemplate,BusinessSceneConstants.BIND_GATEWAY_MEDIA+serialNum);
-        //判断调度服务的相关信息是否完成了初始化
-        if(ObjectUtils.isEmpty(gatewayBindMedia)){
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.MEDIA_SERVER_BIND_ERROR,null);
-            return null;
-        }
+//        GatewayBindMedia gatewayBindMedia =  (GatewayBindMedia)RedisCommonUtil.get(redisTemplate,BusinessSceneConstants.BIND_GATEWAY_MEDIA+serialNum);
+//        //判断调度服务的相关信息是否完成了初始化
+//        if(ObjectUtils.isEmpty(gatewayBindMedia)){
+//            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.MEDIA_SERVER_BIND_ERROR,null);
+//            return null;
+//        }
 
         // 复用流判断 针对直播场景
         if(isPlay){
@@ -253,7 +258,7 @@ public class PlayServiceImpl implements IplayService {
                 rtpInfoDto.setApp(VideoManagerConstants.GB28181_APP);
                 rtpInfoDto.setMediaServerId(ssrcTransaction.getMediaServerId());
                 rtpInfoDto.setStreamId(ssrcTransaction.getStream());
-                CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(gatewayBindMedia.getUrl() + getRtpInfoApi, rtpInfoDto, restTemplate);
+                CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(playReq.getDispatchUrl() + getRtpInfoApi, rtpInfoDto, restTemplate);
                 if(commonResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
                     log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "zlm连接失败", commonResponse);
 
@@ -274,28 +279,33 @@ public class PlayServiceImpl implements IplayService {
             }
         }
 
+        GatewayBindReq gatewayBindReq = new GatewayBindReq();
+        gatewayBindReq.setGatewayId(gatewaySignInConf.getSerialNum());
+        gatewayBindReq.setMqExchange(gatewaySignInConf.getMqExchange());
+        gatewayBindReq.setMqRouteKey(gatewaySignInConf.getMqGetQueue());
+        gatewayBindReq.setMqQueueName(gatewaySignInConf.getMqGetQueue());
         //收流端口创建
         BaseRtpServerDto baseRtpServerDto = new BaseRtpServerDto();
         baseRtpServerDto.setDeviceId(playReq.getDeviceId());
         baseRtpServerDto.setChannelId(playReq.getChannelId());
         baseRtpServerDto.setEnableAudio(playReq.getEnableAudio());
         baseRtpServerDto.setGatewayId(serialNum);
+        baseRtpServerDto.setStreamId(playReq.getStreamId());
+        baseRtpServerDto.setGatewayBindReq(gatewayBindReq);
+        baseRtpServerDto.setRecordState(playReq.getRecordState());
+
         if(playReq.getSsrcCheck()){
             SsrcConfig ssrcConfig = redisCatchStorageService.getSsrcConfig();
             if(isPlay){
                 baseRtpServerDto.setSsrc(ssrcConfig.getPlaySsrc());
-                baseRtpServerDto.setStreamId(playReq.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_SPLICE_KEY+playReq.getChannelId());
-
             }else {
                 baseRtpServerDto.setSsrc(ssrcConfig.getPlayBackSsrc());
-                String streamId = String.format("%08x", Integer.parseInt(baseRtpServerDto.getSsrc())).toUpperCase();
-                baseRtpServerDto.setStreamId(streamId);
             }
             //更新ssrc的缓存
             redisCatchStorageService.setSsrcConfig(ssrcConfig);
         }
         //todo 待定这个流程 判断观看的服务到底是哪里进行判断
-        CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(gatewayBindMedia.getUrl() + openRtpServerApi, baseRtpServerDto, restTemplate);
+        CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(playReq.getDispatchUrl() + openRtpServerApi, baseRtpServerDto, restTemplate);
         if(commonResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "创建推流端口失败", commonResponse);
 

@@ -29,6 +29,22 @@ public class PlayReq {
      * 是否ssrc校验
      */
     Boolean ssrcCheck = true;
+
+    /**
+     * 调度服务地址
+     */
+    private String dispatchUrl;
+
+    /**
+     * 流id
+     */
+    private String streamId;
+
+    /**
+     * 录像状态
+     */
+    private Integer recordState;
+
     /**
      * 业务消息id
      */
