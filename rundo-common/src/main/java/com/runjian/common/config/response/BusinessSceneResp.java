@@ -70,10 +70,10 @@ public class BusinessSceneResp<T> {
      * @param <T>
      * @return
      */
-    public static<T> BusinessSceneResp<T> addSceneReady(GatewayMsgType gatewayMsgType,String msgId,int timeOut){
+    public static<T> BusinessSceneResp<T> addSceneReady(GatewayMsgType gatewayMsgType,String msgId,int timeOut,T data){
         long id = Thread.currentThread().getId();
         LocalDateTime now = LocalDateTime.now().plusSeconds(timeOut);
-        return create(BusinessErrorEnums.BUSINESS_SCENE_EXCEPTION.getErrCode(), BusinessErrorEnums.BUSINESS_SCENE_EXCEPTION.getErrMsg(), BusinessSceneStatusEnum.ready, gatewayMsgType,msgId,id,now,null);
+        return create(BusinessErrorEnums.BUSINESS_SCENE_EXCEPTION.getErrCode(), BusinessErrorEnums.BUSINESS_SCENE_EXCEPTION.getErrMsg(), BusinessSceneStatusEnum.ready, gatewayMsgType,msgId,id,now,data);
     }
 
     /**

@@ -143,7 +143,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             //阻塞型,默认是30s无返回参数
             lock.lock();
             //同设备同类型业务消息，加上全局锁
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.RECORD_INFO,msgId,userSetting.getBusinessSceneTimeout());
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.RECORD_INFO,msgId,userSetting.getBusinessSceneTimeout(),null);
             boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
             if(!hset){
                 throw new Exception("redis操作hashmap失败");

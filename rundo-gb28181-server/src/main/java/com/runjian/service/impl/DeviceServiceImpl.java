@@ -174,7 +174,7 @@ public class DeviceServiceImpl implements IDeviceService {
         try {
             //阻塞型,默认是30s无返回参数
             lock.lock();
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.CATALOG,msgId,userSetting.getBusinessSceneTimeout());
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.CATALOG,msgId,userSetting.getBusinessSceneTimeout(),null);
             boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
             if(!hset){
                 throw new Exception("redis操作hashmap失败");
@@ -219,7 +219,7 @@ public class DeviceServiceImpl implements IDeviceService {
         try {
             //阻塞型,默认是30s无返回参数
             lock.lock();
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICEINFO,msgId,userSetting.getBusinessSceneTimeout());
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICEINFO,msgId,userSetting.getBusinessSceneTimeout(),null);
             boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
             if(!hset){
                 throw new Exception("redis操作hashmap失败");
@@ -244,7 +244,7 @@ public class DeviceServiceImpl implements IDeviceService {
         try {
             //阻塞型,默认是30s无返回参数
             lock.lock();
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICE_DELETE,msgId,userSetting.getBusinessSceneTimeout());
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICE_DELETE,msgId,userSetting.getBusinessSceneTimeout(),null);
             boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
             if(!hset){
                 throw new Exception("redis操作hashmap失败");

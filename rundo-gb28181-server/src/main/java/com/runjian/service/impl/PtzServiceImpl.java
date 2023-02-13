@@ -94,7 +94,7 @@ public class PtzServiceImpl implements IPtzService {
         try {
             //阻塞型,默认是30s无返回参数
             lock.lock();
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.PTZ_CONTROL, deviceControlReq.getMsgId(), userSetting.getBusinessSceneTimeout());
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.PTZ_CONTROL, deviceControlReq.getMsgId(), userSetting.getBusinessSceneTimeout(),null);
             boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
             if (!hset) {
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "ptz服务", "ptz操作失败", "redis操作hashmap失败");

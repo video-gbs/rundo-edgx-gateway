@@ -217,7 +217,7 @@ public class PlayServiceImpl implements IplayService {
 
     private PlayCommonSsrcInfo playCommonProcess(String businessSceneKey, GatewayMsgType gatewayMsgType, PlayReq playReq,boolean isPlay){
 
-        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(gatewayMsgType,playReq.getMsgId(),userSetting.getBusinessSceneTimeout());
+        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(gatewayMsgType,playReq.getMsgId(),userSetting.getBusinessSceneTimeout(),null);
         boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
         if(!hset){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "点播失败", "redis操作hashmap失败");
@@ -496,7 +496,7 @@ public class PlayServiceImpl implements IplayService {
         try {
             //阻塞型,默认是30s无返回参数
             lock.lock();
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.STOP_PLAY,msgId,userSetting.getBusinessSceneTimeout());
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.STOP_PLAY,msgId,userSetting.getBusinessSceneTimeout(),null);
             boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
             if(!hset){
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "点播失败", "redis操作hashmap失败");

@@ -68,7 +68,7 @@ public class IGatewayBaseServiceImpl implements IGatewayBaseService {
         try {
             //阻塞型,默认是30s无返回参数
             lock.lock();
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.GATEWAY_BIND_MEDIA,gatewayBindMedia.getMsgId(),userSetting.getBusinessSceneTimeout());
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.GATEWAY_BIND_MEDIA,gatewayBindMedia.getMsgId(),userSetting.getBusinessSceneTimeout(),null);
             RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
 
             if(ObjectUtils.isEmpty(gatewayBindMedia)){
