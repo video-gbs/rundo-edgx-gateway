@@ -25,6 +25,7 @@ public class VideoManagerConstants {
 
 
 	public static final String MEDIA_RTP_SERVER_REQ = "ZLM_RTP_SERVER_REQ_";
+	public static final String MEDIA_STREAM_BYE = "MEDIA_STREAM_BYE_";
 
 	public static final String GB28181_APP = "rtp";
 

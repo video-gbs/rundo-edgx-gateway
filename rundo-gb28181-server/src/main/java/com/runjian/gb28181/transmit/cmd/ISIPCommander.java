@@ -97,7 +97,7 @@ public interface ISIPCommander {
 	/**
 	 * 视频流停止
 	 */
-	void streamByeCmd(SsrcTransaction ssrcTransaction, Device device, String channelId, SipSubscribe.Event errorEvent) throws InvalidArgumentException, ParseException, SipException;
+	void streamByeCmd(SsrcTransaction ssrcTransaction, Device device, String channelId, SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException;
 
 	/**
 	 * 回放暂停

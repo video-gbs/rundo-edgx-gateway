@@ -18,6 +18,8 @@ import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.DynamicTask;
 import com.runjian.media.dispatcher.conf.UserSetting;
+import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
+import com.runjian.media.dispatcher.dto.resp.DispatcherSignInRsp;
 import com.runjian.media.dispatcher.zlm.ZLMRESTfulUtils;
 import com.runjian.media.dispatcher.zlm.ZLMRTPServerFactory;
 import com.runjian.media.dispatcher.zlm.ZLMServerConfig;
@@ -111,6 +113,8 @@ public class MediaServerServiceImpl implements ImediaServerService {
     @Autowired
     RedissonClient redissonClient;
 
+    @Autowired
+    DispatcherSignInConf dispatcherSignInConf;
     @Override
     public SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto) {
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "调度服务", "创建端口请求", baseRtpServerDto);
@@ -154,12 +158,20 @@ public class MediaServerServiceImpl implements ImediaServerService {
             }
             if(regist){
                 StreamInfo streamInfoByAppAndStream = getStreamInfoByAppAndStream(mediaServerItem, VideoManagerConstants.GB28181_APP, pushStreamId);
-                CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_STREAM_CALLBACK.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null, baseRtpServerDto.getGatewayId());
+                CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_STREAM_CALLBACK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
                 mqInfo.setData(streamInfoByAppAndStream);
                 rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
                 //发送调度服务的业务队列 通知流实际成功
+                streamPlayResult.setIsSuccess(true);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_PLAY_RESULT,BusinessErrorEnums.SUCCESS,streamPlayResult);
             }else {
                 //推拉流结束 过滤调度中心返回的bye指令 推流自动结束 通知网关和调度服务
+                Object selfStreamBye = RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_STREAM_BYE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
+                if(ObjectUtils.isEmpty(selfStreamBye)){
+                    //自行关闭的流 不进行通知
+                }else {
+                    //异常中断的流 进行通知
+                }
             }
             // hook响应
             subscribe.removeSubscribe(hookSubscribe);
@@ -608,6 +620,30 @@ public class MediaServerServiceImpl implements ImediaServerService {
             }
         }
         return streamInfo;
+
+    }
+
+    @Override
+    public void streamBye(String streamId, String msgId) {
+        MediaServerItem defaultMediaServer = getDefaultMediaServer();
+
+        //查看是否有人观看
+        int i = zlmrtpServerFactory.totalReaderCount(defaultMediaServer, VideoManagerConstants.GB28181_APP, streamId);
+        CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_PLAY_STOP.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
+        mqInfo.setData(false);
+
+
+        if(i>0){
+            //不允许关闭
+            rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
+        }else {
+            mqInfo.setData(true);
+            rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
+        }
+        //缓存自己系统的bye相关的请求参数
+
+        //缓存相关的请求参数
+        RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_STREAM_BYE+ BusinessSceneConstants.SCENE_SEM_KEY+streamId,streamId,60);
 
     }
 }

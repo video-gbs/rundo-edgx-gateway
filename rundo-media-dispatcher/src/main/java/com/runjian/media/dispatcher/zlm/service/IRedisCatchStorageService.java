@@ -24,7 +24,7 @@ public interface IRedisCatchStorageService {
      */
     String getSn(String key);
 
-    CommonMqDto getMqInfo(String msgType, String snIncr, String snPrefix, String msgId, String gatewayNum);
+    CommonMqDto getMqInfo(String msgType, String snIncr, String snPrefix, String msgId);
 
     /**
      * 操作业务场景的redis修改

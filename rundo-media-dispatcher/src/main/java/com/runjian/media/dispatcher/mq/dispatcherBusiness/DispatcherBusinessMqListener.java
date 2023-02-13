@@ -3,7 +3,9 @@ package com.runjian.media.dispatcher.mq.dispatcherBusiness;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.rabbitmq.client.Channel;
+import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.mq.domain.CommonMqDto;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +45,12 @@ public class DispatcherBusinessMqListener implements ChannelAwareMessageListener
             //实际的请求参数
             JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
             String msgType = commonMqDto.getMsgType();
+            //bye请求
+            if(msgType.equals(GatewayMsgType.STREAM_PLAY_STOP.getTypeName())){
+                //bye指令信息
+                String streamId = dataMapJson.getString("streamId");
 
+            }
 
 
         }catch (Exception ex){

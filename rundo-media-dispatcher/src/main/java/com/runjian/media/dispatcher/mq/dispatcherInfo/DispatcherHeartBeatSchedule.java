@@ -42,7 +42,7 @@ public class DispatcherHeartBeatSchedule {
         commonMqDto.setTime(LocalDateTime.now());
         commonMqDto.setSerialNum(serialNum);
 
-        String sn = iRedisCatchStorageService.getSn(GatewayCacheConstants.GATEWAY_INFO_SN_INCR);
+        String sn = iRedisCatchStorageService.getSn(GatewayCacheConstants.DISPATCHER_INFO_SN_INCR);
 
         commonMqDto.setMsgId(GatewayCacheConstants.GATEWAY_INFO_SN_prefix+sn);
         commonMqDto.setData(String.valueOf(DateUtils.getExpireTimestamp(expire)));

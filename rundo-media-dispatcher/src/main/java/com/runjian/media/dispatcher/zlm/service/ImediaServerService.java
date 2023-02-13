@@ -91,4 +91,11 @@ public interface ImediaServerService {
     void removeMediaServer(String id);
 
     boolean checkRtpServer(MediaServerItem mediaServerItem, String rtp, String stream);
+
+    /**
+     * 停止流
+     * @param streamId
+     * @param msgId
+     */
+    void streamBye(String streamId,String msgId);
 }

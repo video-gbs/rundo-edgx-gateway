@@ -135,9 +135,9 @@ public class SIPCommander implements ISIPCommander {
 
 
     @Override
-    public void streamByeCmd(SsrcTransaction ssrcTransaction,Device device,String channelId,SipSubscribe.Event errorEvent) throws InvalidArgumentException, ParseException, SipException {
+    public void streamByeCmd(SsrcTransaction ssrcTransaction,Device device,String channelId,SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
         Request byteRequest = headerProvider.createByteRequest(device, channelId, ssrcTransaction.getSipTransactionInfo());
-        sipSender.transmitRequest( byteRequest, errorEvent, null);
+        sipSender.transmitRequest( byteRequest, errorEvent, okEvent);
     }
 
     @Override

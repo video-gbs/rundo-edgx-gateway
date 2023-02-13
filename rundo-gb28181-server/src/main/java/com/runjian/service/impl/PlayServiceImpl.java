@@ -392,19 +392,21 @@ public class PlayServiceImpl implements IplayService {
                     SIPResponse response = (SIPResponse) responseEvent.getResponse();
                     log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "bye指令点播失败", response);
 
+                },ok->{
+                    //释放ssrc
+                    redisCatchStorageService.ssrcRelease(streamSessionSsrcTransaction.getSsrc());
+
+                    //关闭推流端口
+                    closeGb28181RtpServer(streamSessionSsrcTransaction.getStream(),streamSessionSsrcTransaction.getMediaServerId());
+                    //剔除缓存
+                    streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
                 });
             } catch (InvalidArgumentException | SipException | ParseException e) {
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "国标设备点播", "[命令发送失败] 停止点播， 发送BYE", e);
 
             }
 
-            //释放ssrc
-            redisCatchStorageService.ssrcRelease(streamSessionSsrcTransaction.getSsrc());
 
-            //关闭推流端口
-            closeGb28181RtpServer(streamSessionSsrcTransaction.getStream(),streamSessionSsrcTransaction.getMediaServerId());
-            //剔除缓存
-            streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
         }else {
             //非国标的无人观看 暂时不处理
         }
@@ -447,8 +449,7 @@ public class PlayServiceImpl implements IplayService {
         Device device = new Device();
         BeanUtil.copyProperties(deviceDto,device);
 
-        //释放ssrc
-        redisCatchStorageService.ssrcRelease(ssrcInfo.getSsrc());
+
         //设备指令 bye
         try {
             sipCommander.streamByeCmd(streamSessionSsrcTransaction,device,channelId,error->{
@@ -457,15 +458,19 @@ public class PlayServiceImpl implements IplayService {
                 SIPResponse response = (SIPResponse) responseEvent.getResponse();
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "bye指令点播失败", response);
 
+            },ok->{
+                //释放ssrc
+                redisCatchStorageService.ssrcRelease(ssrcInfo.getSsrc());
+                //关闭推流端口
+                closeGb28181RtpServer(ssrcInfo.getStreamId(),ssrcInfo.getMediaServerId());
+                //剔除缓存
+                streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
             });
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "国标设备点播", "[命令发送失败] 停止点播， 发送BYE", e);
 
         }
-        //关闭推流端口
-        closeGb28181RtpServer(ssrcInfo.getStreamId(),ssrcInfo.getMediaServerId());
-        //剔除缓存
-        streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
+
 
 
     }
@@ -491,37 +496,24 @@ public class PlayServiceImpl implements IplayService {
             return;
         }
 
-        String businessSceneKey = GatewayMsgType.STOP_PLAY.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamSessionSsrcTransaction.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+streamSessionSsrcTransaction.getChannelId();
-        RLock lock = redissonClient.getLock(businessSceneKey);
-        try {
-            //阻塞型,默认是30s无返回参数
-            lock.lock();
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.STOP_PLAY,msgId,userSetting.getBusinessSceneTimeout(),null);
-            boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
-            if(!hset){
-                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "点播失败", "redis操作hashmap失败");
-                return;
-            }
             //设备指令 bye
-            try {
-                DeviceDto deviceDto = deviceService.getDevice(streamSessionSsrcTransaction.getDeviceId());
-                if(ObjectUtils.isEmpty(deviceDto)){
-                    //todo 重要，缓存异常，点播失败需要人工介入
-                    log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,设备信息未找到", streamId);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STOP_PLAY,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
-                    return;
+        try {
+            DeviceDto deviceDto = deviceService.getDevice(streamSessionSsrcTransaction.getDeviceId());
+            if(ObjectUtils.isEmpty(deviceDto)){
+                //todo 重要，缓存异常，点播失败需要人工介入
+                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,设备信息未找到", streamId);
+                return;
 
-                }
-                Device device = new Device();
-                BeanUtil.copyProperties(deviceDto,device);
-                sipCommander.streamByeCmd(streamSessionSsrcTransaction,device,streamSessionSsrcTransaction.getChannelId(),error->{
-                    //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
-                    ResponseEvent responseEvent = (ResponseEvent) error.event;
-                    SIPResponse response = (SIPResponse) responseEvent.getResponse();
-                    log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令点播失败", response);
+            }
+            Device device = new Device();
+            BeanUtil.copyProperties(deviceDto,device);
+            sipCommander.streamByeCmd(streamSessionSsrcTransaction,device,streamSessionSsrcTransaction.getChannelId(),error->{
+                //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
+                ResponseEvent responseEvent = (ResponseEvent) error.event;
+                SIPResponse response = (SIPResponse) responseEvent.getResponse();
+                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令点播失败", response);
 
-                });
-
+            },ok->{
                 //释放ssrc
                 redisCatchStorageService.ssrcRelease(streamSessionSsrcTransaction.getSsrc());
 
@@ -529,15 +521,12 @@ public class PlayServiceImpl implements IplayService {
                 closeGb28181RtpServer(streamSessionSsrcTransaction.getStream(),streamSessionSsrcTransaction.getMediaServerId());
                 //剔除缓存
                 streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
-            } catch (InvalidArgumentException | SipException | ParseException e) {
-                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "[命令发送失败] 停止点播， 发送BYE", e);
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STOP_PLAY,BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
-            }
-        }catch (Exception e){
-            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "停止点播失败", streamId);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STOP_PLAY,BusinessErrorEnums.UNKNOWN_ERROR,null);
-        }
+            });
 
+
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "[命令发送失败] 停止点播， 发送BYE", e);
+        }
 
 
     }

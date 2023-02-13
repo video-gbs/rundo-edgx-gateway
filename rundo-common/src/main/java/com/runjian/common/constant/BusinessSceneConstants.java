@@ -9,6 +9,11 @@ public class BusinessSceneConstants {
      * zset的key的全部场景值
      */
     public static final String  ALL_SCENE_HASH_KEY= "all_scene_hash_key:";
+
+    /**
+     * 调度服务 zset的key的全部场景值
+     */
+    public static final String  DISPATCHER_ALL_SCENE_HASH_KEY= "dispatcher_all_scene_hash_key:";
     /**
      * 设备信息缓存键
      */

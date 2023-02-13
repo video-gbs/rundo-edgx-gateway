@@ -106,7 +106,7 @@ public class DispatcherInfoServiceImpl implements DispatcherInfoService {
         int port = Integer.parseInt(serverPort);
 
         //进行mq消息发送
-        String sn = iRedisCatchStorageService.getSn(GatewayCacheConstants.GATEWAY_INFO_SN_INCR);
+        String sn = iRedisCatchStorageService.getSn(GatewayCacheConstants.DISPATCHER_INFO_SN_INCR);
         EdgeGatewayInfoDto config = new EdgeGatewayInfoDto();
         config.setPort(port);
         config.setIp(ip);

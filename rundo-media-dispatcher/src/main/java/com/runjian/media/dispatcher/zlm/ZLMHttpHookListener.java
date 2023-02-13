@@ -331,7 +331,7 @@ public class ZLMHttpHookListener {
 		//获取绑定的网关信息 根据流媒体id
 		GatewayBind gatewayBind = gatewayBindService.findOneByMediaId(mediaServerId);
 		if(!ObjectUtils.isEmpty(gatewayBind)){
-			CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_NONE_STREAM_READER_CALLBACK.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null, gatewayBind.getGatewayId());
+			CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_NONE_STREAM_READER_CALLBACK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
 			mqInfo.setData(noneStreamReaderReq);
 			logger.info("流无人观看调用={}",mqInfo);
 			rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
