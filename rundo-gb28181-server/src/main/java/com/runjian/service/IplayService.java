@@ -33,5 +33,10 @@ public interface IplayService {
 
     public void playBusinessErrorScene(String businessKey, BusinessSceneResp businessSceneResp);
 
+    /**
+     * 网关的bye指令场景
+     * @param streamId
+     * @param msgId
+     */
     void streamBye(String streamId,String msgId);
 }

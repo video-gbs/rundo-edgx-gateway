@@ -5,12 +5,14 @@ import java.util.*;
 import com.alibaba.fastjson.JSON;
 import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
+import com.runjian.common.commonDto.StreamCloseDto;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.UserSetting;
+import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
 import com.runjian.media.dispatcher.zlm.dto.*;
 import com.runjian.media.dispatcher.zlm.dto.dao.GatewayBind;
 import com.runjian.media.dispatcher.zlm.dto.hook.OnRtpServerTimeoutHookParam;
@@ -64,6 +66,9 @@ public class ZLMHttpHookListener {
 
 	@Autowired
 	private RedisTemplate redisTemplate;
+
+	@Autowired
+	DispatcherSignInConf dispatcherSignInConf;
 	/**
 	 * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
 	 *
@@ -322,20 +327,31 @@ public class ZLMHttpHookListener {
 			// 拉流代理
 
 		}
-		//todo 根据上层的判断进行是否进行无人观看的拉流关闭
-		NoneStreamReaderReq noneStreamReaderReq = new NoneStreamReaderReq();
-		noneStreamReaderReq.setApp(app);
-		noneStreamReaderReq.setMediaServerId(mediaServerId);
-		noneStreamReaderReq.setSchema(json.getString("schema"));
-		noneStreamReaderReq.setStreamId(streamId);
-		//获取绑定的网关信息 根据流媒体id
-		GatewayBind gatewayBind = gatewayBindService.findOneByMediaId(mediaServerId);
-		if(!ObjectUtils.isEmpty(gatewayBind)){
-			CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_NONE_STREAM_READER_CALLBACK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
-			mqInfo.setData(noneStreamReaderReq);
-			logger.info("流无人观看调用={}",mqInfo);
-			rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
+		CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
+		StreamCloseDto streamCloseDto = new StreamCloseDto();
+		streamCloseDto.setStreamId(streamId);
+		streamCloseDto.setCanClose(true);
+		mqInfo.setData(streamCloseDto);
+		if(!ObjectUtils.isEmpty(dispatcherSignInConf.getMqExchange())){
+			rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
+
+		}else {
+			logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"on_stream_none_reader异常","业务队列未初始化",json);
 		}
+		//todo 根据上层的判断进行是否进行无人观看的拉流关闭
+//		NoneStreamReaderReq noneStreamReaderReq = new NoneStreamReaderReq();
+//		noneStreamReaderReq.setApp(app);
+//		noneStreamReaderReq.setMediaServerId(mediaServerId);
+//		noneStreamReaderReq.setSchema(json.getString("schema"));
+//		noneStreamReaderReq.setStreamId(streamId);
+//		//获取绑定的网关信息 根据流媒体id
+//		GatewayBind gatewayBind = gatewayBindService.findOneByMediaId(mediaServerId);
+//		if(!ObjectUtils.isEmpty(gatewayBind)){
+//			CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_NONE_STREAM_READER_CALLBACK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
+//			mqInfo.setData(noneStreamReaderReq);
+//			logger.info("流无人观看调用={}",mqInfo);
+//			rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
+//		}
 
 		return ret;
 	}

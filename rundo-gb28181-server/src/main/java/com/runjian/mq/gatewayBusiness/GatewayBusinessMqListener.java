@@ -129,6 +129,9 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
                 GatewayBindMedia gatewayBindMedia = JSONObject.toJavaObject(dataMapJson, GatewayBindMedia.class);
                 gatewayBindMedia.setMsgId(commonMqDto.getMsgId());
                 gatewayBaseService.gatewayBindMedia(gatewayBindMedia);
+            }else if(msgType.equals(GatewayMsgType.STOP_PLAY.getTypeName())){
+                String streamId = dataMapJson.getString("streamId");
+                iplayService.streamBye(streamId, commonMqDto.getMsgId());
             }
 
 

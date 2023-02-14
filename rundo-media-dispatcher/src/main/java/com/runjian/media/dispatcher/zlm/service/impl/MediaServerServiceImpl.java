@@ -7,6 +7,7 @@ import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.StreamPlayResult;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
 import com.runjian.common.commonDto.SsrcInfo;
+import com.runjian.common.commonDto.StreamCloseDto;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.exception.BusinessException;
@@ -159,6 +160,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
             if(regist){
                 StreamInfo streamInfoByAppAndStream = getStreamInfoByAppAndStream(mediaServerItem, VideoManagerConstants.GB28181_APP, pushStreamId);
                 CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_STREAM_CALLBACK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
+
                 mqInfo.setData(streamInfoByAppAndStream);
                 rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
                 //发送调度服务的业务队列 通知流实际成功
@@ -167,10 +169,19 @@ public class MediaServerServiceImpl implements ImediaServerService {
             }else {
                 //推拉流结束 过滤调度中心返回的bye指令 推流自动结束 通知网关和调度服务
                 Object selfStreamBye = RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_STREAM_BYE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
-                if(ObjectUtils.isEmpty(selfStreamBye)){
+                if(!ObjectUtils.isEmpty(selfStreamBye)){
                     //自行关闭的流 不进行通知
+                    RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_STREAM_BYE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
                 }else {
                     //异常中断的流 进行通知
+                    logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "zlm推流中断异常", "自行中断", json.toJSONString());
+                    StreamCloseDto streamCloseDto = new StreamCloseDto();
+                    streamCloseDto.setStreamId(streamId);
+                    CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
+
+                    mqInfo.setData(streamCloseDto);
+                    rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
+
                 }
             }
             // hook响应
@@ -632,7 +643,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
         CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_PLAY_STOP.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
         mqInfo.setData(false);
 
-
+        //通知调度中心 进行bye场景的控制
         if(i>0){
             //不允许关闭
             rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
@@ -640,10 +651,18 @@ public class MediaServerServiceImpl implements ImediaServerService {
             mqInfo.setData(true);
             rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
         }
-        //缓存自己系统的bye相关的请求参数
-
-        //缓存相关的请求参数
+        //缓存bye相关的请求参数--1分钟  用作异常断流的判断
         RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_STREAM_BYE+ BusinessSceneConstants.SCENE_SEM_KEY+streamId,streamId,60);
+        //通知网关进行bye请求的发送
+        BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
+        if(ObjectUtils.isEmpty(baseRtpServerDto)){
+            logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"流停止请求","停止失败,流的缓存信息不存在",streamId);
+            return;
+        }
+        CommonMqDto byeMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STOP_PLAY.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
+        byeMqInfo.setData(streamId);
+        GatewayBindReq gatewayBindReq = baseRtpServerDto.getGatewayBindReq();
+        rabbitMqSender.sendMsgByExchange(gatewayBindReq.getMqExchange(), gatewayBindReq.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
 
     }
 }
