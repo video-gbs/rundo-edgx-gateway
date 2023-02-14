@@ -307,10 +307,13 @@ public class ZLMHttpHookListener {
 				//自行关闭的流 不进行通知
 				RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_STREAM_BYE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
 			}else {
-				//异常中断的流 进行通知
+				//异常中断的流 非用户主动关闭，进行通知；  可能为设备推流到zlm的网络异常导致zlm判断收流失败了
 				logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "zlm推流中断异常", "自行中断", json.toJSONString());
 				StreamRespDto streamRespDto = new StreamRespDto();
 				streamRespDto.setStreamId(streamId);
+				HashMap<String, Object> stringObjectHashMap = new HashMap<>();
+				stringObjectHashMap.put("canClose",false);
+				streamRespDto.setDataMap(stringObjectHashMap);
 				CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
 
 				mqInfo.setData(streamRespDto);
@@ -337,7 +340,8 @@ public class ZLMHttpHookListener {
 		String app = json.getString("app");
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
-		ret.put("close", userSetting.getStreamOnDemand());
+		//是否关闭推拉流 交给上层业务判断
+		ret.put("close", false);
 		if (VideoManagerConstants.GB28181_APP.equals(app)){
 			// 国标流， 点播/录像回放/录像下载
 
