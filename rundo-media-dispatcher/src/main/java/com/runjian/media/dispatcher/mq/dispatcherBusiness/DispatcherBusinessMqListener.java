@@ -1,11 +1,8 @@
 package com.runjian.media.dispatcher.mq.dispatcherBusiness;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.rabbitmq.client.Channel;
-import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
-import com.runjian.common.commonDto.StreamCloseDto;
-import com.runjian.common.commonDto.StreamInfo;
+import com.runjian.common.commonDto.StreamRespDto;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
@@ -52,14 +49,15 @@ public class DispatcherBusinessMqListener implements ChannelAwareMessageListener
             //bye请求
             if(msgType.equals(GatewayMsgType.STREAM_PLAY_STOP.getTypeName())){
                 //bye指令信息
-                String streamId = dataMapJson.getString("streamId");
+                String streamId = dataJson.getString("streamId");
                 imediaServerService.streamBye(streamId, commonMqDto.getMsgId());
 
             }else if(msgType.equals(GatewayMsgType.STREAM_CLOSE.getTypeName())){
-                StreamCloseDto streamCloseDto = JSONObject.toJavaObject(dataMapJson, StreamCloseDto.class);
-                if(streamCloseDto.getCanClose()){
+                Boolean canClose = dataMapJson.getBoolean("canClose");
+                String streamId = dataJson.getString("streamId");
+                if(canClose){
                     //针对无人观看的处理 进行实际流的停止处理
-                    imediaServerService.streamBye(streamCloseDto.getStreamId(), commonMqDto.getMsgId());
+                    imediaServerService.streamBye(streamId, commonMqDto.getMsgId());
                 }
 
             }

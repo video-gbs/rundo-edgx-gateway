@@ -3,9 +3,10 @@ package com.runjian.media.dispatcher.zlm;
 import java.util.*;
 
 import com.alibaba.fastjson.JSON;
-import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
-import com.runjian.common.commonDto.StreamCloseDto;
+import com.runjian.common.commonDto.StreamInfo;
+import com.runjian.common.commonDto.StreamRespDto;
+import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
@@ -14,7 +15,6 @@ import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
 import com.runjian.media.dispatcher.zlm.dto.*;
-import com.runjian.media.dispatcher.zlm.dto.dao.GatewayBind;
 import com.runjian.media.dispatcher.zlm.dto.hook.OnRtpServerTimeoutHookParam;
 import com.runjian.media.dispatcher.zlm.service.*;
 import org.slf4j.Logger;
@@ -298,7 +298,26 @@ public class ZLMHttpHookListener {
 				subscribe.response(mediaInfo, json);
 			}
 		}
+		Boolean regist = json.getBoolean("regist");
+		String streamId = json.getString("stream");
+		if(!regist){
+			//推拉流结束 过滤调度中心返回的bye指令 推流自动结束 通知网关和调度服务
+			Object selfStreamBye = RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_STREAM_BYE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
+			if(!ObjectUtils.isEmpty(selfStreamBye)){
+				//自行关闭的流 不进行通知
+				RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_STREAM_BYE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
+			}else {
+				//异常中断的流 进行通知
+				logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "zlm推流中断异常", "自行中断", json.toJSONString());
+				StreamRespDto streamRespDto = new StreamRespDto();
+				streamRespDto.setStreamId(streamId);
+				CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
 
+				mqInfo.setData(streamRespDto);
+				rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
+
+			}
+		}
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");
@@ -328,10 +347,12 @@ public class ZLMHttpHookListener {
 
 		}
 		CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
-		StreamCloseDto streamCloseDto = new StreamCloseDto();
-		streamCloseDto.setStreamId(streamId);
-		streamCloseDto.setCanClose(true);
-		mqInfo.setData(streamCloseDto);
+		StreamRespDto streamRespDto = new StreamRespDto();
+		streamRespDto.setStreamId(streamId);
+		HashMap<String, Object> stringObjectHashMap = new HashMap<>();
+		stringObjectHashMap.put("canClose",true);
+		streamRespDto.setDataMap(stringObjectHashMap);
+		mqInfo.setData(streamRespDto);
 		if(!ObjectUtils.isEmpty(dispatcherSignInConf.getMqExchange())){
 			rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
 

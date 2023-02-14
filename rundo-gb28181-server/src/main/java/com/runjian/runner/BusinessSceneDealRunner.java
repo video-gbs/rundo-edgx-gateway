@@ -59,6 +59,7 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
             if(CollectionUtils.isEmpty(allBusinessMap)){
 
                 Thread.sleep(50);
+                continue;
             }
             Set<Map.Entry<String, Object>> entries = allBusinessMap.entrySet();
             for(Map.Entry entry:  entries){

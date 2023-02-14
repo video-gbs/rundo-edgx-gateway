@@ -2,8 +2,13 @@ package com.runjian.common.commonDto;
 
 import lombok.Data;
 
+import java.util.Map;
+
+/**
+ * @author chenjialing
+ */
 @Data
-public class StreamCloseDto {
+public class StreamRespDto {
     /**
      * 流id
      */
@@ -12,5 +17,5 @@ public class StreamCloseDto {
     /**
      * 其他数据
      */
-    private Boolean canClose = false;
+    private Map<String, Object> dataMap;
 }
