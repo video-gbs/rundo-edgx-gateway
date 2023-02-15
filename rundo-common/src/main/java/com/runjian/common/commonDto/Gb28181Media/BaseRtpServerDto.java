@@ -53,6 +53,11 @@ public class BaseRtpServerDto {
     private Integer recordState;
 
     /**
+     * 流媒体id
+     */
+    private String mediaServerId;
+
+    /**
      * 业务队列信息
      */
     private GatewayBindReq gatewayBindReq;

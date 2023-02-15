@@ -13,6 +13,7 @@ import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
+import com.runjian.media.dispatcher.service.IOnlineStreamsService;
 import com.runjian.media.dispatcher.zlm.dto.*;
 import com.runjian.media.dispatcher.zlm.dto.hook.OnRtpServerTimeoutHookParam;
 import com.runjian.media.dispatcher.zlm.service.*;
@@ -68,6 +69,10 @@ public class ZLMHttpHookListener {
 
 	@Autowired
 	DispatcherSignInConf dispatcherSignInConf;
+
+	@Autowired
+	IOnlineStreamsService onlineStreamsService;
+
 	/**
 	 * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
 	 *
@@ -186,6 +191,7 @@ public class ZLMHttpHookListener {
 		}else {
 			//正常推流，判断是否开启音频
 			ret.put("enable_audio", baseRtpServerDto.getEnableAudio());
+			ret.put("enable_mp4", baseRtpServerDto.getRecordState() != 0);
 		}
 		if ("rtp".equals(app)) {
 
@@ -299,24 +305,10 @@ public class ZLMHttpHookListener {
 		}
 		Boolean regist = json.getBoolean("regist");
 		String streamId = json.getString("stream");
-		if(!regist){
-			//推拉流结束 过滤调度中心返回的bye指令 推流自动结束 通知网关和调度服务
-			Object selfStreamBye = RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_STREAM_BYE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
-			if(!ObjectUtils.isEmpty(selfStreamBye)){
-				//自行关闭的流 不进行通知
-				RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_STREAM_BYE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
-			}else {
-				//异常中断的流 非用户主动关闭，进行通知；  可能为设备推流到zlm的网络异常导致zlm判断收流失败了
-				logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "zlm推流中断异常", "自行中断", json.toJSONString());
-				StreamCloseDto streamCloseDto = new StreamCloseDto();
-				streamCloseDto.setStreamId(streamId);
-				streamCloseDto.setCanClose(false);
-				CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
-
-				mqInfo.setData(streamCloseDto);
-				rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
-
-			}
+		String schema = json.getString("schema");
+		//同一个流 只处理一种协议的通知 暂定未rtsp流
+		if(schema.equals("rtsp")){
+			onlineStreamsService.streamChangeDeal(streamId,regist);
 		}
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
