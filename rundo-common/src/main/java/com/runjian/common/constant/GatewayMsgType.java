@@ -43,7 +43,7 @@ public enum GatewayMsgType {
     PLAY("CHANNEL_PLAY"),
     //回放
     PLAY_BACK("CHANNEL_PLAYBACK"),
-    //停播
+    //停播 调度服务请求网关
     STOP_PLAY("CHANNEL_STOP_PLAY"),
     //云台控制
     PTZ_CONTROL("CHANNEL_PTZ_CONTROL"),

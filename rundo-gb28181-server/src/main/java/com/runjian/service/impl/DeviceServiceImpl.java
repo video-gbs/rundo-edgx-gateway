@@ -90,10 +90,10 @@ public class DeviceServiceImpl implements IDeviceService {
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线", device);
         //转换为gb28181专用的bean
         Device deviceBean = new Device();
-
+        DeviceDto deviceByDeviceId = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
 
         // 第一次上线 或则设备之前是离线状态--进行通道同步和设备信息查询
-        if (device.getCreatedAt() == null) {
+        if (deviceByDeviceId.getCreatedAt() == null) {
             device.setOnline(1);
             BeanUtil.copyProperties(device, deviceBean);
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-首次注册,查询设备信息以及通道信息", device.getDeviceId());

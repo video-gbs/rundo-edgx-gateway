@@ -122,15 +122,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
         objectObjectHashMap.put("isSuccess",false);
         streamPlayResult.setDataMap(objectObjectHashMap);
         String businessSceneKey = GatewayMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+baseRtpServerDto.getStreamId();
-        RLock lock = redissonClient.getLock(businessSceneKey);
         SsrcInfo ssrcInfo = null;
-            //阻塞型,默认是30s无返回参数
-        lock.lock();
-        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.STREAM_PLAY_RESULT,null,10,streamPlayResult);
-        boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
-        if(!hset){
-            throw new BusinessException(BusinessErrorEnums.REDIS_EXCEPTION);
-        }
         if (mediaServerItem == null || mediaServerItem.getId() == null) {
             throw new BusinessException(BusinessErrorEnums.VALID_BIND_EXCEPTION_ERROR);
         }
@@ -608,7 +600,14 @@ public class MediaServerServiceImpl implements ImediaServerService {
             if (rtpInfo.getBoolean("exist")) {
                 //判断是否正常
                 streamInfo = getStreamInfoByAppAndStream(mediaInfo, streamId, app);
-
+                //流直接返回
+                StreamRespDto streamPlayResult = new StreamRespDto();
+                streamPlayResult.setStreamId(streamId);
+                HashMap<String, Object> objectObjectHashMap = new HashMap<>();
+                objectObjectHashMap.put("isSuccess",true);
+                streamPlayResult.setDataMap(objectObjectHashMap);
+                String businessSceneKey = GatewayMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_PLAY_RESULT,BusinessErrorEnums.SUCCESS,streamPlayResult);
             }
         }
         return streamInfo;
@@ -618,12 +617,19 @@ public class MediaServerServiceImpl implements ImediaServerService {
     @Override
     public void streamBye(String streamId, String msgId) {
         MediaServerItem defaultMediaServer = getDefaultMediaServer();
-
-        //查看是否有人观看
-        int i = zlmrtpServerFactory.totalReaderCount(defaultMediaServer, VideoManagerConstants.GB28181_APP, streamId);
+        //查看流是否存在
+        JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(defaultMediaServer, streamId);
+        logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "bye之前先获取流是否存在", rtpInfo);
         CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_PLAY_STOP.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
         mqInfo.setData(false);
-
+        if(rtpInfo.getInteger("code") == 0){
+            if (!rtpInfo.getBoolean("exist")) {
+                //流不存在 通知调度中心可以关闭
+                mqInfo.setData(true);
+            }
+        }
+        //查看是否有人观看
+        int i = zlmrtpServerFactory.totalReaderCount(defaultMediaServer, VideoManagerConstants.GB28181_APP, streamId);
         //通知调度中心 进行bye场景的控制
         if(i>0){
             //不允许关闭
@@ -641,9 +647,28 @@ public class MediaServerServiceImpl implements ImediaServerService {
             return;
         }
         CommonMqDto byeMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STOP_PLAY.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
-        byeMqInfo.setData(streamId);
+        StreamRespDto streamRespDto = new StreamRespDto();
+        streamRespDto.setStreamId(streamId);
+        byeMqInfo.setData(streamRespDto);
         GatewayBindReq gatewayBindReq = baseRtpServerDto.getGatewayBindReq();
-        rabbitMqSender.sendMsgByExchange(gatewayBindReq.getMqExchange(), gatewayBindReq.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
+        rabbitMqSender.sendMsgByExchange(gatewayBindReq.getMqExchange(), gatewayBindReq.getMqRouteKey(), UuidUtil.toUuid(),byeMqInfo,true);
 
+    }
+
+    @Override
+    public Boolean streamNotify(String streamId) {
+        StreamRespDto streamPlayResult = new StreamRespDto();
+        streamPlayResult.setStreamId(streamId);
+        HashMap<String, Object> objectObjectHashMap = new HashMap<>();
+        objectObjectHashMap.put("isSuccess",false);
+        streamPlayResult.setDataMap(objectObjectHashMap);
+        String businessSceneKey = GatewayMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
+        RLock lock = redissonClient.getLock(businessSceneKey);
+        //阻塞型,默认是30s无返回参数
+        lock.lock();
+        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.STREAM_PLAY_RESULT,null,10,streamPlayResult);
+        RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
+
+        return Boolean.TRUE;
     }
 }

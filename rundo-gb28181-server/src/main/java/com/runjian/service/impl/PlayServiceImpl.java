@@ -90,6 +90,9 @@ public class PlayServiceImpl implements IplayService {
     @Value("${mdeia-api-uri-list.get-rtp-info}")
     private String getRtpInfoApi;
 
+    @Value("${mdeia-api-uri-list.stream-notify}")
+    private String streamNotifyApi;
+
     @Autowired
     RestTemplate restTemplate;
 
@@ -218,9 +221,13 @@ public class PlayServiceImpl implements IplayService {
     private PlayCommonSsrcInfo playCommonProcess(String businessSceneKey, GatewayMsgType gatewayMsgType, PlayReq playReq,boolean isPlay){
 
         BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(gatewayMsgType,playReq.getMsgId(),userSetting.getBusinessSceneTimeout(),null);
-        boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
-        if(!hset){
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "点播失败", "redis操作hashmap失败");
+        RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
+
+        CommonResponse getResponse = RestTemplateUtil.postStreamNotifyRespons(playReq.getDispatchUrl() + streamNotifyApi, playReq.getStreamId(), restTemplate);
+        if(getResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "通知media推流端口通知失败", getResponse);
+
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.MEDIA_SERVER_COLLECT_ERROR,null);
             return null;
         }
         //参数校验
@@ -258,7 +265,7 @@ public class PlayServiceImpl implements IplayService {
                 rtpInfoDto.setApp(VideoManagerConstants.GB28181_APP);
                 rtpInfoDto.setMediaServerId(ssrcTransaction.getMediaServerId());
                 rtpInfoDto.setStreamId(ssrcTransaction.getStream());
-                CommonResponse commonResponse = RestTemplateUtil.postReturnCommonrespons(playReq.getDispatchUrl() + getRtpInfoApi, rtpInfoDto, restTemplate);
+                CommonResponse commonResponse = RestTemplateUtil.postRtpinforespons(playReq.getDispatchUrl() + getRtpInfoApi, rtpInfoDto, restTemplate);
                 if(commonResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
                     log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "zlm连接失败", commonResponse);
 
@@ -459,6 +466,8 @@ public class PlayServiceImpl implements IplayService {
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "bye指令点播失败", response);
 
             },ok->{
+                ResponseEvent responseEvent = (ResponseEvent) ok.event;
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "bye指令成功", responseEvent.getResponse());
                 //释放ssrc
                 redisCatchStorageService.ssrcRelease(ssrcInfo.getSsrc());
                 //关闭推流端口

@@ -99,4 +99,11 @@ public interface ImediaServerService {
      */
     void streamBye(String streamId,String msgId);
 
+    /**
+     * 推流结果通知
+     * @param streamId
+     * @return
+     */
+    Boolean streamNotify(String streamId);
+
 }

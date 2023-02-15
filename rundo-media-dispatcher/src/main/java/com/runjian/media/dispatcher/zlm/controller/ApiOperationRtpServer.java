@@ -6,6 +6,7 @@ import com.runjian.common.commonDto.Gb28181Media.RtpInfoDto;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
+import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.validator.ValidatorService;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
@@ -14,6 +15,7 @@ import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -78,7 +80,22 @@ public class ApiOperationRtpServer {
     public CommonResponse<StreamInfo> getRtpServer(@RequestBody RtpInfoDto rtpInfoDto){
         validatorService.validateRequest(rtpInfoDto);
         //获取zlm流媒体配置
+        StreamInfo rtpInfo = imediaServerService.getRtpInfo(rtpInfoDto.getMediaServerId(), rtpInfoDto.getStreamId(), rtpInfoDto.getApp());
+        if(ObjectUtils.isEmpty(rtpInfo)){
+            return CommonResponse.failure(BusinessErrorEnums.DB_NOT_FOUND);
 
-        return CommonResponse.success(imediaServerService.getRtpInfo(rtpInfoDto.getMediaServerId(), rtpInfoDto.getStreamId(),rtpInfoDto.getApp()));
+        }
+        return CommonResponse.success(rtpInfo);
+
+    }
+    //查看流是否存在
+    /**
+     *  查看流是否存在
+     */
+    @PostMapping(value = "/media/streamNotify",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<Boolean> streamNotifyServer(@RequestBody String streamId){
+        //获取zlm流媒体配置
+        return CommonResponse.success(imediaServerService.streamNotify(streamId));
+
     }
 }

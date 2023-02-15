@@ -155,6 +155,7 @@ mdeia-api-uri-list:
     close-rtp-server: "/api/media/closeRtpServer"
     get-rtp-info: "/api/media/getRtpInfo"
     gateway-bind: "/api/media/gatewayBind"
+    stream-notify: "/api/media/streamNotify"
 
 
 

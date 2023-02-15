@@ -3,6 +3,7 @@ package com.runjian.domain.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -123,7 +124,8 @@ public class DeviceDto {
     @Schema(description = "密码")
     private String password;
 
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
-    private Date updatedAt;
+
+    private LocalDateTime updatedAt;
 }
