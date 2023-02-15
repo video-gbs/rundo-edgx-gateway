@@ -259,7 +259,6 @@ public class PlayServiceImpl implements IplayService {
             SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(playReq.getDeviceId(), playReq.getChannelId(), "play", null);
             if(!ObjectUtils.isEmpty(ssrcTransaction)){
                 //拼接streamd的流返回值 封装返回请求体
-                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播成功，流已存在", playReq);
                 //进行流媒体中流的判断
                 RtpInfoDto rtpInfoDto = new RtpInfoDto();
                 rtpInfoDto.setApp(VideoManagerConstants.GB28181_APP);
@@ -276,6 +275,7 @@ public class PlayServiceImpl implements IplayService {
                         //流实际已经不存在 ，接着点播即可
                         streamSession.removeSsrcTransaction(ssrcTransaction);
                     }else {
+                        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播成功，流已存在", playReq);
                         //流存在 直接返回流封装的地址信息
                         redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.SUCCESS,commonResponse.getData());
                         return null;

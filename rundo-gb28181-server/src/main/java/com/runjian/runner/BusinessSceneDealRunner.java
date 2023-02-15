@@ -60,6 +60,7 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
 
                 Thread.sleep(50);
                 continue;
+
             }
             Set<Map.Entry<String, Object>> entries = allBusinessMap.entrySet();
             for(Map.Entry entry:  entries){

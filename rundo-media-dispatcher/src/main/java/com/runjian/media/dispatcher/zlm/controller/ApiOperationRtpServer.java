@@ -81,10 +81,7 @@ public class ApiOperationRtpServer {
         validatorService.validateRequest(rtpInfoDto);
         //获取zlm流媒体配置
         StreamInfo rtpInfo = imediaServerService.getRtpInfo(rtpInfoDto.getMediaServerId(), rtpInfoDto.getStreamId(), rtpInfoDto.getApp());
-        if(ObjectUtils.isEmpty(rtpInfo)){
-            return CommonResponse.failure(BusinessErrorEnums.DB_NOT_FOUND);
 
-        }
         return CommonResponse.success(rtpInfo);
 
     }
