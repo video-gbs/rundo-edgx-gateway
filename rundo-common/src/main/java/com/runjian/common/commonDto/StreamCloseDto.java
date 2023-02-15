@@ -8,14 +8,14 @@ import java.util.Map;
  * @author chenjialing
  */
 @Data
-public class StreamRespDto {
+public class StreamCloseDto {
     /**
      * 流id
      */
     private String streamId;
 
     /**
-     * 其他数据
+     * 是否可关闭，无人观看可关闭true,其他异常断流false;
      */
-    private Map<String, Object> dataMap;
+    private Boolean canClose;
 }

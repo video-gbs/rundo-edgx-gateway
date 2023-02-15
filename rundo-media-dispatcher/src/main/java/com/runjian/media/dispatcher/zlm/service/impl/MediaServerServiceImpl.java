@@ -6,7 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
 import com.runjian.common.commonDto.SsrcInfo;
-import com.runjian.common.commonDto.StreamRespDto;
+import com.runjian.common.commonDto.StreamPlayDto;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.exception.BusinessException;
@@ -116,11 +116,8 @@ public class MediaServerServiceImpl implements ImediaServerService {
     @Override
     public SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto) {
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "调度服务", "创建端口请求", baseRtpServerDto);
-        StreamRespDto streamPlayResult = new StreamRespDto();
+        StreamPlayDto streamPlayResult = new StreamPlayDto();
         streamPlayResult.setStreamId(baseRtpServerDto.getStreamId());
-        HashMap<String, Object> objectObjectHashMap = new HashMap<>();
-        objectObjectHashMap.put("isSuccess",false);
-        streamPlayResult.setDataMap(objectObjectHashMap);
         String businessSceneKey = GatewayMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+baseRtpServerDto.getStreamId();
         SsrcInfo ssrcInfo = null;
         if (mediaServerItem == null || mediaServerItem.getId() == null) {
@@ -154,7 +151,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
             mqInfo.setData(streamInfoByAppAndStream);
             rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
             //发送调度服务的业务队列 通知流实际成功
-            objectObjectHashMap.put("isSuccess",true);
+            streamPlayResult.setIsSuccess(true);
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_PLAY_RESULT,BusinessErrorEnums.SUCCESS,streamPlayResult);
 
             // hook响应
@@ -601,11 +598,9 @@ public class MediaServerServiceImpl implements ImediaServerService {
                 //判断是否正常
                 streamInfo = getStreamInfoByAppAndStream(mediaInfo, streamId, app);
                 //流直接返回
-                StreamRespDto streamPlayResult = new StreamRespDto();
+                StreamPlayDto streamPlayResult = new StreamPlayDto();
                 streamPlayResult.setStreamId(streamId);
-                HashMap<String, Object> objectObjectHashMap = new HashMap<>();
-                objectObjectHashMap.put("isSuccess",true);
-                streamPlayResult.setDataMap(objectObjectHashMap);
+                streamPlayResult.setIsSuccess(true);
                 String businessSceneKey = GatewayMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_PLAY_RESULT,BusinessErrorEnums.SUCCESS,streamPlayResult);
             }
@@ -647,9 +642,9 @@ public class MediaServerServiceImpl implements ImediaServerService {
             return;
         }
         CommonMqDto byeMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STOP_PLAY.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
-        StreamRespDto streamRespDto = new StreamRespDto();
-        streamRespDto.setStreamId(streamId);
-        byeMqInfo.setData(streamRespDto);
+        StreamPlayDto streamPlayDto = new StreamPlayDto();
+        streamPlayDto.setStreamId(streamId);
+        byeMqInfo.setData(streamPlayDto);
         GatewayBindReq gatewayBindReq = baseRtpServerDto.getGatewayBindReq();
         rabbitMqSender.sendMsgByExchange(gatewayBindReq.getMqExchange(), gatewayBindReq.getMqRouteKey(), UuidUtil.toUuid(),byeMqInfo,true);
 
@@ -657,11 +652,8 @@ public class MediaServerServiceImpl implements ImediaServerService {
 
     @Override
     public Boolean streamNotify(String streamId) {
-        StreamRespDto streamPlayResult = new StreamRespDto();
+        StreamPlayDto streamPlayResult = new StreamPlayDto();
         streamPlayResult.setStreamId(streamId);
-        HashMap<String, Object> objectObjectHashMap = new HashMap<>();
-        objectObjectHashMap.put("isSuccess",false);
-        streamPlayResult.setDataMap(objectObjectHashMap);
         String businessSceneKey = GatewayMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         RLock lock = redissonClient.getLock(businessSceneKey);
         //阻塞型,默认是30s无返回参数

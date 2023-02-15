@@ -2,7 +2,6 @@ package com.runjian.media.dispatcher.mq.dispatcherBusiness;
 
 import com.alibaba.fastjson.JSONObject;
 import com.rabbitmq.client.Channel;
-import com.runjian.common.commonDto.StreamRespDto;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;

@@ -4,9 +4,8 @@ import java.util.*;
 
 import com.alibaba.fastjson.JSON;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
-import com.runjian.common.commonDto.StreamInfo;
-import com.runjian.common.commonDto.StreamRespDto;
-import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.commonDto.StreamCloseDto;
+import com.runjian.common.commonDto.StreamPlayDto;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
@@ -309,14 +308,12 @@ public class ZLMHttpHookListener {
 			}else {
 				//异常中断的流 非用户主动关闭，进行通知；  可能为设备推流到zlm的网络异常导致zlm判断收流失败了
 				logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "zlm推流中断异常", "自行中断", json.toJSONString());
-				StreamRespDto streamRespDto = new StreamRespDto();
-				streamRespDto.setStreamId(streamId);
-				HashMap<String, Object> stringObjectHashMap = new HashMap<>();
-				stringObjectHashMap.put("canClose",false);
-				streamRespDto.setDataMap(stringObjectHashMap);
+				StreamCloseDto streamCloseDto = new StreamCloseDto();
+				streamCloseDto.setStreamId(streamId);
+				streamCloseDto.setCanClose(false);
 				CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
 
-				mqInfo.setData(streamRespDto);
+				mqInfo.setData(streamCloseDto);
 				rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
 
 			}
@@ -351,12 +348,10 @@ public class ZLMHttpHookListener {
 
 		}
 		CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
-		StreamRespDto streamRespDto = new StreamRespDto();
-		streamRespDto.setStreamId(streamId);
-		HashMap<String, Object> stringObjectHashMap = new HashMap<>();
-		stringObjectHashMap.put("canClose",true);
-		streamRespDto.setDataMap(stringObjectHashMap);
-		mqInfo.setData(streamRespDto);
+		StreamCloseDto streamCloseDto = new StreamCloseDto();
+		streamCloseDto.setStreamId(streamId);
+		streamCloseDto.setCanClose(true);
+		mqInfo.setData(streamCloseDto);
 		if(!ObjectUtils.isEmpty(dispatcherSignInConf.getMqExchange())){
 			rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
 
