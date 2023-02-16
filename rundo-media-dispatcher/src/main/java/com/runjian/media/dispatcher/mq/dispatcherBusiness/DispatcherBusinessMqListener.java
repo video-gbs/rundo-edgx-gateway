@@ -1,5 +1,7 @@
 package com.runjian.media.dispatcher.mq.dispatcherBusiness;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.rabbitmq.client.Channel;
 import com.runjian.common.config.exception.BusinessErrorEnums;
@@ -12,6 +14,9 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 业务状态下队列监听--动态监听
@@ -59,6 +64,11 @@ public class DispatcherBusinessMqListener implements ChannelAwareMessageListener
                     imediaServerService.streamBye(streamId, commonMqDto.getMsgId());
                 }
 
+            }else if(msgType.equals(GatewayMsgType.STREAM_CHECK_STREAM.getTypeName())){
+
+                JSONArray streamArray = dataMapJson.getJSONArray("streamIdList");
+                List<String> streamIdList = JSONArray.parseArray(streamArray.toJSONString(), String.class);
+                imediaServerService.streamListByStreamIds(streamIdList,commonMqDto.getMsgId());
             }
 
 

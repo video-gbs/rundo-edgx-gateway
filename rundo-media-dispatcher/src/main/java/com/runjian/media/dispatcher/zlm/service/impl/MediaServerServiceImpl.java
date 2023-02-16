@@ -52,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 媒体服务器节点管理
@@ -679,5 +680,25 @@ public class MediaServerServiceImpl implements ImediaServerService {
         RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
 
         return Boolean.TRUE;
+    }
+    @Override
+    public List<OnlineStreamsEntity> streamListByStreamIds(List<String> streamLists,String msgId) {
+        //获取数据库中的数据
+        List<OnlineStreamsEntity> onlineStreamsEntities = onlineStreamsService.streamListByStreamIds(streamLists);
+        List<String> collect = onlineStreamsEntities.stream().map(OnlineStreamsEntity::getStreamId).collect(Collectors.toList());
+        //获取差集
+        List<String> streamListsBye = new ArrayList<>();
+        collect.forEach(streamId->{
+            if(!streamLists.contains(streamId)){
+                //脏数据或则遗留数据，进行流的bye 关闭
+                streamBye(streamId,null);
+            }
+        });
+        //业务队列发送流的列表
+        CommonMqDto mqinfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CHECK_STREAM.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
+        mqinfo.setData(onlineStreamsEntities);
+        rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqinfo,true);
+
+        return onlineStreamsEntities;
     }
 }

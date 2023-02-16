@@ -10,13 +10,12 @@ import java.util.Date;
  */
 @Data
 public class OnlineStreamsEntity {
-    private int id;
+    private Long id;
 
     /**
      * 网关序列号
      */
     private String gatewaySerialnum;
-
     /**
      * 流媒体id
      */

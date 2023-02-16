@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
+import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 import com.runjian.media.dispatcher.zlm.ZLMServerConfig;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
 import java.util.List;
@@ -112,4 +113,10 @@ public interface ImediaServerService {
      */
     Boolean streamNotify(String streamId);
 
+    /**
+     * 获取流列表
+     * @param streamLists
+     * @return
+     */
+    List<OnlineStreamsEntity> streamListByStreamIds(List<String> streamLists,String msgId);
 }

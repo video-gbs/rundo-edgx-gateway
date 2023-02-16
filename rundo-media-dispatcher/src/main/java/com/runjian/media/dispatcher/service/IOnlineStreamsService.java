@@ -34,4 +34,11 @@ public interface IOnlineStreamsService {
      * @return
      */
     List<OnlineStreamsEntity > streamList(String mediaServerId);
+
+    /**
+     * 通过流id获取流列表数据
+     * @param streamLists
+     * @return
+     */
+    List<OnlineStreamsEntity > streamListByStreamIds(List<String> streamLists);
 }

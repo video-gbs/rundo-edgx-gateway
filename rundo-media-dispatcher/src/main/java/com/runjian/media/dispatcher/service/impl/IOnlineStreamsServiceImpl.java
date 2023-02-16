@@ -21,7 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author chenjialing
@@ -114,5 +116,11 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
 
 
         return onlineStreamsMapper.selectStreamsByMediaServerId(mediaServerId);
+    }
+
+    @Override
+    public List<OnlineStreamsEntity> streamListByStreamIds(List<String> streamLists) {
+        //获取数据库中的数据
+        return onlineStreamsMapper.selectStreamsByStreamIds(streamLists);
     }
 }
