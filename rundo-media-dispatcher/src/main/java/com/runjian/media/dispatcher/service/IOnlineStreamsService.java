@@ -2,6 +2,8 @@ package com.runjian.media.dispatcher.service;
 
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 
+import java.util.List;
+
 /**
  * @author chenjialing
  */
@@ -25,4 +27,11 @@ public interface IOnlineStreamsService {
      * @param streamId
      */
     void streamChangeDeal(String streamId,Boolean regist);
+
+    /**
+     * 获取流媒体中的全部在线播放流列表
+     * @param mediaServerId
+     * @return
+     */
+    List<OnlineStreamsEntity > streamList(String mediaServerId);
 }

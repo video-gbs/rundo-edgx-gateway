@@ -6,6 +6,8 @@ import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * 在线流列表
  * @author chenjialing
@@ -37,7 +39,7 @@ public interface OnlineStreamsMapper {
      * @param streamId
      * @return
      */
-    @Select("select * from "+ONLINE_STREAMS+" where streamId = #{streamId} limit 1")
+    @Select("select * from "+ONLINE_STREAMS+" where stream_id = #{streamId} limit 1")
     OnlineStreamsEntity selectOne(String streamId);
 
     /**
@@ -45,6 +47,14 @@ public interface OnlineStreamsMapper {
      * @param streamId
      * @return
      */
-    @Delete("delete from "+ONLINE_STREAMS+" where streamId = #{streamId}")
+    @Delete("delete from "+ONLINE_STREAMS+" where stream_id = #{streamId}")
     int deleteBystreamId(String streamId);
+
+    /**
+     * 查询流信息列表
+     * @param mediaServerId
+     * @return
+     */
+    @Select("select * from "+ONLINE_STREAMS+" where media_server_id = #{mediaServerId}")
+    List<OnlineStreamsEntity> selectStreamsByMediaServerId(String mediaServerId);
 }

@@ -54,13 +54,13 @@ public class ApiOperationRtpServer {
     public CommonResponse<SsrcInfo> openRtpServer(@RequestBody BaseRtpServerDto baseRtpServerDto){
         validatorService.validateRequest(baseRtpServerDto);
         //获取zlm流媒体配置
-        MediaServerItem defaultMediaServer = imediaServerService.getDefaultMediaServer();
-        if(baseRtpServerDto.getMediaserverId()){
-            MediaServerItem defaultMediaServer = imediaServerService.getOne(baseRtpServerDto.getMediaserverId());
+        MediaServerItem defaultMediaServer = null;
+        if(!ObjectUtils.isEmpty(baseRtpServerDto.getMediaServerId())){
+            defaultMediaServer = imediaServerService.getOne(baseRtpServerDto.getMediaServerId());
         }else {
-            MediaServerItem defaultMediaServer = imediaServerService.getDefaultMediaServer();
+            defaultMediaServer = imediaServerService.getDefaultMediaServer();
         }
-        baseRtpServerDto.setMeidaServerId(defaultMediaServer.getId());
+        baseRtpServerDto.setMediaServerId(defaultMediaServer.getId());
         SsrcInfo ssrcInfo = imediaServerService.openRTPServer(defaultMediaServer, baseRtpServerDto);
 
         return CommonResponse.success(ssrcInfo);

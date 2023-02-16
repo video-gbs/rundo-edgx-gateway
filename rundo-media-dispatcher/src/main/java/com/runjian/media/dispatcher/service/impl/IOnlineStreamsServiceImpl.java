@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
+import java.util.List;
+
 /**
  * @author chenjialing
  */
@@ -105,5 +107,12 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
 
             }
         }
+    }
+
+    @Override
+    public List<OnlineStreamsEntity> streamList(String mediaServerId) {
+
+
+        return onlineStreamsMapper.selectStreamsByMediaServerId(mediaServerId);
     }
 }

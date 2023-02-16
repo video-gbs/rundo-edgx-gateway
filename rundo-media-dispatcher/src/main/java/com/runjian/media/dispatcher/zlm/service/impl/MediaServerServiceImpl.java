@@ -19,6 +19,8 @@ import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.DynamicTask;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
+import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
+import com.runjian.media.dispatcher.service.IOnlineStreamsService;
 import com.runjian.media.dispatcher.zlm.ZLMRESTfulUtils;
 import com.runjian.media.dispatcher.zlm.ZLMRTPServerFactory;
 import com.runjian.media.dispatcher.zlm.ZLMServerConfig;
@@ -113,6 +115,10 @@ public class MediaServerServiceImpl implements ImediaServerService {
 
     @Autowired
     DispatcherSignInConf dispatcherSignInConf;
+
+    @Autowired
+    IOnlineStreamsService onlineStreamsService;
+
     @Override
     public SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto) {
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "调度服务", "创建端口请求", baseRtpServerDto);
@@ -344,6 +350,9 @@ public class MediaServerServiceImpl implements ImediaServerService {
         dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(serverItem), (serverItem.getHookAliveInterval() + 5) * 1000);
         publisher.zlmOnlineEventPublish(serverItem.getId());
         logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "媒体服务器节点管理服务", String.format("[ZLM] 连接成功: %s -> %s:%s", zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort()));
+        //判断当前流列表数据是否与流媒体中数据一致  主要解决重启和网关异常断开重连播放流的同步问题
+        List<OnlineStreamsEntity> onlineStreamsEntities = onlineStreamsService.streamList(serverItem.getId());
+
     }
 
     class KeepAliveTimeoutRunnable implements Runnable{
