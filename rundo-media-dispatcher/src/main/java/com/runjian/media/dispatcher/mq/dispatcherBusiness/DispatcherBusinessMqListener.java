@@ -49,7 +49,7 @@ public class DispatcherBusinessMqListener implements ChannelAwareMessageListener
             if(msgType.equals(GatewayMsgType.STREAM_PLAY_STOP.getTypeName())){
                 //bye指令信息
                 String streamId = dataJson.getString("streamId");
-                imediaServerService.streamBye(streamId, commonMqDto.getMsgId());
+                imediaServerService.streamStop(streamId, commonMqDto.getMsgId());
 
             }else if(msgType.equals(GatewayMsgType.STREAM_CLOSE.getTypeName())){
                 Boolean canClose = dataMapJson.getBoolean("result");

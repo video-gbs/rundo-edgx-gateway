@@ -611,6 +611,26 @@ public class MediaServerServiceImpl implements ImediaServerService {
 
     @Override
     public void streamBye(String streamId, String msgId) {
+
+        //缓存bye相关的请求参数--1分钟  用作异常断流的判断
+        RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_STREAM_BYE+ BusinessSceneConstants.SCENE_SEM_KEY+streamId,streamId,60);
+        //通知网关进行bye请求的发送
+        BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
+        if(ObjectUtils.isEmpty(baseRtpServerDto)){
+            logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"流停止请求","停止失败,流的缓存信息不存在",streamId);
+            return;
+        }
+        CommonMqDto byeMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STOP_PLAY.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
+        StreamPlayDto streamPlayDto = new StreamPlayDto();
+        streamPlayDto.setStreamId(streamId);
+        byeMqInfo.setData(streamPlayDto);
+        GatewayBindReq gatewayBindReq = baseRtpServerDto.getGatewayBindReq();
+        rabbitMqSender.sendMsgByExchange(gatewayBindReq.getMqExchange(), gatewayBindReq.getMqRouteKey(), UuidUtil.toUuid(),byeMqInfo,true);
+
+    }
+
+    @Override
+    public void streamStop(String streamId, String msgId) {
         MediaServerItem defaultMediaServer = getDefaultMediaServer();
         //查看流是否存在
         JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(defaultMediaServer, streamId);
@@ -629,24 +649,12 @@ public class MediaServerServiceImpl implements ImediaServerService {
         if(i>0){
             //不允许关闭
             rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
+            return;
         }else {
             mqInfo.setData(true);
             rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
         }
-        //缓存bye相关的请求参数--1分钟  用作异常断流的判断
-        RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_STREAM_BYE+ BusinessSceneConstants.SCENE_SEM_KEY+streamId,streamId,60);
-        //通知网关进行bye请求的发送
-        BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
-        if(ObjectUtils.isEmpty(baseRtpServerDto)){
-            logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"流停止请求","停止失败,流的缓存信息不存在",streamId);
-            return;
-        }
-        CommonMqDto byeMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STOP_PLAY.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
-        StreamPlayDto streamPlayDto = new StreamPlayDto();
-        streamPlayDto.setStreamId(streamId);
-        byeMqInfo.setData(streamPlayDto);
-        GatewayBindReq gatewayBindReq = baseRtpServerDto.getGatewayBindReq();
-        rabbitMqSender.sendMsgByExchange(gatewayBindReq.getMqExchange(), gatewayBindReq.getMqRouteKey(), UuidUtil.toUuid(),byeMqInfo,true);
+        streamBye(streamId,msgId);
 
     }
 

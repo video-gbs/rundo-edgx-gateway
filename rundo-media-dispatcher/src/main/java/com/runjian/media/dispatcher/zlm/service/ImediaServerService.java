@@ -93,12 +93,18 @@ public interface ImediaServerService {
     boolean checkRtpServer(MediaServerItem mediaServerItem, String rtp, String stream);
 
     /**
-     * 停止流
+     * 通知网关停止流
      * @param streamId
      * @param msgId
      */
     void streamBye(String streamId,String msgId);
 
+    /**
+     * 停止通知+网关停止流的判断
+     * @param streamId
+     * @param msgId
+     */
+    void streamStop(String streamId,String msgId);
     /**
      * 推流结果通知
      * @param streamId
