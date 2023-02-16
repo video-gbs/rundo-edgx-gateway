@@ -498,6 +498,7 @@ public class PlayServiceImpl implements IplayService {
 
     @Override
     public void streamBye(String streamId,String msgId) {
+        log.error(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "流停止请求进入， 发送BYE", streamId);
         SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamId);
         if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
             //todo 重要，缓存异常，点播失败需要人工介入

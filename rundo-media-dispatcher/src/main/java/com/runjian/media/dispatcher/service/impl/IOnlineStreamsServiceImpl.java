@@ -49,7 +49,7 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
     public int update(OnlineStreamsEntity onlineStreams) {
         String streamId = onlineStreams.getStreamId();
         OnlineStreamsEntity onlineStreamsEntity = onlineStreamsMapper.selectOne(streamId);
-        if(ObjectUtils.isEmpty(onlineStreamsEntity)){
+        if(!ObjectUtils.isEmpty(onlineStreamsEntity)){
             onlineStreamsEntity.setGatewaySerialnum(onlineStreams.getGatewaySerialnum());
             onlineStreamsEntity.setMediaServerId(onlineStreams.getMediaServerId());
             onlineStreamsEntity.setRecordState(onlineStreams.getRecordState());
