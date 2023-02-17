@@ -89,7 +89,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             device.setKeepaliveIntervalTime(Long.valueOf(System.currentTimeMillis()/1000-lastTime));
         }
         device.setKeepaliveTime(DateUtil.getNow());
-        DeviceDto deviceDto = new DeviceDto();
+        DeviceDto deviceDto = deviceService.getDevice(device.getDeviceId());
         BeanUtil.copyProperties(device,deviceDto);
         if (device.getOnline() == 1) {
             deviceService.updateDevice(device);

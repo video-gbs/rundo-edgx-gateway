@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
@@ -68,7 +69,10 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         //TODO  查询设备是否存在 设备信息进行缓存
         DeviceDto deviceDto = iDeviceService.getDevice(deviceId);
         Device device = new Device();
-        BeanUtil.copyProperties(deviceDto,device);
+        if(!ObjectUtils.isEmpty(deviceDto)){
+            BeanUtil.copyProperties(deviceDto,device);
+
+        }
 
         try {
             if (device != null ) {
