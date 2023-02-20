@@ -6,6 +6,7 @@ import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceNotFoundEvent;
 import com.runjian.gb28181.bean.ParentPlatform;
+import com.runjian.gb28181.bean.RemoteAddressInfo;
 import com.runjian.gb28181.event.SipSubscribe;
 import com.runjian.gb28181.transmit.SIPProcessorObserver;
 import com.runjian.gb28181.transmit.event.request.ISIPRequestProcessor;
@@ -75,13 +76,13 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         }
 
         try {
-            if (device != null ) {
-                String hostAddress = request.getRemoteAddress().getHostAddress();
-                int remotePort = request.getRemotePort();
-                if (!device.getHostAddress().equals(hostAddress + ":" + remotePort)) {
+            RemoteAddressInfo remoteAddressFromRequest = SipUtils.getRemoteAddressFromRequest(request, false);
 
-                    device = null;
-                }
+            String hostAddress = remoteAddressFromRequest.getIp();
+            int remotePort = remoteAddressFromRequest.getPort();
+            if (!device.getHostAddress().equals(hostAddress + ":" + remotePort)) {
+
+                device = null;
             }
             if (device == null) {
                 // 不存在则回复404
