@@ -125,7 +125,7 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device.getKeepaliveTime() == null) {
             device.setKeepaliveIntervalTime(60);
         }
-
+        sync(deviceBean, null);
         // 刷新过期任务
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
         // 如果三次心跳失败，则设置设备离线

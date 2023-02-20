@@ -150,12 +150,11 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                 if(expireTime.isBefore(LocalDateTime.now())){
                                     //同步已经超时
                                     logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "目录查询回复", "查询过程超时,放弃后续的数据库同步", take.getDevice().getDeviceId());
-                                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
+//                                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
                                     if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
                                         //只处理正在执行的通道同步
 
                                         storager.resetChannelsForcatalog(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
-                                        catalogData.setStatus(CatalogData.CatalogDataStatus.end);
 
                                         CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
                                         catalogMqSyncDto.setTotal(catalogData.getTotal());
@@ -164,6 +163,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                         //更新redis
                                         BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS, businessSceneRedis.getMsgId(),businessSceneRedis.getThreadId(),businessSceneRedis.getTime(),catalogMqSyncDto);
                                         RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
+                                        catalogDataCatch.setChannelSyncEnd(catalogData.getDevice().getDeviceId(), null,0);
                                         continue;
                                     }
 
