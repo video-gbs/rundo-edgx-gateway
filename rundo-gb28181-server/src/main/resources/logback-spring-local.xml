@@ -100,7 +100,7 @@
 	</root>
 
 
-	<logger name="GB28181_SIP" level="info" additivity="false">
+	<logger name="GB28181_SIP" level="error" additivity="false">
 		<appender-ref ref="STDOUT" />
 		<appender-ref ref="RollingFileError"/>
 		<appender-ref ref="sipRollingFile"/>
