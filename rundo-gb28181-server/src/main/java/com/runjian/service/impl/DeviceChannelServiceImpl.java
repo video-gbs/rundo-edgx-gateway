@@ -108,11 +108,16 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
         if(!CollectionUtils.isEmpty(updateCollects)){
             //进行编辑数据操作
-            for (DeviceChannel deviceChannel : deviceChannels) {
+            List<DeviceChannel> deviceChannelsUpdate = new ArrayList<>();
+            for (DeviceChannel deviceChannel : deviceChannelList) {
                 if(updateCollects.contains(deviceChannel.getChannelId())){
                     //单独编辑入库
-                    deviceChannelMapper.update(deviceChannel);
+                    deviceChannelsUpdate.add(deviceChannel);
                 }
+            }
+            if(!CollectionUtils.isEmpty(deviceChannelsUpdate)){
+                deviceChannelMapper.batchUpdate(deviceChannelsUpdate);
+
             }
         }
 

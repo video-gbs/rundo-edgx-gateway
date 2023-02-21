@@ -87,7 +87,49 @@ public interface DeviceChannelMapper {
     @Lang(SimpleUpdateExtendedLanguageDriver.class)
     int update(DeviceChannel deviceChannel);
 
+    /**
+     * 查询通道信息
+     * @param deviceId
+     * @param channelId
+     * @return
+     */
     @Select("SELECT * FROM "+DEVICE_CHANNEL_TABLE_NAME+" WHERE device_id=#{deviceId} and channel_id=#{channelId}")
     DeviceChannel queryChannelsByDeviceIdAndChannelId(String deviceId,String channelId);
+
+    /**
+     * 批量更新
+     * @param updateChannels
+     * @return
+     */
+    @Update({"<script>" +
+            "<foreach collection='updateChannels' item='item' separator=';'>" +
+            " UPDATE " + DEVICE_CHANNEL_TABLE_NAME +
+            " SET channel_name=#{item.channelName}" +
+            "<if test='item.manufacturer != null'>, manufacturer=#{item.manufacturer}</if>" +
+            "<if test='item.model != null'>, model=#{item.model}</if>" +
+            "<if test='item.owner != null'>, owner=#{item.owner}</if>" +
+            "<if test='item.civilCode != null'>, civil_code=#{item.civilCode}</if>" +
+            "<if test='item.block != null'>, block=#{item.block}</if>" +
+            "<if test='item.parentId != null'>, parent_id=#{item.parentId}</if>" +
+            "<if test='item.safetyWay != null'>, safety_way=#{item.safetyWay}</if>" +
+            "<if test='item.registerWay != null'>, register_way=#{item.registerWay}</if>" +
+            "<if test='item.certNum != null'>, cert_num=#{item.certNum}</if>" +
+            "<if test='item.certifiable != null'>, certifiable=#{item.certifiable}</if>" +
+            "<if test='item.errCode != null'>, err_code=#{item.errCode}</if>" +
+            "<if test='item.endTime != null'>, end_time=#{item.endTime}</if>" +
+            "<if test='item.secrecy != null'>, secrecy=#{item.secrecy}</if>" +
+            "<if test='item.ipAddress != null'>, ip_address=#{item.ipAddress}</if>" +
+            "<if test='item.port != null'>, port=#{item.port}</if>" +
+            "<if test='item.password != null'>, password=#{item.password}</if>" +
+            "<if test='item.ptzType != null'>, ptz_Type=#{item.ptzType}</if>" +
+            "<if test='item.status != null'>, status=#{item.status}</if>" +
+            "<if test='item.longitude != null'>, longitude=#{item.longitude}</if>" +
+            "<if test='item.latitude != null'>, latitude=#{item.latitude}</if>" +
+            "<if test='item.parental != null'>, parental=#{item.parental}</if>" +
+            "<if test='item.businessGroupId != null'>, business_group_id=#{item.businessGroupId}</if>" +
+            "WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}"+
+            "</foreach>" +
+            "</script>"})
+    int batchUpdate(List<DeviceChannel> updateChannels);
 
 }
