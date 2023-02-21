@@ -2,7 +2,6 @@ package com.runjian.gb28181.transmit.event.request.impl.message;
 
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.BeanUtil;
-import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceNotFoundEvent;
 import com.runjian.gb28181.bean.ParentPlatform;
@@ -68,12 +67,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
 
         SIPRequest request = (SIPRequest) evt.getRequest();
         //TODO  查询设备是否存在 设备信息进行缓存
-        DeviceDto deviceDto = iDeviceService.getDevice(deviceId);
-        Device device = new Device();
-        if(!ObjectUtils.isEmpty(deviceDto)){
-            BeanUtil.copyProperties(deviceDto,device);
-
-        }
+        Device device = iDeviceService.getDevice(deviceId);
 
         try {
             RemoteAddressInfo remoteAddressFromRequest = SipUtils.getRemoteAddressFromRequest(request, false);

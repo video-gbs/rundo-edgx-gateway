@@ -2,7 +2,6 @@ package com.runjian.gb28181.transmit.event.request.impl;
 
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.conf.SipConfig;
-import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.WvpSipDate;
 import com.runjian.gb28181.transmit.SIPProcessorObserver;
@@ -86,7 +85,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             String deviceId = uri.getUser();
 
             //获取注册密码
-            DeviceDto device = deviceService.getDevice(deviceId);
+            Device device = deviceService.getDevice(deviceId);
             String password = (device != null && !ObjectUtils.isEmpty(device.getPassword()))? device.getPassword() : sipConfig.getPassword();
             AuthorizationHeader authHead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
             if (authHead == null && !ObjectUtils.isEmpty(password)) {
@@ -141,7 +140,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
         }
         // 注册成功
         if (device == null) {
-            device= new DeviceDto();
+            device= new Device();
             device.setStreamMode("UDP");
             device.setCharset("GB2312");
             device.setDeviceId(deviceId);

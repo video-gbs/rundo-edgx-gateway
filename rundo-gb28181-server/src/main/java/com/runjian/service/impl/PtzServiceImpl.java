@@ -9,7 +9,6 @@ import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.UserSetting;
-import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceChannel;
 import com.runjian.gb28181.transmit.cmd.impl.SIPCommander;
@@ -103,14 +102,12 @@ public class PtzServiceImpl implements IPtzService {
             //参数校验
             //判断设备是否存在
             String deviceId = deviceControlReq.getDeviceId();
-            DeviceDto device = deviceService.getDevice(deviceId);
+            Device device = deviceService.getDevice(deviceId);
             if(ObjectUtils.isEmpty(device)){
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
                 return;
 
             }
-            Device deviceBean = new Device();
-            BeanUtil.copyProperties(device,deviceBean);
             int cmdCode = deviceControlReq.getCmdCode();
             if(!commomCodeArray.contains(cmdCode)){
 
@@ -118,7 +115,7 @@ public class PtzServiceImpl implements IPtzService {
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL,BusinessErrorEnums.VALID_BIND_EXCEPTION_ERROR,null);
                 return;
             }
-            sipCommander.frontEndCmd(deviceBean, deviceControlReq.getChannelId(), cmdCode, deviceControlReq.getHorizonSpeed(), deviceControlReq.getVerticalSpeed(), deviceControlReq.getZoomSpeed());
+            sipCommander.frontEndCmd(device, deviceControlReq.getChannelId(), cmdCode, deviceControlReq.getHorizonSpeed(), deviceControlReq.getVerticalSpeed(), deviceControlReq.getZoomSpeed());
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL,BusinessErrorEnums.SUCCESS,null);
 
         }catch (Exception e){

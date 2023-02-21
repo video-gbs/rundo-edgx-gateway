@@ -1,6 +1,5 @@
 package com.runjian.service;
 
-import com.runjian.domain.dto.DeviceDto;
 import com.runjian.domain.req.DeviceReq;
 import com.runjian.gb28181.bean.Device;
 
@@ -9,20 +8,20 @@ public interface IDeviceService {
      * 设备上线
      * @param device 设备信息
      */
-    void online(DeviceDto device);
+    void online(Device device);
 
     /**
      * 设备下线
      * @param device 设备信息
      */
-    void offline(DeviceDto device);
+    void offline(Device device);
 
     /**
      * 查询设备信息
      * @param deviceId 设备编号
      * @return 设备信息
      */
-    DeviceDto getDevice(String deviceId);
+    Device getDevice(String deviceId);
 
     /**
      * 同步设备信息

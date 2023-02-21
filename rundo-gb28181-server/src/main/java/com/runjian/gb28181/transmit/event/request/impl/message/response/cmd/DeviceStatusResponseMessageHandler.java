@@ -3,7 +3,6 @@ package com.runjian.gb28181.transmit.event.request.impl.message.response.cmd;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.BeanUtil;
-import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.ParentPlatform;
 import com.runjian.gb28181.transmit.callback.DeferredResultHolder;
@@ -75,12 +74,10 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
             logger.info(json.toJSONString());
         }
         String text = onlineElement.getText();
-        DeviceDto deviceDto = new DeviceDto();
-        BeanUtil.copyProperties(device,deviceDto);
         if ("ONLINE".equalsIgnoreCase(text.trim())) {
-            deviceService.online(deviceDto);
+            deviceService.online(device);
         }else {
-            deviceService.offline(deviceDto);
+            deviceService.offline(device);
         }
         RequestMessage msg = new RequestMessage();
         msg.setKey(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + device.getDeviceId());

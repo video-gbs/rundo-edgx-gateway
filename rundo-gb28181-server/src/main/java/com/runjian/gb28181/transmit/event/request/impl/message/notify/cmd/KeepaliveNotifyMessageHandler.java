@@ -6,7 +6,6 @@ import com.runjian.common.constant.VideoManagerConstants;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.conf.DynamicTask;
 import com.runjian.dao.DeviceCompatibleMapper;
-import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.ParentPlatform;
 import com.runjian.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -57,10 +56,6 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element element) {
-        if (device == null) {
-            // 未注册的设备不做处理
-            return;
-        }
         // 回复200 OK
         try {
             responseAck((SIPRequest) evt.getRequest(), Response.OK);
@@ -89,21 +84,19 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             device.setKeepaliveIntervalTime(Long.valueOf(System.currentTimeMillis()/1000-lastTime));
         }
         device.setKeepaliveTime(DateUtil.getNow());
-        DeviceDto deviceDto = deviceService.getDevice(device.getDeviceId());
-        BeanUtil.copyProperties(device,deviceDto);
         if (device.getOnline() == 1) {
             deviceService.updateDevice(device);
         }else {
 
             // 对于已经离线的设备判断他的注册是否已经过期
             if (!deviceService.expire(device)){
-                deviceService.online(deviceDto);
+                deviceService.online(device);
             }
         }
         // 刷新过期任务
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
         // 如果三次心跳失败，则设置设备离线
-        dynamicTask.startDelay(registerExpireTaskKey, ()-> deviceService.offline(deviceDto),  (int)device.getKeepaliveIntervalTime()*1000*3);
+        dynamicTask.startDelay(registerExpireTaskKey, ()-> deviceService.offline(device),  (int)device.getKeepaliveIntervalTime()*1000*3);
     }
 
     @Override

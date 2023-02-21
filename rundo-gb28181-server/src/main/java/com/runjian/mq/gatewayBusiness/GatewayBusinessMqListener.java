@@ -12,7 +12,6 @@ import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.BeanUtil;
-import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.service.*;
 import lombok.extern.slf4j.Slf4j;
@@ -84,17 +83,13 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
             }else if(msgType.equals(GatewayMsgType.DEVICEINFO.getTypeName())){
                 //设备信息同步  获取设备信息
                 String deviceId = dataJson.getString("deviceId");
-                DeviceDto deviceDto = deviceService.getDevice(deviceId);
-                Device device = new Device();
-                BeanUtil.copyProperties(deviceDto,device);
+                Device device = deviceService.getDevice(deviceId);
                 deviceService.deviceInfoQuery(device, commonMqDto.getMsgId());
 
             }else if (msgType.equals(GatewayMsgType.CATALOG.getTypeName())){
                 //设备通道信息同步
                 String deviceId = dataJson.getString("deviceId");
-                DeviceDto deviceDto = deviceService.getDevice(deviceId);
-                Device device = new Device();
-                BeanUtil.copyProperties(deviceDto,device);
+                Device device = deviceService.getDevice(deviceId);
                 deviceService.sync(device, commonMqDto.getMsgId());
             }else if (msgType.equals(GatewayMsgType.PLAY.getTypeName())){
                 //设备点播同步

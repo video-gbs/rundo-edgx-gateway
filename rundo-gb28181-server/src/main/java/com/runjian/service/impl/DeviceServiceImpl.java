@@ -13,7 +13,6 @@ import com.runjian.dao.DeviceChannelMapper;
 import com.runjian.dao.DeviceCompatibleMapper;
 import com.runjian.dao.DeviceMapper;
 import com.runjian.domain.dto.CatalogMqSyncDto;
-import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.session.CatalogDataCatch;
 import com.runjian.gb28181.transmit.cmd.ISIPCommander;
@@ -85,14 +84,13 @@ public class DeviceServiceImpl implements IDeviceService {
 
 
     @Override
-    public void online(DeviceDto device) {
+    public void online(Device device) {
 
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线", device);
         //转换为gb28181专用的bean
         Device deviceBean = new Device();
-        DeviceDto deviceDto = getDevice(device.getDeviceId());
-        if(!ObjectUtils.isEmpty(deviceDto)){
-            BeanUtil.copyProperties(deviceDto,device);
+        if(!ObjectUtils.isEmpty(device)){
+            BeanUtil.copyProperties(device,deviceBean);
 
         }
 
@@ -134,7 +132,7 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public void offline(DeviceDto device) {
+    public void offline(Device device) {
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备离线", device);
         //判断数据库中是否存在
         if(device.getId() == 0){
@@ -165,7 +163,7 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public DeviceDto getDevice(String deviceId) {
+    public Device getDevice(String deviceId) {
         return deviceMapper.getDeviceByDeviceId(deviceId);
 
     }
@@ -200,10 +198,7 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void updateDevice(Device device) {
         device.setCharset(device.getCharset().toUpperCase());
-
-        DeviceDto deviceDto = new DeviceDto();
-        BeanUtil.copyProperties(device,deviceDto);
-        deviceMapper.update(deviceDto);
+        deviceMapper.update(device);
 
     }
 
@@ -253,7 +248,7 @@ public class DeviceServiceImpl implements IDeviceService {
             if(!hset){
                 throw new Exception("redis操作hashmap失败");
             }
-            DeviceDto deviceDto = deviceMapper.getDeviceByDeviceId(deviceId);
+            Device deviceDto = deviceMapper.getDeviceByDeviceId(deviceId);
             if(ObjectUtils.isEmpty(deviceDto)){
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_DELETE,BusinessErrorEnums.SUCCESS,true);
                 return ;

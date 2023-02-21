@@ -2,7 +2,7 @@ package com.runjian.dao;
 
 import com.runjian.conf.dao.SimpleInsertExtendedLanguageDriver;
 import com.runjian.conf.dao.SimpleUpdateExtendedLanguageDriver;
-import com.runjian.domain.dto.DeviceDto;
+import com.runjian.gb28181.bean.Device;
 import org.apache.ibatis.annotations.*;
 import org.intellij.lang.annotations.Language;
 import org.springframework.stereotype.Repository;
@@ -22,15 +22,15 @@ public interface DeviceMapper {
      * @return
      */
     @Select("SELECT * FROM "+DEVICE_TABLE_NAME+" WHERE device_id = #{deviceId}")
-    DeviceDto getDeviceByDeviceId(String deviceId);
+    Device getDeviceByDeviceId(String deviceId);
 
     @Insert("INSERT INTO "+DEVICE_TABLE_NAME+" (#{device})")
     @Lang(SimpleInsertExtendedLanguageDriver.class)
-    int add(DeviceDto device);
+    int add(Device device);
 
     @Update("UPDATE "+DEVICE_TABLE_NAME+" (#{device}) where id= #{id}")
     @Lang(SimpleUpdateExtendedLanguageDriver.class)
-    int update(DeviceDto device);
+    int update(Device device);
 
     /**
      * 删除

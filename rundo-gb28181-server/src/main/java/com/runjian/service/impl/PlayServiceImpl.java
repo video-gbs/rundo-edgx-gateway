@@ -25,7 +25,6 @@ import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.SsrcConfig;
 import com.runjian.conf.UserSetting;
 import com.runjian.conf.mq.GatewaySignInConf;
-import com.runjian.domain.dto.DeviceDto;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceChannel;
@@ -241,7 +240,7 @@ public class PlayServiceImpl implements IplayService {
             return null;
         }
         //判断设备是否存在
-        DeviceDto device = deviceService.getDevice(playReq.getDeviceId());
+        Device device = deviceService.getDevice(playReq.getDeviceId());
         if(ObjectUtils.isEmpty(device)){
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
             return null;
@@ -383,15 +382,13 @@ public class PlayServiceImpl implements IplayService {
                 return;
             }
 
-            DeviceDto deviceDto = deviceService.getDevice(streamSessionSsrcTransaction.getDeviceId());
-            if(ObjectUtils.isEmpty(deviceDto)){
+            Device device = deviceService.getDevice(streamSessionSsrcTransaction.getDeviceId());
+            if(ObjectUtils.isEmpty(device)){
                 //todo 重要，缓存异常，点播失败需要人工介入
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,设备信息未找到", streamId);
                 return;
 
             }
-            Device device = new Device();
-            BeanUtil.copyProperties(deviceDto,device);
             try {
                 sipCommander.streamByeCmd(streamSessionSsrcTransaction,device,streamSessionSsrcTransaction.getChannelId(),error->{
                     //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
@@ -448,13 +445,11 @@ public class PlayServiceImpl implements IplayService {
         }
         String deviceId = streamSessionSsrcTransaction.getDeviceId();
         String channelId =streamSessionSsrcTransaction.getChannelId();
-        DeviceDto deviceDto = deviceService.getDevice(deviceId);
-        if(ObjectUtils.isEmpty(deviceDto)){
+        Device device = deviceService.getDevice(deviceId);
+        if(ObjectUtils.isEmpty(device)){
             //todo 重要，缓存异常，点播失败需要人工介入
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "错误点播场景处理失败,设备信息未找到", businessSceneResp);
         }
-        Device device = new Device();
-        BeanUtil.copyProperties(deviceDto,device);
 
 
         //设备指令 bye
@@ -508,15 +503,13 @@ public class PlayServiceImpl implements IplayService {
 
             //设备指令 bye
         try {
-            DeviceDto deviceDto = deviceService.getDevice(streamSessionSsrcTransaction.getDeviceId());
-            if(ObjectUtils.isEmpty(deviceDto)){
+            Device device = deviceService.getDevice(streamSessionSsrcTransaction.getDeviceId());
+            if(ObjectUtils.isEmpty(device)){
                 //todo 重要，缓存异常，点播失败需要人工介入
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,设备信息未找到", streamId);
                 return;
 
             }
-            Device device = new Device();
-            BeanUtil.copyProperties(deviceDto,device);
             sipCommander.streamByeCmd(streamSessionSsrcTransaction,device,streamSessionSsrcTransaction.getChannelId(),error->{
                 //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
                 ResponseEvent responseEvent = (ResponseEvent) error.event;

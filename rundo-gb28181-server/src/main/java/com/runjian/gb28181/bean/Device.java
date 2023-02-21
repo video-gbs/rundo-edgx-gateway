@@ -4,6 +4,8 @@ package com.runjian.gb28181.bean;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 /**
  * 国标设备/平台
  * @author lin
@@ -85,7 +87,6 @@ public class Device {
 	@Schema(description = "是否在线，1为在线，0为离线")
 	private int online;
 
-
 	/**
 	 * 注册时间
 	 */
@@ -105,23 +106,29 @@ public class Device {
 	@Schema(description = "心跳有效期")
 	private long keepaliveIntervalTime;
 
-
 	/**
 	 * 注册有效期
 	 */
 	@Schema(description = "注册有效期")
 	private int expires;
 
-
-
-
-	@Schema(description = "密码")
-	private String password;
-
 	/**
 	 * 字符集, 支持 UTF-8 与 GB2312
 	 */
 	@Schema(description = "符集, 支持 UTF-8 与 GB2312")
 	private String charset ;
+	/**
+	 * 是否开启ssrc校验，默认关闭，开启可以防止串流
+	 */
+	@Schema(description = "是否开启ssrc校验，默认关闭，开启可以防止串流")
+	private boolean ssrcCheck = true;
+
+	@Schema(description = "密码")
+	private String password;
+
+	private LocalDateTime createdAt;
+
+
+	private LocalDateTime updatedAt;
 
 }

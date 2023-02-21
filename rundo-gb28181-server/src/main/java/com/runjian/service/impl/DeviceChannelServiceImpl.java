@@ -12,7 +12,6 @@ import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.UserSetting;
 import com.runjian.dao.DeviceChannelMapper;
-import com.runjian.domain.dto.DeviceDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceChannel;
 import com.runjian.gb28181.bean.RecordInfo;
@@ -148,15 +147,13 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             if(!hset){
                 throw new Exception("redis操作hashmap失败");
             }
-            DeviceDto deviceDto = deviceService.getDevice(deviceId);
-            if(ObjectUtils.isEmpty(deviceDto)){
+            Device device = deviceService.getDevice(deviceId);
+            if(ObjectUtils.isEmpty(device)){
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.RECORD_INFO,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
                 return ;
             }
 
             int sn  =  (int)((Math.random()*9+1)*100000);
-            Device device = new Device();
-            BeanUtil.copyProperties(deviceDto,device);
             sipCommander.recordInfoQuery(device, channelId, startTime, endTime, sn, null, null, null, null);
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
