@@ -88,31 +88,24 @@ public class DeviceServiceImpl implements IDeviceService {
 
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线", device);
         //转换为gb28181专用的bean
-        Device deviceBean = new Device();
-        if(!ObjectUtils.isEmpty(device)){
-            BeanUtil.copyProperties(device,deviceBean);
-
-        }
 
         // 第一次上线 或则设备之前是离线状态--进行通道同步和设备信息查询
         if (device.getCreatedAt() == null) {
             device.setOnline(1);
-            BeanUtil.copyProperties(device, deviceBean);
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-首次注册,查询设备信息以及通道信息", device.getDeviceId());
             deviceMapper.add(device);
 
 
             //发送mq设备上线信息
-            BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), deviceBean);
+            BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), device);
             gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
         }else {
 
             if(device.getOnline() == 0){
                 //重新上线 发送mq
                 device.setOnline(1);
-                BeanUtil.copyProperties(device, deviceBean);
                 //发送mq设备上线信息
-                BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), deviceBean);
+                BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), device);
                 gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
             }
 
@@ -123,7 +116,6 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device.getKeepaliveTime() == null) {
             device.setKeepaliveIntervalTime(60);
         }
-        sync(deviceBean, null);
         // 刷新过期任务
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
         // 如果三次心跳失败，则设置设备离线
@@ -155,10 +147,8 @@ public class DeviceServiceImpl implements IDeviceService {
 //                streamSession.remove(deviceId, ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
 //            }
 //        }
-        Device deviceBean = new Device();
-        BeanUtil.copyProperties(device,deviceBean);
         //发送mq设备上线信息
-        BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), deviceBean);
+        BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), device);
         gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
     }
 
