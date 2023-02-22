@@ -11,7 +11,7 @@ public class StreamInfo {
 
     private String streamId;
 
-    private String flv;
+    private String httpFlv;
 
     private String httpsFlv;
 
@@ -19,7 +19,7 @@ public class StreamInfo {
 
     private String wssFlv;
 
-    private String fmp4;
+    private String httpFmp4;
 
     private String httpsFmp4;
 
@@ -27,7 +27,7 @@ public class StreamInfo {
 
     private String wssFmp4;
 
-    private String hls;
+    private String httpHls;
 
     private String httpsHls;
 
@@ -35,7 +35,7 @@ public class StreamInfo {
 
     private String wssHls;
 
-    private String ts;
+    private String httpTs;
 
     private String httpsTs;
 
