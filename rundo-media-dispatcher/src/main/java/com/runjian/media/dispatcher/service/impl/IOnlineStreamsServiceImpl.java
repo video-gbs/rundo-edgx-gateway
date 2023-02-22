@@ -67,6 +67,16 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
         return onlineStreamsMapper.deleteBystreamId(streamId);
     }
 
+    @Override
+    public int removeAll() {
+        return onlineStreamsMapper.deleteAll();
+    }
+
+    @Override
+    public int removeByStreamList(List<String> streamIdList) {
+        return onlineStreamsMapper.deleteBystreamIdList(streamIdList);
+    }
+
     @Async("taskExecutor")
     @Override
     public void streamChangeDeal(String streamId,Boolean regist) {

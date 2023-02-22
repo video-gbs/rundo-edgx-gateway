@@ -51,6 +51,24 @@ public interface OnlineStreamsMapper {
     int deleteBystreamId(String streamId);
 
     /**
+     * 流播放列表删除
+     * @return
+     */
+    @Delete("delete from "+ONLINE_STREAMS)
+    int deleteAll();
+
+    /**
+     * 流播放列表删除
+     * @param streamIds
+     * @return
+     */
+    @Delete(" <script>" +
+            "delete from "+ONLINE_STREAMS+" WHERE stream_id not in "+
+            " <foreach collection='streamIds' item='item' open='(' separator=',' close=')'>#{item}</foreach>" +
+            " </script>")
+    int deleteBystreamIdList(List<String> streamIds);
+
+    /**
      * 查询流信息列表
      * @param mediaServerId
      * @return
@@ -64,7 +82,7 @@ public interface OnlineStreamsMapper {
      * @return
      */
     @Select(" <script>" +
-            "select * FROM "+ONLINE_STREAMS+" WHERE id in "+
+            "select * FROM "+ONLINE_STREAMS+" WHERE stream_id in "+
             " <foreach collection='streamIds' item='item' open='(' separator=',' close=')'>#{item}</foreach>" +
             " </script>"
     )

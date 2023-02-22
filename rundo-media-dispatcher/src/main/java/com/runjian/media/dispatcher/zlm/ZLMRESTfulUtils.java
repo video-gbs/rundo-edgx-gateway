@@ -223,6 +223,18 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "getMediaList",null, callback);
     }
 
+    public JSONObject getMediaListBySchema(MediaServerItem mediaServerItem, String app, String schema){
+        Map<String, Object> param = new HashMap<>();
+        if (app != null) {
+            param.put("app",app);
+        }
+        if (schema != null) {
+            param.put("schema",schema);
+        }
+        param.put("vhost","__defaultVhost__");
+        return sendPost(mediaServerItem, "getMediaList",param,null);
+    }
+
     public JSONObject getMediaInfo(MediaServerItem mediaServerItem, String app, String schema, String stream){
         Map<String, Object> param = new HashMap<>();
         param.put("app",app);

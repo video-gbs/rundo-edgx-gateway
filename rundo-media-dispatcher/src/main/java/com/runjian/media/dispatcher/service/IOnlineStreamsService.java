@@ -23,6 +23,18 @@ public interface IOnlineStreamsService {
     int remove(String streamId);
 
     /**
+     * 移除流列表
+     * @return
+     */
+    int removeAll();
+
+    /**
+     * 根据流id 移除流列表
+     * streamList
+     * @return
+     */
+    int removeByStreamList(List<String> streamIdList);
+    /**
      * 流注册相关的操作
      * @param streamId
      */
