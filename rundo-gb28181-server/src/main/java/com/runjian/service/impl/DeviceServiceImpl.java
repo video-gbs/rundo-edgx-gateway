@@ -94,19 +94,12 @@ public class DeviceServiceImpl implements IDeviceService {
             device.setOnline(1);
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-首次注册,查询设备信息以及通道信息", device.getDeviceId());
             deviceMapper.add(device);
-
-
-            //发送mq设备上线信息
-            BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), device);
-            gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
         }else {
 
             if(device.getOnline() == 0){
                 //重新上线 发送mq
                 device.setOnline(1);
-                //发送mq设备上线信息
-                BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), device);
-                gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
+
             }
 
 
@@ -116,6 +109,9 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device.getKeepaliveTime() == null) {
             device.setKeepaliveIntervalTime(60);
         }
+        //发送mq设备上线信息
+        BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), device);
+        gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
         // 刷新过期任务
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
         // 如果三次心跳失败，则设置设备离线
