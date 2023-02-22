@@ -228,7 +228,7 @@ public class DeviceServiceImpl implements IDeviceService {
     public void deviceDelete(String deviceId,String msgId) {
         //同设备同类型业务消息，加上全局锁
         String businessSceneKey = GatewayMsgType.DEVICE_DELETE.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+deviceId;
-        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求",deviceId+"|"+msgId);
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息删除请求",deviceId+"|"+msgId);
         RLock lock = redissonClient.getLock(businessSceneKey);
         try {
             //阻塞型,默认是30s无返回参数

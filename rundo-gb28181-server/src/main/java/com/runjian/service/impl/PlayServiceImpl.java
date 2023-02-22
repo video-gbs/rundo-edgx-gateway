@@ -142,12 +142,12 @@ public class PlayServiceImpl implements IplayService {
 
                 //传递ssrc进去，出现推流不成功的异常，进行相关逻辑处理
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.SIP_SEND_SUCESS,ssrcInfo);
-                streamSession.putSsrcTransaction(device.getDeviceId(), playReq.getChannelId(), "play", ssrcInfo.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.play);
+                streamSession.putSsrcTransaction(device.getDeviceId(), playReq.getChannelId(), "play", ssrcInfo.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.play,playReq.getDispatchUrl());
             },error->{
                 //失败业务处理
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播失败", playReq);
                 //关闭推流端口
-                closeGb28181RtpServer(ssrcInfo.getStreamId(),ssrcInfo.getMediaServerId());
+                closeGb28181RtpServer(ssrcInfo.getStreamId(),ssrcInfo.getMediaServerId(), playReq.getDispatchUrl());
                 //剔除缓存
                 streamSession.removeSsrcTransaction(device.getDeviceId(), playReq.getChannelId(), ssrcInfo.getStreamId());
                 //释放ssrc
@@ -195,12 +195,12 @@ public class PlayServiceImpl implements IplayService {
 
                 //传递ssrc进去，出现推流不成功的异常，进行相关逻辑处理
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.SIP_SEND_SUCESS,ssrcInfo);
-                streamSession.putSsrcTransaction(device.getDeviceId(), playBackReq.getChannelId(), sipSender.getNewCallIdHeader(device.getTransport()).getCallId(), ssrcInfo.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.playback);
+                streamSession.putSsrcTransaction(device.getDeviceId(), playBackReq.getChannelId(), sipSender.getNewCallIdHeader(device.getTransport()).getCallId(), ssrcInfo.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.playback,playBackReq.getDispatchUrl());
             },error->{
                 //失败业务处理
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播失败", playBackReq);
                 //关闭推流端口
-                closeGb28181RtpServer(ssrcInfo.getStreamId(),ssrcInfo.getMediaServerId());
+                closeGb28181RtpServer(ssrcInfo.getStreamId(),ssrcInfo.getMediaServerId(), playBackReq.getDispatchUrl());
                 //剔除缓存
                 streamSession.removeSsrcTransaction(device.getDeviceId(), playBackReq.getChannelId(), ssrcInfo.getStreamId());
                 //释放ssrc
@@ -401,7 +401,7 @@ public class PlayServiceImpl implements IplayService {
                     redisCatchStorageService.ssrcRelease(streamSessionSsrcTransaction.getSsrc());
 
                     //关闭推流端口
-                    closeGb28181RtpServer(streamSessionSsrcTransaction.getStream(),streamSessionSsrcTransaction.getMediaServerId());
+                    closeGb28181RtpServer(streamSessionSsrcTransaction.getStream(),streamSessionSsrcTransaction.getMediaServerId(),streamSessionSsrcTransaction.getDispatchUrl());
                     //剔除缓存
                     streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
                 });
@@ -466,7 +466,7 @@ public class PlayServiceImpl implements IplayService {
                 //释放ssrc
                 redisCatchStorageService.ssrcRelease(ssrcInfo.getSsrc());
                 //关闭推流端口
-                closeGb28181RtpServer(ssrcInfo.getStreamId(),ssrcInfo.getMediaServerId());
+                closeGb28181RtpServer(ssrcInfo.getStreamId(),ssrcInfo.getMediaServerId(),streamSessionSsrcTransaction.getDispatchUrl());
                 //剔除缓存
                 streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
             });
@@ -479,12 +479,13 @@ public class PlayServiceImpl implements IplayService {
 
     }
 
-    private void closeGb28181RtpServer(String streamId,String mediaServerId) {
+    private void closeGb28181RtpServer(String streamId,String mediaServerId,String dispatchUrl) {
         CloseRtpServerDto closeRtpServerDto = new CloseRtpServerDto();
         closeRtpServerDto.setMediaServerId(mediaServerId);
         closeRtpServerDto.setStreamId(streamId);
-        GatewayBindMedia gatewayBindMedia =  (GatewayBindMedia)RedisCommonUtil.get(redisTemplate,BusinessSceneConstants.BIND_GATEWAY_MEDIA+serialNum);
-        CommonResponse closeResponse = RestTemplateUtil.postCloseRtpserverRespons(gatewayBindMedia.getUrl() + closeRtpServerApi, closeRtpServerDto, restTemplate);
+//        GatewayBindMedia gatewayBindMedia =  (GatewayBindMedia)RedisCommonUtil.get(redisTemplate,BusinessSceneConstants.BIND_GATEWAY_MEDIA+serialNum);
+
+        CommonResponse closeResponse = RestTemplateUtil.postCloseRtpserverRespons(dispatchUrl + closeRtpServerApi, closeRtpServerDto, restTemplate);
         if(closeResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
             //后续这zlm也会进行关闭该端口
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备点播服务", "关闭推流端口失败", closeResponse);
@@ -521,7 +522,7 @@ public class PlayServiceImpl implements IplayService {
                 redisCatchStorageService.ssrcRelease(streamSessionSsrcTransaction.getSsrc());
 
                 //关闭推流端口
-                closeGb28181RtpServer(streamSessionSsrcTransaction.getStream(),streamSessionSsrcTransaction.getMediaServerId());
+                closeGb28181RtpServer(streamSessionSsrcTransaction.getStream(),streamSessionSsrcTransaction.getMediaServerId(),streamSessionSsrcTransaction.getDispatchUrl());
                 //剔除缓存
                 streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
             });

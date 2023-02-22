@@ -46,7 +46,7 @@ public class VideoStreamSessionManager {
 	 * @param mediaServerId 所使用的流媒体ID
 	 * @param response 回复
 	 */
-	public void putSsrcTransaction(String deviceId, String channelId, String callId, String stream, String ssrc, String mediaServerId, SIPResponse response, SessionType type){
+	public void putSsrcTransaction(String deviceId, String channelId, String callId, String stream, String ssrc, String mediaServerId, SIPResponse response, SessionType type,String dispatchUrl){
 		SsrcTransaction ssrcTransaction = new SsrcTransaction();
 		ssrcTransaction.setDeviceId(deviceId);
 		ssrcTransaction.setChannelId(channelId);
@@ -56,6 +56,7 @@ public class VideoStreamSessionManager {
 		ssrcTransaction.setSsrc(ssrc);
 		ssrcTransaction.setMediaServerId(mediaServerId);
 		ssrcTransaction.setType(type);
+		ssrcTransaction.setDispatchUrl(dispatchUrl);
 
 		RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + MarkConstant.MARK_SPLIT_RAIL +  deviceId + MarkConstant.MARK_SPLIT_RAIL + channelId + MarkConstant.MARK_SPLIT_RAIL + callId + MarkConstant.MARK_SPLIT_RAIL + stream, ssrcTransaction);
 	}

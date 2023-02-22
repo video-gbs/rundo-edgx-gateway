@@ -14,6 +14,10 @@ public class SsrcTransaction {
     private String stream;
     private String mediaServerId;
     private String ssrc;
+    /**
+     * 调度服务地址
+     */
+    private String dispatchUrl;
 
     private SipTransactionInfo sipTransactionInfo;
 
@@ -81,5 +85,13 @@ public class SsrcTransaction {
 
     public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {
         this.sipTransactionInfo = sipTransactionInfo;
+    }
+
+    public String getDispatchUrl() {
+        return dispatchUrl;
+    }
+
+    public void setDispatchUrl(String dispatchUrl) {
+        this.dispatchUrl = dispatchUrl;
     }
 }
