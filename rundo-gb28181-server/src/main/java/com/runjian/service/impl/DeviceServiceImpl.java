@@ -33,6 +33,7 @@ import javax.sip.SipException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -257,5 +258,26 @@ public class DeviceServiceImpl implements IDeviceService {
         }
 
 
+    }
+
+    @Override
+    public void deviceList(String msgId) {
+        String businessSceneKey = GatewayMsgType.DEVICE_TOTAL_SYNC.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY;
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备全量数据同步",msgId);
+        RLock lock = redissonClient.getLock(businessSceneKey);
+        try {
+            //阻塞型,默认是30s无返回参数
+            lock.lock();
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICE_TOTAL_SYNC,msgId,userSetting.getBusinessSceneTimeout(),null);
+            RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
+
+            List<Device> allDeviceList = deviceMapper.getAllDeviceList();
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_TOTAL_SYNC,BusinessErrorEnums.SUCCESS,allDeviceList);
+
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "设备全量数据同步失败", e);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_TOTAL_SYNC,BusinessErrorEnums.UNKNOWN_ERROR,null);
+
+        }
     }
 }

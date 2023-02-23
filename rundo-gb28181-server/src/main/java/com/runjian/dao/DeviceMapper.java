@@ -7,6 +7,8 @@ import org.apache.ibatis.annotations.*;
 import org.intellij.lang.annotations.Language;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * 用于存储设备信息
  * @author chenjialing
@@ -39,4 +41,11 @@ public interface DeviceMapper {
      */
     @Delete("DELETE FROM "+DEVICE_TABLE_NAME+" WHERE device_id=#{deviceId}")
     int remove(String deviceId);
+
+    /**
+     * 根据设备id获取设备信息
+     * @return
+     */
+    @Select("SELECT * FROM "+DEVICE_TABLE_NAME)
+    List<Device> getAllDeviceList();
 }

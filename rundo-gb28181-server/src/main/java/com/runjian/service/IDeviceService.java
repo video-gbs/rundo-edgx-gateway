@@ -3,6 +3,8 @@ package com.runjian.service;
 import com.runjian.domain.req.DeviceReq;
 import com.runjian.gb28181.bean.Device;
 
+import java.util.List;
+
 public interface IDeviceService {
     /**
      * 设备上线
@@ -54,4 +56,11 @@ public interface IDeviceService {
      * @return
      */
     void deviceDelete(String deviceId,String msgId);
+
+    /**
+     * 设备全量数据同步
+     * @param msgId
+     * @return
+     */
+    void deviceList(String msgId);
 }

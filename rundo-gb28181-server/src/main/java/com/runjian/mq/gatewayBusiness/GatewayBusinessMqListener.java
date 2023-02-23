@@ -127,6 +127,9 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
             }else if(msgType.equals(GatewayMsgType.STOP_PLAY.getTypeName())){
                 String streamId = dataJson.getString("streamId");
                 iplayService.streamBye(streamId, commonMqDto.getMsgId());
+            }else if (msgType.equals(GatewayMsgType.DEVICE_TOTAL_SYNC.getTypeName())) {
+                //设备信息全量同步
+                deviceService.deviceList(commonMqDto.getMsgId());
             }
 
 

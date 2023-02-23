@@ -49,6 +49,8 @@ public enum GatewayMsgType {
     PTZ_CONTROL("CHANNEL_PTZ_CONTROL"),
     //录像列表
     RECORD_INFO("CHANNEL_RECORD_INFO"),
+    //全量设备信息
+    DEVICE_TOTAL_SYNC("DEVICE_TOTAL_SYNC"),
     /********调度服务相关*************/
     //流注册  调度终于网关均需要处理
     PLAY_STREAM_CALLBACK("PLAY_STREAM_CALLBACK"),
