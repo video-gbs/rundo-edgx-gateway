@@ -422,6 +422,13 @@ public class MediaServerServiceImpl implements ImediaServerService {
     public void zlmServerOffline(String mediaServerId) {
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + mediaServerId;
         dynamicTask.stop(zlmKeepaliveKey);
+        //执行下线流列表的维护
+        MediaServerItem serverItem = mediaServerMapper.queryOne(mediaServerId);
+        if (serverItem == null) {
+            logger.warn(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "媒体服务器节点下线管理服务","流媒体zlm不存在",mediaServerId);
+            return;
+        }
+        clearOnlineStream(serverItem);
     }
 
 
