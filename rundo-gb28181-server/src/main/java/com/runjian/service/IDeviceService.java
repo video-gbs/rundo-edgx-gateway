@@ -63,4 +63,11 @@ public interface IDeviceService {
      * @return
      */
     void deviceList(String msgId);
+
+
+    /**
+     * 获取所有在线设备
+     * @return 设备列表
+     */
+    List<Device> getAllOnlineDevice();
 }

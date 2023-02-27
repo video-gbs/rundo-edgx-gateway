@@ -280,4 +280,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
         }
     }
+
+    @Override
+    public List<Device> getAllOnlineDevice() {
+        return deviceMapper.getOnlineDevices();
+    }
 }

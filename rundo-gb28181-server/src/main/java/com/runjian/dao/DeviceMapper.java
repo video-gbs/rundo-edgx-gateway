@@ -49,4 +49,12 @@ public interface DeviceMapper {
      */
     @Select("SELECT * FROM "+DEVICE_TABLE_NAME)
     List<DeviceSendDto> getAllDeviceList();
+
+
+    /**
+     * 查询所有在线的设备
+     * @return
+     */
+    @Select("SELECT * FROM "+DEVICE_TABLE_NAME+" WHERE online = 1")
+    List<Device> getOnlineDevices();
 }
