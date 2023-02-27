@@ -71,13 +71,15 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
 
         try {
             RemoteAddressInfo remoteAddressFromRequest = SipUtils.getRemoteAddressFromRequest(request, false);
-
             String hostAddress = remoteAddressFromRequest.getIp();
             int remotePort = remoteAddressFromRequest.getPort();
-            if (!device.getHostAddress().equals(hostAddress + ":" + remotePort)) {
+            if(!ObjectUtils.isEmpty(device)){
+                if (!device.getHostAddress().equals(hostAddress + ":" + remotePort)) {
 
-                device = null;
+                    device = null;
+                }
             }
+
             if (device == null) {
                 // 不存在则回复404
                 responseAck(request, Response.NOT_FOUND, "device "+ deviceId +" not found");

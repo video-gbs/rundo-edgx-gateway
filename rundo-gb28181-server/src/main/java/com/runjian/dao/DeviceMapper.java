@@ -2,6 +2,7 @@ package com.runjian.dao;
 
 import com.runjian.conf.dao.SimpleInsertExtendedLanguageDriver;
 import com.runjian.conf.dao.SimpleUpdateExtendedLanguageDriver;
+import com.runjian.domain.dto.DeviceSendDto;
 import com.runjian.gb28181.bean.Device;
 import org.apache.ibatis.annotations.*;
 import org.intellij.lang.annotations.Language;
@@ -47,5 +48,5 @@ public interface DeviceMapper {
      * @return
      */
     @Select("SELECT * FROM "+DEVICE_TABLE_NAME)
-    List<Device> getAllDeviceList();
+    List<DeviceSendDto> getAllDeviceList();
 }

@@ -13,6 +13,7 @@ import com.runjian.dao.DeviceChannelMapper;
 import com.runjian.dao.DeviceCompatibleMapper;
 import com.runjian.dao.DeviceMapper;
 import com.runjian.domain.dto.CatalogMqSyncDto;
+import com.runjian.domain.dto.DeviceSendDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.session.CatalogDataCatch;
 import com.runjian.gb28181.transmit.cmd.ISIPCommander;
@@ -85,25 +86,20 @@ public class DeviceServiceImpl implements IDeviceService {
 
 
     @Override
-    public void online(Device device) {
+    public  void  online(Device device) {
 
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线", device);
         //转换为gb28181专用的bean
+        Device deviceDb = getDevice(device.getDeviceId());
+        device.setOnline(1);
 
         // 第一次上线 或则设备之前是离线状态--进行通道同步和设备信息查询
-        if (device.getCreatedAt() == null) {
-            device.setOnline(1);
-            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-首次注册,查询设备信息以及通道信息", device.getDeviceId());
+        if (deviceDb == null) {
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-首次注册,查询设备信息以及通道信息", device);
             deviceMapper.add(device);
         }else {
-
-            if(device.getOnline() == 0){
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-更新,查询设备信息以及通道信息", device);
                 //重新上线 发送mq
-                device.setOnline(1);
-
-            }
-
-
             deviceMapper.update(device);
 
         }
@@ -111,7 +107,9 @@ public class DeviceServiceImpl implements IDeviceService {
             device.setKeepaliveIntervalTime(60);
         }
         //发送mq设备上线信息
-        BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), device);
+        DeviceSendDto deviceSendDto = new DeviceSendDto();
+        BeanUtil.copyProperties(device,deviceSendDto);
+        BusinessSceneResp<DeviceSendDto> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), deviceSendDto);
         gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
         // 刷新过期任务
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
@@ -145,7 +143,9 @@ public class DeviceServiceImpl implements IDeviceService {
 //            }
 //        }
         //发送mq设备上线信息
-        BusinessSceneResp<Device> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), device);
+        DeviceSendDto deviceSendDto = new DeviceSendDto();
+        BeanUtil.copyProperties(device,deviceSendDto);
+        BusinessSceneResp<DeviceSendDto> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), deviceSendDto);
         gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
     }
 
@@ -271,7 +271,7 @@ public class DeviceServiceImpl implements IDeviceService {
             BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICE_TOTAL_SYNC,msgId,userSetting.getBusinessSceneTimeout(),null);
             RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
 
-            List<Device> allDeviceList = deviceMapper.getAllDeviceList();
+            List<DeviceSendDto> allDeviceList = deviceMapper.getAllDeviceList();
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_TOTAL_SYNC,BusinessErrorEnums.SUCCESS,allDeviceList);
 
         }catch (Exception e){
