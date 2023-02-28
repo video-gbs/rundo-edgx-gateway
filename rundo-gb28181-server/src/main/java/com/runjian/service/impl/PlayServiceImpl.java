@@ -183,7 +183,7 @@ public class PlayServiceImpl implements IplayService {
             device.setHostAddress(playCommonSsrcInfo.getHostAddress());
             device.setTransport(playCommonSsrcInfo.getTransport());
             device.setDeviceId(playCommonSsrcInfo.getDeviceId());
-            sipCommander.playStreamCmd(playBackReq.getStreamMode(),ssrcInfo,device, playBackReq.getChannelId(), ok->{
+            sipCommander.playbackStreamCmd(playBackReq.getStreamMode(),ssrcInfo,device, playBackReq.getChannelId(),playBackReq.getStartTime(),playBackReq.getEndTime(), ok->{
                 //成功业务处理
                 log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播成功", playBackReq);
                 //缓存当前的sip推拉流信息
