@@ -76,6 +76,13 @@ public interface OnlineStreamsMapper {
     @Select("select * from "+ONLINE_STREAMS+" where media_server_id = #{mediaServerId}")
     List<OnlineStreamsEntity> selectStreamsByMediaServerId(String mediaServerId);
 
+
+    /**
+     * 查询全部流信息列表
+     * @return
+     */
+    @Select("select * from "+ONLINE_STREAMS)
+    List<OnlineStreamsEntity> selectAll();
     /**
      * 查询流信息列表
      * @param streamIds

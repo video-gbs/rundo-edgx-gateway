@@ -119,4 +119,9 @@ public interface ImediaServerService {
      * @return
      */
     List<OnlineStreamsEntity> streamListByStreamIds(List<String> streamLists,String msgId);
+
+    /**
+     * 停止对应流媒体中全部的
+     */
+    void streamStopAll();
 }

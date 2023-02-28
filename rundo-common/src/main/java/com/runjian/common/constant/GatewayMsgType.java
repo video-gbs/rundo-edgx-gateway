@@ -70,6 +70,9 @@ public enum GatewayMsgType {
     STREAM_CHECK_RECORD("STREAM_CHECK_RECORD"),
     //流在线播放检查
     STREAM_CHECK_STREAM("STREAM_CHECK_STREAM"),
+    //调度服务全部流停止
+    STREAM_STOP_ALL("STREAM_STOP_ALL"),
+
     /******调度服务业务队列场景*************/
 
 

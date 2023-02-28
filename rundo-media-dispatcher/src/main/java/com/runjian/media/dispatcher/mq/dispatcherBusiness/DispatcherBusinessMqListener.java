@@ -69,6 +69,9 @@ public class DispatcherBusinessMqListener implements ChannelAwareMessageListener
                 JSONArray streamArray = dataMapJson.getJSONArray("streamIdList");
                 List<String> streamIdList = JSONArray.parseArray(streamArray.toJSONString(), String.class);
                 imediaServerService.streamListByStreamIds(streamIdList,commonMqDto.getMsgId());
+            }else if(msgType.equals(GatewayMsgType.STREAM_STOP_ALL.getTypeName())){
+
+                imediaServerService.streamStopAll();
             }
 
 

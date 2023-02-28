@@ -745,4 +745,17 @@ public class MediaServerServiceImpl implements ImediaServerService {
 
         return onlineStreamsEntities;
     }
+
+    @Override
+    public void streamStopAll() {
+        //删除全部的当前的流列表数据
+        List<OnlineStreamsEntity> onlineStreamsEntities = onlineStreamsService.streamAll();
+
+        if(!CollectionUtils.isEmpty(onlineStreamsEntities)){
+            onlineStreamsEntities.forEach(onlineStreamsEntity -> {
+                streamBye(onlineStreamsEntity.getStreamId(),null);
+            });
+        }
+
+    }
 }

@@ -13,10 +13,7 @@ import java.time.LocalDateTime;
 @Schema(description = "国标设备/平台")
 @Data
 public class DeviceSendDto {
-	/**
-	 * 数据id
-	 */
-	private long id;
+
 	/**
 	 * 设备国标编号
 	 */

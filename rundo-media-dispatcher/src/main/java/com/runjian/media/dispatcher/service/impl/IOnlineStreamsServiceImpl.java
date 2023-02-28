@@ -133,4 +133,9 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
         //获取数据库中的数据
         return onlineStreamsMapper.selectStreamsByStreamIds(streamLists);
     }
+
+    @Override
+    public List<OnlineStreamsEntity> streamAll() {
+        return onlineStreamsMapper.selectAll();
+    }
 }

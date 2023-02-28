@@ -53,4 +53,11 @@ public interface IOnlineStreamsService {
      * @return
      */
     List<OnlineStreamsEntity > streamListByStreamIds(List<String> streamLists);
+
+
+    /**
+     * 获取流媒体中的全部在线播放流列表
+     * @return
+     */
+    List<OnlineStreamsEntity > streamAll();
 }

@@ -268,7 +268,7 @@ public class DeviceServiceImpl implements IDeviceService {
         try {
             //阻塞型,默认是30s无返回参数
             lock.lock();
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICE_TOTAL_SYNC,msgId,userSetting.getBusinessSceneTimeout(),null);
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICE_TOTAL_SYNC,null,userSetting.getBusinessSceneTimeout(),null);
             RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
 
             List<DeviceSendDto> allDeviceList = deviceMapper.getAllDeviceList();
