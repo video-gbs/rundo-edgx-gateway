@@ -118,9 +118,11 @@ public class CatalogDataCatch {
 
         for (String deviceId : keys) {
             CatalogData catalogData = data.get(deviceId);
-            if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end) && catalogData.getLastTime().isBefore(instantBefore30S)) { // 超过三十秒，如果标记为end则删除
+            //30秒超时删除
+            if(catalogData.getLastTime().isBefore(instantBefore30S)){
                 data.remove(deviceId);
             }
+
         }
     }
 

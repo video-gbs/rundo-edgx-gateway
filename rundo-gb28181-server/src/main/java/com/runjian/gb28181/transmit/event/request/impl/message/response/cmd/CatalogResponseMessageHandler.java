@@ -139,7 +139,6 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                             channelList.add(deviceChannel);
                         }
                         int sn = Integer.parseInt(snElement.getText());
-                        logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "目录查询回复", "[收到通道]", "设备id" + take.getDevice().getDeviceId() + " 通道数量:" + channelList.size() + " " + (catalogDataCatch.get(take.getDevice().getDeviceId()) == null ? 0 : catalogDataCatch.get(take.getDevice().getDeviceId()).size()) + "/" + sumNum);
                         //超过超时时间便不在继续接收处理
                         CatalogData catalogData = catalogDataCatch.getData(take.getDevice().getDeviceId());
                         if(!ObjectUtils.isEmpty(catalogData)){
@@ -175,7 +174,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         }
 
                         catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(), channelList);
-
+                        logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "目录查询回复", "[收到通道]", "设备id" + take.getDevice().getDeviceId() + " 通道数量:" + channelList.size() + " " + (catalogDataCatch.get(take.getDevice().getDeviceId()) == null ? 0 : catalogDataCatch.get(take.getDevice().getDeviceId()).size()) + "/" + sumNum);
 
                         if (catalogDataCatch.get(take.getDevice().getDeviceId()).size() == sumNum) {
                             // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
