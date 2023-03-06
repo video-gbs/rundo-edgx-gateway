@@ -1,0 +1,23 @@
+version: '3'
+services:
+  rundo-zlm:
+    image: registry.cn-hangzhou.aliyuncs.com/my-cjl-docker/gbs-media:202210210000
+    container_name: rundo-zlm
+    restart: on-failure
+    ports:
+      - "18082:80"
+      - "10000:10000/tcp"
+      - "10000:10000/udp"
+      - "22000-22200:22000-22200/tcp"
+      - "22000-22200:22000-22200/udp"
+    volumes:
+      - ./rundo-zlm/config.ini:/opt/media/bin/config.ini
+      - ./rundo-zlm/release/linux/Debug/www:/opt/rundo-zlmediakit/release/linux/Debug/www:rw
+      - ./rundo-zlm/log:/opt/media/bin/log
+    environment:
+      TZ: "Asia/Shanghai"
+    logging:
+      options:
+        max-size: '12m'
+        max-file: '10'
+      driver: json-file

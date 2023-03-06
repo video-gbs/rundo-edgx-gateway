@@ -1,0 +1,191 @@
+spring:
+    application:
+        name: gb28181-server
+    web:
+        resources:
+            static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:./static
+    # REDIS数据库配置
+    redis:
+        # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1
+        host: 192.168.0.84
+        # [必须修改] 端口号
+        port: 6379
+        # [可选] 数据库 DB
+        database: 6
+        # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
+        password: rundoredis
+        # [可选] 超时时间
+        timeout: 10000
+
+
+        # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
+        # mysql数据源
+    datasource:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://192.168.0.84:3306/rundo_gb28181_gateway?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
+        username: root
+        password: rundomysql
+        druid:
+            initialSize: 10                       # 连接池初始化连接数
+            maxActive: 200                        # 连接池最大连接数
+            minIdle: 5                            # 连接池最小空闲连接数
+            maxWait: 60000                        # 获取连接时最大等待时间，单位毫秒。配置了maxWait之后，缺省启用公平锁，并发效率会有所下降，如果需要可以通过配置useUnfairLock属性为true使用非公平锁。
+            keepAlive: true                       # 连接池中的minIdle数量以内的连接，空闲时间超过minEvictableIdleTimeMillis，则会执行keepAlive操作。
+            validationQuery: select 1             # 检测连接是否有效sql，要求是查询语句，常用select 'x'。如果validationQuery为null，testOnBorrow、testOnReturn、testWhileIdle都不会起作用。
+            testWhileIdle: true                   # 建议配置为true，不影响性能，并且保证安全性。申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效。
+            testOnBorrow: false                   # 申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
+            testOnReturn: false                   # 归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
+            poolPreparedStatements: false         # 是否開啟PSCache，並且指定每個連線上PSCache的大小
+            timeBetweenEvictionRunsMillis: 60000  # 配置間隔多久才進行一次檢測，檢測需要關閉的空閒連線，單位是毫秒
+            minEvictableIdleTimeMillis: 300000    # 配置一個連線在池中最小生存的時間，單位是毫秒
+            filters: config,stat,slf4j             # 配置监控统计拦截的filters，监控统计用的filter:sta, 日志用的filter:log4j, 防御sql注入的filter:wall
+            filter:
+                wall:
+                    config:
+                        multi-statement-allow: true
+            useGlobalDataSourceStat: true         # 合并多个DruidDataSource的监控数据
+            # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+            connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=1000
+            #stat-view-servlet.url-pattern: /admin/druid/*
+    quartz:
+        scheduler-name: rundo-utils-timer
+        job-store-type: memory
+        overwrite-existing-jobs: true
+        jdbc:
+            comment-prefix: #
+            initialize-schema: never
+        wait-for-jobs-to-complete-on-shutdown: true
+
+    # rabbitmq 配置
+    rabbitmq:
+        host: 192.168.0.84
+        port: 5672
+        username: wvp
+        password: wvp12345678
+        publisher-returns: true      # 消息发送到交换机确认机制，是否确认回调
+        #        publisher-confirm-type: correlated
+        template:
+            mandatory: true           #不可达消息是否回调,false时会忽略掉spring.rabbitmq.publisher-returns属性的值
+        listener:
+            simple:
+                concurrency: 8            # 指定最小的消费者数量
+                max-concurrency: 32       # 指定最大的消费者数量
+                acknowledge-mode: manual  # 采用手动应答
+                retry:
+                    enabled: true           # 是否支持重试
+
+    # druid管理监控页面的一些配置
+rj-druid-manage:
+    allow:                        # 访问druid监控页面的IP白名单
+    deny: 192.168.1.100           # 访问druid监控页面IP黑名单
+    loginUsername: rjAdmin          # 访问druid监控页面账号
+    loginPassword: rj@2022     # 访问druid监控页面密码
+    resetEnable: false            # 是否能够重置数据 禁用HTML页面上的“Reset All”功能
+
+mybatis:
+    configuration:
+        mapUnderscoreToCamelCase: true
+## [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
+server:
+    port: 18080
+
+# 作为28181服务器的配置
+sip:
+    # [必须修改] 本机的IP
+    ip: 127.71.21.11
+    # [可选] 28181服务监听的端口
+    port: 5011
+    # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
+    # 后两位为行业编码，定义参照附录D.3
+    # 3701020049标识山东济南历下区 信息行业接入
+    # [可选]
+    domain: 4401020049
+    # [可选]
+    id: 44010200492000000001
+    # [可选] 默认设备认证密码，后续扩展使用设备单独密码, 移除密码将不进行校验
+    password: rundo@2023
+    # [可选] 心跳超时时间， 建议设置为心跳周期的三倍
+    keepalive-timeout: 255
+    # [可选] 国标级联注册失败，再次发起注册的时间间隔。 默认60秒
+    register-time-interval: 60
+    # [可选] 云台控制速度
+    ptz-speed: 100
+    alarm: true
+
+# [可选] 日志配置, 一般不需要改
+logging:
+    config: classpath:logback-spring-local.xml
+
+
+# [根据业务需求配置]
+user-settings:
+    # [必选 ] 服务ID
+    server-id: 000000
+    # 推流直播是否录制
+    record-push-live: true
+    auto-apply-play: false
+    # 点播等待超时时间,单位：毫秒
+    play-timeout: 5000
+    # 信令场景超时时间 单位：秒
+    business-scene-timeout: 5
+
+    # 上级点播等待超时时间,单位：毫秒
+    platform-play-timeout: 60000
+    # 设备录像下载最大时间周期 30分钟
+    device-download-time-cycle: 1800
+
+# 在线文档： swagger-ui（生产环境建议关闭）
+swagger-ui:
+    enabled: true
+
+# 版本信息， 不需修改
+version:
+    version: "@project.version@"
+    description: "@project.description@"
+    artifact-id: "@project.artifactId@"
+
+
+response:
+    exclude-url: "/v3/api-docs,/api/v1,/index/hook,/api-sse"
+
+
+mdeia-api-uri-list:
+    open-rtp-server: "/api/media/openRtpServer"
+    close-rtp-server: "/api/media/closeRtpServer"
+    get-rtp-info: "/api/media/getRtpInfo"
+    gateway-bind: "/api/media/gatewayBind"
+    stream-notify: "/api/media/streamNotify"
+
+
+
+
+mq:
+    enabled: true
+    queue-data-list:
+        #同平台能力层服务交互的mq
+        - id: PUBLIC-GS
+          routing-key: rundo.public.gs
+          queue-name: rundo.public.gs
+          exchange-id: PUBLIC
+        #同平台能力层服务交互的mq
+        - id: PUBLIC-SG
+          routing-key: rundo.public.sg
+          queue-name: rundo.public.sg
+          exchange-id: PUBLIC
+    exchange-data-list:
+        - id: PUBLIC
+          name: rundo.public
+          type: topic
+mq-defualt:
+    public:
+        # 服务队列监听
+        queue-id-get: PUBLIC-GS
+        # 服务队列发送
+        queue-id-set: PUBLIC-SG
+
+gateway-info:
+#   网关的唯一id
+    serialNum: eb48104ddf2b4760be541783b3656041
+    #a网关过期时间 默认3分钟
+    expire: 180

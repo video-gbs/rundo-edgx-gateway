@@ -1,0 +1,23 @@
+version: '3.3'
+services:
+  rundo-expansion-server:
+    image: registry.cn-hangzhou.aliyuncs.com/hyy-rundo-gms/rundo-gb28181-server:latest
+    container_name: rundo-gb28181-server
+    ports:
+      - 18080:18080
+      - "5011:5011"
+      - "5011:5011/udp"
+    volumes:
+      - ./rundo-gb28181-server/application.yml:/opt/gb28181-server/config/application.yml:rw
+      - ./rundo-gb28181-server/log:/opt/gb28181-server/logs
+    environment:
+      TZ: "Asia/Shanghai"
+    extra_hosts:
+      - "rundo-mysql:192.168.0.84"
+      - "rundo-redis:192.168.0.84"
+      - "rundo-nacos:192.168.0.84"
+    networks:
+      - proxynet
+networks:
+  proxynet:
+    name: rundo_network

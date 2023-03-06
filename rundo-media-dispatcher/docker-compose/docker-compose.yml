@@ -1,0 +1,21 @@
+version: '3.3'
+services:
+  rundo-media-dispatcher:
+    image: registry.cn-hangzhou.aliyuncs.com/hyy-rundo-gms/rundo-media-dispatcher:latest
+    container_name: rundo-media-dispatcher
+    ports:
+      - 18081:18081
+    volumes:
+      - ./rundo-media-dispatcher/application.yml:/opt/rundo-meidia-dispatcher/config/application.yml:rw
+      - ./rundo-media-dispatcher/log:/opt/rundo-meidia-dispatcher/logs
+    environment:
+      TZ: "Asia/Shanghai"
+    extra_hosts:
+      - "rundo-mysql:192.168.0.84"
+      - "rundo-redis:192.168.0.84"
+      - "rundo-nacos:192.168.0.84"
+    networks:
+      - proxynet
+networks:
+  proxynet:
+    name: rundo_network
