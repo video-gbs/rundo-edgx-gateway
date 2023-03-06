@@ -92,25 +92,41 @@ public class DeviceServiceImpl implements IDeviceService {
         //转换为gb28181专用的bean
         Device deviceDb = getDevice(device.getDeviceId());
         device.setOnline(1);
-
+        DeviceSendDto deviceSendDto = new DeviceSendDto();
+        BeanUtil.copyProperties(device,deviceSendDto);
         // 第一次上线 或则设备之前是离线状态--进行通道同步和设备信息查询
         if (deviceDb == null) {
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-首次注册,查询设备信息以及通道信息", device);
             deviceMapper.add(device);
+
+            String businessSceneKey = GatewayMsgType.REGISTER.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
+            log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求",device);
+            RLock lock = redissonClient.getLock(businessSceneKey);
+            try {
+                //阻塞型,默认是30s无返回参数
+                lock.lock();
+                BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.REGISTER,null,userSetting.getBusinessSceneTimeout(),deviceSendDto);
+                RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
+                sipCommander.deviceInfoQuery(device);
+            }catch (Exception e){
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
+
+            }
         }else {
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-更新,查询设备信息以及通道信息", device);
                 //重新上线 发送mq
             deviceMapper.update(device);
+            //发送mq设备上线信息
+
+            BusinessSceneResp<DeviceSendDto> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), deviceSendDto);
+            gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
 
         }
         if (device.getKeepaliveTime() == null) {
             device.setKeepaliveIntervalTime(60);
         }
-        //发送mq设备上线信息
-        DeviceSendDto deviceSendDto = new DeviceSendDto();
-        BeanUtil.copyProperties(device,deviceSendDto);
-        BusinessSceneResp<DeviceSendDto> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), deviceSendDto);
-        gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
+
         // 刷新过期任务
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
         // 如果三次心跳失败，则设置设备离线
