@@ -115,7 +115,7 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
         }
         DeviceSendDto deviceSendDto = new DeviceSendDto();
         BeanUtil.copyProperties(device,deviceSendDto);
-        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.REGISTER,BusinessErrorEnums.SIP_DEVICE_NOTFOUND_EVENT,deviceSendDto);
+        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.REGISTER,BusinessErrorEnums.SUCCESS,deviceSendDto);
 
     }
 
