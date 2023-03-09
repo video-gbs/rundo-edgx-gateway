@@ -94,11 +94,12 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
         taskExecutor.execute(() -> {
             while (!taskQueue.isEmpty()) {
                 //获取同步的设备数据
-                String businessSceneKey = GatewayMsgType.CATALOG.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
+                HandlerCatchData take = taskQueue.poll();
+
+                String businessSceneKey = GatewayMsgType.CATALOG.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+take.getDevice().getDeviceId();
                 String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey);
                 BusinessSceneResp businessSceneRedis = JSONObject.parseObject(businessSceneString, BusinessSceneResp.class);
 
-                HandlerCatchData take = taskQueue.poll();
                 Element rootElement = null;
                 try {
                     rootElement = getRootElement(take.getEvt(), take.getDevice().getCharset());
