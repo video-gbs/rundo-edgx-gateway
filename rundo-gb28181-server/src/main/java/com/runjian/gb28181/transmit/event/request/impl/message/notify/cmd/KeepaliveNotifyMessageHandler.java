@@ -81,7 +81,14 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             device.setKeepaliveIntervalTime(60);
         }else {
             long lastTime = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(device.getKeepaliveTime());
-            device.setKeepaliveIntervalTime(Long.valueOf(System.currentTimeMillis()/1000-lastTime));
+            Integer aLong = Integer.valueOf((int) (System.currentTimeMillis() / 1000 - lastTime));
+            if(aLong<=60 || aLong >= 3600){
+                //兼容重复发送的心跳，导致设备立刻下线; 以及下线很久 然后再次上线的情况，导致迟迟不能离线
+                device.setKeepaliveIntervalTime(60);
+            }else {
+                device.setKeepaliveIntervalTime(aLong);
+            }
+
         }
         device.setKeepaliveTime(DateUtil.getNow());
         if (device.getOnline() == 1) {

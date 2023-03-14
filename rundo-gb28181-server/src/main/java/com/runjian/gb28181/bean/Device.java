@@ -104,7 +104,7 @@ public class Device {
 	 * 注册有效期
 	 */
 	@Schema(description = "心跳有效期")
-	private long keepaliveIntervalTime;
+	private Integer keepaliveIntervalTime;
 
 	/**
 	 * 注册有效期
