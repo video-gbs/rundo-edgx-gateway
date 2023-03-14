@@ -94,6 +94,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     idList.add(id);
                 }
             }
+            log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"通道下线",idList);
             deviceChannelMapper.cleanChannelsByChannelIdList(idList);
         }
 
@@ -104,6 +105,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     addDeviceChannels.add(deviceChannel);
                 }
             }
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE,"通道新增",addDeviceChannels,deviceChannelList);
             deviceChannelMapper.batchAdd(addDeviceChannels);
         }
         if(!CollectionUtils.isEmpty(updateCollects)){
@@ -116,6 +118,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 }
             }
             if(!CollectionUtils.isEmpty(deviceChannelsUpdate)){
+                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"通道编辑",deviceChannelsUpdate);
                 deviceChannelMapper.batchUpdate(deviceChannelsUpdate);
 
             }

@@ -41,7 +41,7 @@ public interface DeviceChannelMapper {
      * @return
      */
     @Delete(" <script>" +
-            "DELETE FROM "+DEVICE_CHANNEL_TABLE_NAME+" WHERE id in "+
+            "update  "+DEVICE_CHANNEL_TABLE_NAME+" SET status = 0  WHERE id in "+
             " <foreach collection='idList' item='item' open='(' separator=',' close=')'>#{item}</foreach>" +
             " </script>"
     )
