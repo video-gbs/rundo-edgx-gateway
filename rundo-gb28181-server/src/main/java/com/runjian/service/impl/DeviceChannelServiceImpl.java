@@ -61,6 +61,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Transactional(rollbackFor = Exception.class)
     public boolean resetChannelsForcatalog(String deviceId, List<DeviceChannel> deviceChannelList) {
         //获取通道原有数据
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"通道同步",deviceChannelList);
         List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannelsByDeviceId(deviceId);
         //组装增删改的数据
         List<String> updateCollects = new ArrayList<>();
