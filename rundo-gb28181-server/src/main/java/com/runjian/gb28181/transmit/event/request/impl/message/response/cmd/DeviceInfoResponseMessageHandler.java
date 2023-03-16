@@ -95,7 +95,7 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
             Element deviceIdElement = rootElement.element("DeviceID");
             device.setName(getText(rootElement, "DeviceName"));
 
-            device.setManufacturer(getText(rootElement, "Manufacturer"));
+            device.setManufacturer(getText(rootElement, "Manufacturer").toLowerCase());
             device.setModel(getText(rootElement, "Model"));
             device.setFirmware(getText(rootElement, "Firmware"));
 
