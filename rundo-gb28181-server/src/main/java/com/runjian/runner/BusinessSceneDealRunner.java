@@ -55,51 +55,54 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
         //获取hashmap中的
 
         while (true){
-            Map<String, Object> allBusinessMap = RedisCommonUtil.hmget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY);
-            if(CollectionUtils.isEmpty(allBusinessMap)){
+            try{
+                Map<String, Object> allBusinessMap = RedisCommonUtil.hmget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY);
+                if(CollectionUtils.isEmpty(allBusinessMap)){
 
-                Thread.sleep(50);
-                continue;
+                    Thread.sleep(50);
+                    continue;
 
-            }
-            Set<Map.Entry<String, Object>> entries = allBusinessMap.entrySet();
-            for(Map.Entry entry:  entries){
-                //获取key与value  value为BusinessSceneResp
-                BusinessSceneResp businessSceneResp = JSONObject.parseObject((String) entry.getValue(), BusinessSceneResp.class);
-                GatewayMsgType gatewayMsgType = businessSceneResp.getGatewayMsgType();
-                //判断状态是否结束，以及是否信令跟踪超时
-                LocalDateTime time = businessSceneResp.getTime();
-                BusinessSceneStatusEnum statusEnum =businessSceneResp.getStatus();
+                }
+                Set<Map.Entry<String, Object>> entries = allBusinessMap.entrySet();
+                for(Map.Entry entry:  entries){
+                    //获取key与value  value为BusinessSceneResp
+                    BusinessSceneResp businessSceneResp = JSONObject.parseObject((String) entry.getValue(), BusinessSceneResp.class);
+                    GatewayMsgType gatewayMsgType = businessSceneResp.getGatewayMsgType();
+                    //判断状态是否结束，以及是否信令跟踪超时
+                    LocalDateTime time = businessSceneResp.getTime();
+                    BusinessSceneStatusEnum statusEnum =businessSceneResp.getStatus();
 
-                LocalDateTime now = LocalDateTime.now();
-                String entrykey = (String)entry.getKey();
-                if(time.isBefore(now) || statusEnum.equals(BusinessSceneStatusEnum.end)){
-                    //消息跟踪完毕 删除指定的键值 异步处理对应的mq消息发送,并释放相应的redisson锁
-                    //释放全局redisson锁
+                    LocalDateTime now = LocalDateTime.now();
+                    String entrykey = (String)entry.getKey();
+                    if(time.isBefore(now) || statusEnum.equals(BusinessSceneStatusEnum.end)){
+                        //消息跟踪完毕 删除指定的键值 异步处理对应的mq消息发送,并释放相应的redisson锁
+                        //释放全局redisson锁
 
 
-                    //针对点播失败的异常场景，需要：1.自行释放ssrc和2.删除相关的缓存，3.判断是否需要进行设备指令的bye和4.流媒体推流端口的关闭
-                    if(businessSceneResp.getGatewayMsgType().equals(GatewayMsgType.PLAY) || businessSceneResp.getGatewayMsgType().equals(GatewayMsgType.PLAY_BACK)){
-                        //businessSceneResp.getCode() == BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode()
-                        if(businessSceneResp.getCode() == BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode()){
-                            //BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode() 只处理超时的请求
-                            if(time.isBefore(now)){
+                        //针对点播失败的异常场景，需要：1.自行释放ssrc和2.删除相关的缓存，3.判断是否需要进行设备指令的bye和4.流媒体推流端口的关闭
+                        if(businessSceneResp.getGatewayMsgType().equals(GatewayMsgType.PLAY) || businessSceneResp.getGatewayMsgType().equals(GatewayMsgType.PLAY_BACK)){
+                            //businessSceneResp.getCode() == BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode()
+                            if(businessSceneResp.getCode() == BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode()){
+                                //BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode() 只处理超时的请求
+                                if(time.isBefore(now)){
+                                    commonBusinessDeal(businessSceneResp,entrykey);
+                                    iplayService.playBusinessErrorScene(entrykey,businessSceneResp);
+                                }
+                            }else {
                                 commonBusinessDeal(businessSceneResp,entrykey);
-                                iplayService.playBusinessErrorScene(entrykey,businessSceneResp);
                             }
                         }else {
                             commonBusinessDeal(businessSceneResp,entrykey);
                         }
-                    }else {
-                        commonBusinessDeal(businessSceneResp,entrykey);
+
+
+
                     }
-
-
-
                 }
+                Thread.yield();
+            }catch (Exception e){
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景常驻线程处理","异常处理失败",e);
             }
-            Thread.yield();
-
         }
 
     }

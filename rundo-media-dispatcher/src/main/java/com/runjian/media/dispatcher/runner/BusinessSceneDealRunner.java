@@ -49,32 +49,39 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
         //获取hashmap中的
 
         while (true){
-            Map<String, Object> allBusinessMap = RedisCommonUtil.hmget(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY);
-            if(CollectionUtils.isEmpty(allBusinessMap)){
 
-                Thread.sleep(50);
-                continue;
-            }
-            Set<Map.Entry<String, Object>> entries = allBusinessMap.entrySet();
-            for(Map.Entry entry:  entries){
-                //获取key与value  value为BusinessSceneResp
-                BusinessSceneResp businessSceneResp = JSONObject.parseObject((String) entry.getValue(), BusinessSceneResp.class);
-                GatewayMsgType gatewayMsgType = businessSceneResp.getGatewayMsgType();
-                //判断状态是否结束，以及是否信令跟踪超时
-                LocalDateTime time = businessSceneResp.getTime();
-                BusinessSceneStatusEnum statusEnum =businessSceneResp.getStatus();
+            try{
+                Map<String, Object> allBusinessMap = RedisCommonUtil.hmget(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY);
+                if(CollectionUtils.isEmpty(allBusinessMap)){
 
-                LocalDateTime now = LocalDateTime.now();
-                String entrykey = (String)entry.getKey();
-                if(time.isBefore(now) || statusEnum.equals(BusinessSceneStatusEnum.end)){
-                    //消息跟踪完毕 删除指定的键值 异步处理对应的mq消息发送,并释放相应的redisson锁
-
-                    commonBusinessDeal(businessSceneResp,entrykey);
-
-
+                    Thread.sleep(50);
+                    continue;
                 }
+                Set<Map.Entry<String, Object>> entries = allBusinessMap.entrySet();
+                for(Map.Entry entry:  entries){
+                    //获取key与value  value为BusinessSceneResp
+                    BusinessSceneResp businessSceneResp = JSONObject.parseObject((String) entry.getValue(), BusinessSceneResp.class);
+                    GatewayMsgType gatewayMsgType = businessSceneResp.getGatewayMsgType();
+                    //判断状态是否结束，以及是否信令跟踪超时
+                    LocalDateTime time = businessSceneResp.getTime();
+                    BusinessSceneStatusEnum statusEnum =businessSceneResp.getStatus();
+
+                    LocalDateTime now = LocalDateTime.now();
+                    String entrykey = (String)entry.getKey();
+                    if(time.isBefore(now) || statusEnum.equals(BusinessSceneStatusEnum.end)){
+                        //消息跟踪完毕 删除指定的键值 异步处理对应的mq消息发送,并释放相应的redisson锁
+
+                        commonBusinessDeal(businessSceneResp,entrykey);
+
+
+                    }
+                }
+                Thread.yield();
+            }catch (Exception e){
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景常驻线程处理","异常处理失败",e);
             }
-            Thread.yield();
+
+
 
         }
 
