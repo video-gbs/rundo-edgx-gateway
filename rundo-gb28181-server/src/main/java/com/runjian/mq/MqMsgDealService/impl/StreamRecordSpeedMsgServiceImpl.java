@@ -7,6 +7,7 @@ import com.runjian.gb28181.bean.Device;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.mq.MqMsgDealService.IMsgProcessorService;
 import com.runjian.service.IDeviceService;
+import com.runjian.service.IplayService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,7 +19,7 @@ public class StreamRecordSpeedMsgServiceImpl implements InitializingBean, IMsgPr
     IMqMsgDealServer iMqMsgDealServer;
 
     @Autowired
-    IDeviceService deviceService;
+    IplayService iplayService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -30,11 +31,11 @@ public class StreamRecordSpeedMsgServiceImpl implements InitializingBean, IMsgPr
         JSONObject dataJson = (JSONObject) commonMqDto.getData();
         //实际的请求参数
         JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
-        //设备信息同步  获取设备信息
+        //设备信息同步  获取设备信息 String streamId,Double speed,String msgId
         //设备通道信息同步
-        String deviceId = dataMapJson.getString("deviceId");
-        Device device = deviceService.getDevice(deviceId);
-        deviceService.sync(device, commonMqDto.getMsgId());
+        String streamId = dataMapJson.getString("streamId");
+        Double speed = dataMapJson.getDouble("speed");
+        iplayService.playSpeedControl(streamId, speed,commonMqDto.getMsgId());
     }
 
 

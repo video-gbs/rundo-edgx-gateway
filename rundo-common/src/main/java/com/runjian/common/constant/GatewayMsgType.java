@@ -53,7 +53,12 @@ public enum GatewayMsgType {
     DEVICE_TOTAL_SYNC("DEVICE_TOTAL_SYNC"),
     //设备录像倍速
     STREAM_RECORD_SPEED("STREAM_RECORD_SPEED"),
-
+    //回放拖动播放
+    STREAM_PLAY_SEEK("STREAM_PLAY_SEEK"),
+    //回放暂停
+    STREAM_PLAY_PAUSE("STREAM_PLAY_PAUSE"),
+    //回放恢复
+    STREAM_PLAY_RESUME("STREAM_PLAY_RESUME"),
     /********调度服务相关*************/
     //流注册  调度终于网关均需要处理
     PLAY_STREAM_CALLBACK("PLAY_STREAM_CALLBACK"),
