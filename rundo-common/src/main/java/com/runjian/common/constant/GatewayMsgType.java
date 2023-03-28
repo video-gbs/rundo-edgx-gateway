@@ -51,6 +51,9 @@ public enum GatewayMsgType {
     RECORD_INFO("CHANNEL_RECORD_INFO"),
     //全量设备信息
     DEVICE_TOTAL_SYNC("DEVICE_TOTAL_SYNC"),
+    //设备录像倍速
+    STREAM_RECORD_SPEED("STREAM_RECORD_SPEED"),
+
     /********调度服务相关*************/
     //流注册  调度终于网关均需要处理
     PLAY_STREAM_CALLBACK("PLAY_STREAM_CALLBACK"),
