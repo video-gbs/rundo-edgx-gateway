@@ -156,13 +156,29 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public void playSpeedCmd(Device device, StreamInfo streamInfo, Double speed) throws InvalidArgumentException, ParseException, SipException {
+    public void playSpeedCmd(Device device, SsrcTransaction streamSessionSsrcTransaction, Double speed) throws InvalidArgumentException, ParseException, SipException {
+        StringBuffer content = new StringBuffer(200);
+        content.append("PLAY RTSP/1.0\r\n");
+        content.append("CSeq: " + getInfoCseq() + "\r\n");
+        content.append("Scale: " + String.format("%.6f", speed) + "\r\n");
 
+        playbackControlCmd(device, streamSessionSsrcTransaction, content.toString(), null, null);
+    }
+
+    private int getInfoCseq() {
+        return (int) ((Math.random() * 9 + 1) * Math.pow(10, 8));
     }
 
     @Override
-    public void playbackControlCmd(Device device, StreamInfo streamInfo, String content, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException {
+    public void playbackControlCmd(Device device, SsrcTransaction streamSessionSsrcTransaction, String content, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException {
 
+        SIPRequest request = headerProvider.createInfoRequest(device, streamSessionSsrcTransaction.getChannelId(), content.toString(), streamSessionSsrcTransaction.getSipTransactionInfo());
+        if (request == null) {
+            log.info("[回放控制]构建Request信息失败，设备：{}, 流ID: {}", device.getDeviceId(), streamSessionSsrcTransaction.getStream());
+            return;
+        }
+
+        sipSender.transmitRequest( request, errorEvent, okEvent);
     }
 
     @Override

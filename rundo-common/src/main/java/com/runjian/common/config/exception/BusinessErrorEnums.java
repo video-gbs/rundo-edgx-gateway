@@ -112,6 +112,8 @@ public enum BusinessErrorEnums {
 
     BIND_GATEWAY_ERROR(500,232012,"网关绑定流媒体服务失败"),
 
+    STREAM_NOT_FOUND(500,232013,"流不存在"),
+
     /************************** media异常 CODE:233xx ****************************/
     MEDIA_ZLM_EXSITED_ERROR(500,23300,"流媒体服务已存在"),
     MEDIA_ZLM_COLLECT_ERROR(500,23301,"流媒体服务连接失败"),

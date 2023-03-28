@@ -534,4 +534,40 @@ public class PlayServiceImpl implements IplayService {
 
 
     }
+
+    @Override
+    public void playSpeedControl(String streamId, Double speed, String msgId) {
+        String businessSceneKey = GatewayMsgType.STREAM_RECORD_SPEED.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
+        RLock lock = redissonClient.getLock(businessSceneKey);
+        try {
+            //阻塞型,默认是30s无返回参数
+            lock.lock();
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.STREAM_RECORD_SPEED,msgId,userSetting.getBusinessSceneTimeout(),null);
+            RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
+
+            SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamId);
+            if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
+                //todo 重要，缓存异常，点播失败需要人工介入
+                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "倍速操作", "倍速操作--失败，流不存在", streamId);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SPEED,BusinessErrorEnums.STREAM_NOT_FOUND,false);
+                return;
+            }
+            String deviceId = streamSessionSsrcTransaction.getDeviceId();
+            Device device = deviceService.getDevice(deviceId);
+            if(ObjectUtils.isEmpty(device)){
+                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "倍速操作", "倍速操作--失败，设备信息不存在", streamId);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SPEED,BusinessErrorEnums.SIP_DEVICE_NOTFOUND_EVENT,false);
+                return;
+            }
+            sipCommander.playSpeedCmd(device,streamSessionSsrcTransaction,speed);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SPEED,BusinessErrorEnums.SUCCESS,true);
+        }catch(Exception e){
+            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "倍速操作", "倍速操作--失败，未知异常", streamId);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SPEED,BusinessErrorEnums.UNKNOWN_ERROR,false);
+            return;
+        }
+
+
+
+    }
 }

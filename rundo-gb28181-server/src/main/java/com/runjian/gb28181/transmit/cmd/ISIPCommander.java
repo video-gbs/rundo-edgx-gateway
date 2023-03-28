@@ -117,7 +117,7 @@ public interface ISIPCommander {
 	/**
 	 * 回放倍速播放
 	 */
-	void playSpeedCmd(Device device, StreamInfo streamInfo, Double speed) throws InvalidArgumentException, ParseException, SipException;
+	void playSpeedCmd(Device device,  SsrcTransaction streamSessionSsrcTransaction, Double speed) throws InvalidArgumentException, ParseException, SipException;
 	
 	/**
 	 * 回放控制
@@ -125,7 +125,7 @@ public interface ISIPCommander {
 	 * @param streamInfo
 	 * @param content
 	 */
-	void playbackControlCmd(Device device, StreamInfo streamInfo, String content, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException;
+	void playbackControlCmd(Device device, SsrcTransaction streamSessionSsrcTransaction, String content, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, InvalidArgumentException, ParseException;
 
 
     /**

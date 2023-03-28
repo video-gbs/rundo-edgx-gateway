@@ -39,4 +39,12 @@ public interface IplayService {
      * @param msgId
      */
     void streamBye(String streamId,String msgId);
+
+    /**
+     * 录像回放倍速
+     * @param streamId
+     * @param speed
+     * @param msgId
+     */
+    void playSpeedControl(String streamId,Double speed,String msgId);
 }
