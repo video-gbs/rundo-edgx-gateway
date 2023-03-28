@@ -102,17 +102,17 @@ public interface ISIPCommander {
 	/**
 	 * 回放暂停
 	 */
-	void playPauseCmd(Device device, StreamInfo streamInfo) throws InvalidArgumentException, ParseException, SipException;
+	void playPauseCmd(Device device, SsrcTransaction streamSessionSsrcTransaction) throws InvalidArgumentException, ParseException, SipException;
 
 	/**
 	 * 回放恢复
 	 */
-	void playResumeCmd(Device device, StreamInfo streamInfo) throws InvalidArgumentException, ParseException, SipException;
+	void playResumeCmd(Device device, SsrcTransaction streamSessionSsrcTransaction) throws InvalidArgumentException, ParseException, SipException;
 
 	/**
 	 * 回放拖动播放
 	 */
-	void playSeekCmd(Device device, StreamInfo streamInfo, long seekTime) throws InvalidArgumentException, ParseException, SipException;
+	void playSeekCmd(Device device, SsrcTransaction streamSessionSsrcTransaction, long seekTime) throws InvalidArgumentException, ParseException, SipException;
 
 	/**
 	 * 回放倍速播放

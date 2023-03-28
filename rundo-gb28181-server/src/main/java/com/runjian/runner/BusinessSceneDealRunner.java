@@ -23,6 +23,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -111,7 +112,10 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景常驻线程处理", "预处理可进行消费的场景信令", businessSceneResp);
         long threadId = businessSceneResp.getThreadId();
         RLock lock = redissonClient.getLock(entrykey);
-        lock.unlockAsync(threadId);
+        if(!ObjectUtils.isEmpty(lock)){
+
+            lock.unlockAsync(threadId);
+        }
         RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey);
         //异步处理消息的mq发送
         gatewayBusinessAsyncSender.sendforAllScene(businessSceneResp);

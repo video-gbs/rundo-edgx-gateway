@@ -537,11 +537,10 @@ public class PlayServiceImpl implements IplayService {
 
     @Override
     public void playSpeedControl(String streamId, Double speed, String msgId) {
+        //指令型操作 无需加redisson的锁
         String businessSceneKey = GatewayMsgType.STREAM_RECORD_SPEED.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
-        RLock lock = redissonClient.getLock(businessSceneKey);
         try {
             //阻塞型,默认是30s无返回参数
-            lock.lock();
             BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.STREAM_RECORD_SPEED,msgId,userSetting.getBusinessSceneTimeout(),null);
             RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
 

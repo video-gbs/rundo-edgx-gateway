@@ -141,18 +141,33 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public void playPauseCmd(Device device, StreamInfo streamInfo) throws InvalidArgumentException, ParseException, SipException {
+    public void playPauseCmd(Device device, SsrcTransaction streamSessionSsrcTransaction) throws InvalidArgumentException, ParseException, SipException {
+        StringBuffer content = new StringBuffer(200);
+        content.append("PAUSE RTSP/1.0\r\n");
+        content.append("CSeq: " + getInfoCseq() + "\r\n");
+        content.append("PauseTime: now\r\n");
 
+        playbackControlCmd(device, streamSessionSsrcTransaction, content.toString(), null, null);
     }
 
     @Override
-    public void playResumeCmd(Device device, StreamInfo streamInfo) throws InvalidArgumentException, ParseException, SipException {
+    public void playResumeCmd(Device device, SsrcTransaction streamSessionSsrcTransaction) throws InvalidArgumentException, ParseException, SipException {
+        StringBuffer content = new StringBuffer(200);
+        content.append("PLAY RTSP/1.0\r\n");
+        content.append("CSeq: " + getInfoCseq() + "\r\n");
+        content.append("Range: npt=now-\r\n");
 
+        playbackControlCmd(device, streamSessionSsrcTransaction, content.toString(), null, null);
     }
 
     @Override
-    public void playSeekCmd(Device device, StreamInfo streamInfo, long seekTime) throws InvalidArgumentException, ParseException, SipException {
+    public void playSeekCmd(Device device, SsrcTransaction streamSessionSsrcTransaction,long seekTime) throws InvalidArgumentException, ParseException, SipException {
+        StringBuffer content = new StringBuffer(200);
+        content.append("PLAY RTSP/1.0\r\n");
+        content.append("CSeq: " + getInfoCseq() + "\r\n");
+        content.append("Range: npt=" + Math.abs(seekTime) + "-\r\n");
 
+        playbackControlCmd(device, streamSessionSsrcTransaction, content.toString(), null, null);
     }
 
     @Override
