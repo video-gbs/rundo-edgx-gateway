@@ -47,4 +47,27 @@ public interface IplayService {
      * @param msgId
      */
     void playSpeedControl(String streamId,Double speed,String msgId);
+
+    /**
+     * 录像回放暂停
+     * @param streamId
+     * @param msgId
+     */
+    void playPauseControl(String streamId,String msgId);
+
+
+    /**
+     * 录像回放恢复
+     * @param streamId
+     * @param msgId
+     */
+    void playResumeControl(String streamId,String msgId);
+
+    /**
+     * 录像回放拖拉
+     * @param streamId
+     * @param seekTime 拖拉的时间
+     * @param msgId
+     */
+    void playSeekControl(String streamId,long seekTime,String msgId);
 }
