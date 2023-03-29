@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * @author chenjialing
+ */
 @Slf4j
 @Component
 public  class IMqMsgDealServer {
