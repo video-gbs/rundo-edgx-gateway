@@ -1,6 +1,7 @@
 package com.runjian.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
@@ -34,11 +35,11 @@ public class PlayBackMsgServiceImpl implements InitializingBean, IMsgProcessorSe
         //设备点播同步
         String deviceId = dataJson.getString("deviceId");
         String channelId = dataJson.getString("channelId");
-        PlayReq playReq = JSONObject.toJavaObject(dataMapJson, PlayReq.class);
-        playReq.setDeviceId(deviceId);
-        playReq.setChannelId(channelId);
-        playReq.setMsgId(commonMqDto.getMsgId());
-        iplayService.play(playReq);
+        PlayBackReq playBackReq = JSONObject.toJavaObject(dataMapJson, PlayBackReq.class);
+        playBackReq.setDeviceId(deviceId);
+        playBackReq.setChannelId(channelId);
+        playBackReq.setMsgId(commonMqDto.getMsgId());
+        iplayService.playBack(playBackReq);
     }
 
 

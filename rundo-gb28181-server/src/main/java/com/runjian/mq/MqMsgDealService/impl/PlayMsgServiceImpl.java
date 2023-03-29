@@ -36,11 +36,11 @@ public class PlayMsgServiceImpl implements InitializingBean, IMsgProcessorServic
         //设备信息同步  获取设备信息
         String deviceId = dataJson.getString("deviceId");
         String channelId = dataJson.getString("channelId");
-        PlayBackReq playBackReq = JSONObject.toJavaObject(dataMapJson, PlayBackReq.class);
-        playBackReq.setDeviceId(deviceId);
-        playBackReq.setChannelId(channelId);
-        playBackReq.setMsgId(commonMqDto.getMsgId());
-        iplayService.playBack(playBackReq);
+        PlayReq playReq = JSONObject.toJavaObject(dataMapJson, PlayReq.class);
+        playReq.setDeviceId(deviceId);
+        playReq.setChannelId(channelId);
+        playReq.setMsgId(commonMqDto.getMsgId());
+        iplayService.play(playReq);
     }
 
 
