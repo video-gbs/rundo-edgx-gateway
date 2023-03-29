@@ -85,6 +85,10 @@ public class BusinessSceneResp<T> {
         return create(businessErrorEnums.getErrCode(), businessErrorEnums.getErrMsg(), BusinessSceneStatusEnum.end,gatewayMsgType,msgId,threadId,time ,data);
     }
 
+
+    public <T> BusinessSceneResp<T> addThisSceneEnd(GatewayMsgType gatewayMsgType,BusinessErrorEnums businessErrorEnums,BusinessSceneResp businessSceneResp,T data){
+        return create(businessErrorEnums.getErrCode(), businessErrorEnums.getErrMsg(), BusinessSceneStatusEnum.end,gatewayMsgType,businessSceneResp.getMsgId(),businessSceneResp.getThreadId(),businessSceneResp.getTime() ,data);
+    }
     /**
      * 自创建异常
      * @param code 消息code

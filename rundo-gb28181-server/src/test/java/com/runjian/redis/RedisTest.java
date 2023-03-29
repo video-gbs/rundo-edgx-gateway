@@ -1,7 +1,11 @@
 package com.runjian.redis;
 
+import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.common.constant.BusinessSceneConstants;
 import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.service.IDeviceService;
@@ -15,6 +19,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.ObjectUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
@@ -80,6 +88,40 @@ public class RedisTest {
         device.setPort(5060);
         device.setHostAddress("127.0.0.1:5060");
         deviceService.deviceInfoQuery(device,null);
+    }
+
+    @Test
+    public void testRedisHash(){
+        String businessSceneKey = "test";
+        ArrayList<BusinessSceneResp> businessSceneRespArrayList = new ArrayList<>();
+
+        for (int i = 0; i < 5; i++) {
+            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICE_TOTAL_SYNC,String.valueOf(i),5,null);
+            businessSceneRespArrayList.add(objectBusinessSceneResp);
+
+        }
+        RedisCommonUtil.hset(redisTemplate, "test_all", businessSceneKey, businessSceneRespArrayList);
+
+
+        String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, "test_all", businessSceneKey);
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"业务消息修改修改",businessSceneKey);
+        if(ObjectUtils.isEmpty(businessSceneString)){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"处理网关业务状态","处理失败,对应的业务缓存不存在",businessSceneKey);
+            return;
+        }
+        //其中data的数据格式为arraylist
+        List<BusinessSceneResp> businessSceneResps = JSONObject.parseArray(businessSceneString, BusinessSceneResp.class);
+
+        ArrayList<BusinessSceneResp> businessSceneRespArrayListNew = new ArrayList<>();
+        for (BusinessSceneResp businessSceneResp : businessSceneResps) {
+            BusinessSceneResp<Object> objectBusinessSceneResp = businessSceneResp.addThisSceneEnd(GatewayMsgType.DEVICE_TOTAL_SYNC,BusinessErrorEnums.SIP_SEND_EXCEPTION, businessSceneResp,"成功啊");
+            businessSceneRespArrayListNew.add(objectBusinessSceneResp);
+        }
+
+        //把其中全部的请求状态修改成一致
+
+        RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,businessSceneRespArrayListNew);
+
     }
 
 }
