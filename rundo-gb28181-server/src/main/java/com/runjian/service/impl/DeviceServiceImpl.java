@@ -34,6 +34,7 @@ import javax.sip.SipException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -95,34 +96,43 @@ public class DeviceServiceImpl implements IDeviceService {
         DeviceSendDto deviceSendDto = new DeviceSendDto();
         BeanUtil.copyProperties(device,deviceSendDto);
         // 第一次上线 或则设备之前是离线状态--进行通道同步和设备信息查询
-        if (deviceDb == null) {
-            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-首次注册,查询设备信息以及通道信息", device);
-            deviceMapper.add(device);
+        String businessSceneKey = GatewayMsgType.REGISTER.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
+        RLock lock = redissonClient.getLock(businessSceneKey);
+        try {
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.REGISTER,null);
+            //尝试获取锁
+            boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100,TimeUnit.MILLISECONDS);
+            if(!b){
+                //加锁失败，不继续执行
+                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备上线,加锁失败，合并全局的请求",device);
+                return;
+            }
+            if (deviceDb == null) {
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-首次注册,查询设备信息以及通道信息", device);
+                deviceMapper.add(device);
+                try {
+                    //阻塞型,默认是30s无返回参数
+                    sipCommander.deviceInfoQuery(device);
+                }catch (Exception e){
+                    log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
 
-            String businessSceneKey = GatewayMsgType.REGISTER.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
-            log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求",device);
-            RLock lock = redissonClient.getLock(businessSceneKey);
-            try {
-                //阻塞型,默认是30s无返回参数
-                lock.lock();
-                BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.REGISTER,null,userSetting.getBusinessSceneTimeout(),deviceSendDto);
-                RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
-                sipCommander.deviceInfoQuery(device);
-            }catch (Exception e){
-                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
+                }
+            }else {
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-更新,查询设备信息以及通道信息", device);
+                //重新上线 发送mq
+                deviceMapper.update(device);
+                //发送mq设备上线信息
+
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SUCCESS,device);
 
             }
-        }else {
-            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备上线-更新,查询设备信息以及通道信息", device);
-                //重新上线 发送mq
-            deviceMapper.update(device);
-            //发送mq设备上线信息
-
-            BusinessSceneResp<DeviceSendDto> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), deviceSendDto);
-            gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
-
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "设备服务", "设备上线处理异常", e,device.getDeviceId());
         }
+
+
+
         if (device.getKeepaliveTime() == null) {
             device.setKeepaliveIntervalTime(60);
         }
@@ -178,11 +188,13 @@ public class DeviceServiceImpl implements IDeviceService {
         RLock lock = redissonClient.getLock(businessSceneKey);
         try {
             //阻塞型,默认是30s无返回参数
-            lock.lock();
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.CATALOG,msgId,userSetting.getBusinessSceneTimeout(),null);
-            boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
-            if(!hset){
-                throw new Exception("redis操作hashmap失败");
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.CATALOG,msgId);
+            //尝试获取锁
+            boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100,TimeUnit.MILLISECONDS);
+            if(!b){
+                //加锁失败，不继续执行
+                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求,加锁失败，合并全局的请求",msgId);
+                return;
             }
             int sn = (int)((Math.random()*9+1)*100000);
             catalogDataCatch.addReady(device,sn);
@@ -215,24 +227,29 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void deviceInfoQuery(Device device,String msgId) {
         //同设备同类型业务消息，加上全局锁
-        String businessSceneKey = GatewayMsgType.DEVICEINFO.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
-        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求",device);
-        RLock lock = redissonClient.getLock(businessSceneKey);
-        try {
-            //阻塞型,默认是30s无返回参数
-            lock.lock();
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICEINFO,msgId,userSetting.getBusinessSceneTimeout(),null);
-            boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
-            if(!hset){
-                throw new Exception("redis操作hashmap失败");
-            }
-            sipCommander.deviceInfoQuery(device);
-        }catch (Exception e){
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
-
-        }
-        //在异步线程进行解锁
+//        String businessSceneKey = GatewayMsgType.DEVICEINFO.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
+//        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求",device);
+//        RLock lock = redissonClient.getLock(businessSceneKey);
+//        try {
+//            //阻塞型,默认是30s无返回参数
+//            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICEINFO,msgId,userSetting.getBusinessSceneTimeout(),null);
+//            ArrayList<BusinessSceneResp> businessSceneRespArrayList = new ArrayList<>();
+//            businessSceneRespArrayList.add(objectBusinessSceneResp);
+//            RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, businessSceneRespArrayList);
+//            //尝试获取锁
+//            boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100,TimeUnit.MILLISECONDS);
+//            if(!b){
+//                //加锁失败，不继续执行
+//                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求,加锁失败，合并全局的请求",msgId);
+//                return;
+//            }
+//            sipCommander.deviceInfoQuery(device);
+//        }catch (Exception e){
+//            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
+//            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
+//
+//        }
+//        //在异步线程进行解锁
 
 
     }
@@ -244,12 +261,13 @@ public class DeviceServiceImpl implements IDeviceService {
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息删除请求",deviceId+"|"+msgId);
         RLock lock = redissonClient.getLock(businessSceneKey);
         try {
-            //阻塞型,默认是30s无返回参数
-            lock.lock();
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICE_DELETE,msgId,userSetting.getBusinessSceneTimeout(),null);
-            boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
-            if(!hset){
-                throw new Exception("redis操作hashmap失败");
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_DELETE,msgId);
+            //尝试获取锁
+            boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100,TimeUnit.MILLISECONDS);
+            if(!b){
+                //加锁失败，不继续执行
+                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息删除请求,加锁失败，合并全局的请求",msgId);
+                return;
             }
             Device deviceDto = deviceMapper.getDeviceByDeviceId(deviceId);
             if(ObjectUtils.isEmpty(deviceDto)){
@@ -282,11 +300,14 @@ public class DeviceServiceImpl implements IDeviceService {
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备全量数据同步",msgId);
         RLock lock = redissonClient.getLock(businessSceneKey);
         try {
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_TOTAL_SYNC,msgId);
             //阻塞型,默认是30s无返回参数
-            lock.lock();
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.DEVICE_TOTAL_SYNC,null,userSetting.getBusinessSceneTimeout(),null);
-            RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
-
+            boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100,TimeUnit.MILLISECONDS);
+            if(!b){
+                //加锁失败，不继续执行
+                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备全量数据同步,加锁失败，合并全局的请求",msgId);
+                return;
+            }
             List<DeviceSendDto> allDeviceList = deviceMapper.getAllDeviceList();
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_TOTAL_SYNC,BusinessErrorEnums.SUCCESS,allDeviceList);
 

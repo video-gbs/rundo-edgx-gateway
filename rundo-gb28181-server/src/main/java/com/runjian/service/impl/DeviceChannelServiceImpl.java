@@ -31,6 +31,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -149,12 +150,13 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         try {
             RLock lock = redissonClient.getLock(businessSceneKey);
             //阻塞型,默认是30s无返回参数
-            lock.lock();
-            //同设备同类型业务消息，加上全局锁
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.RECORD_INFO,msgId,userSetting.getBusinessSceneTimeout(),null);
-            boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
-            if(!hset){
-                throw new Exception("redis操作hashmap失败");
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayMsgType.RECORD_INFO,recordInfoReq.getMsgId());
+            //尝试获取锁
+            boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100, TimeUnit.MILLISECONDS);
+            if(!b){
+                //加锁失败，不继续执行
+                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备服务,获取录像信息，合并全局的请求",recordInfoReq);
+                return;
             }
             Device device = deviceService.getDevice(deviceId);
             if(ObjectUtils.isEmpty(device)){

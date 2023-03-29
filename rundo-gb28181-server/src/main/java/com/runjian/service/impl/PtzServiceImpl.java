@@ -24,8 +24,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -92,11 +94,12 @@ public class PtzServiceImpl implements IPtzService {
         RLock lock = redissonClient.getLock(businessSceneKey);
         try {
             //阻塞型,默认是30s无返回参数
-            lock.lock();
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.PTZ_CONTROL, deviceControlReq.getMsgId(), userSetting.getBusinessSceneTimeout(),null);
-            boolean hset = RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
-            if (!hset) {
-                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "ptz服务", "ptz操作失败", "redis操作hashmap失败");
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL,deviceControlReq.getMsgId());
+            //尝试获取锁
+            boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100, TimeUnit.MILLISECONDS);
+            if(!b){
+                //加锁失败，不继续执行
+                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求,加锁失败，合并全局的请求",deviceControlReq.getMsgId());
                 return;
             }
             //参数校验

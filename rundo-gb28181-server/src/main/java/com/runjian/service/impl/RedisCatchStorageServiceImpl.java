@@ -9,6 +9,7 @@ import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.SipConfig;
 import com.runjian.conf.SsrcConfig;
+import com.runjian.conf.UserSetting;
 import com.runjian.service.IRedisCatchStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,9 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     @Autowired
     SipConfig sipConfig;
 
+
+    @Autowired
+    UserSetting userSetting;
     @Override
     public Long getCSEQ() {
         String key = VideoManagerConstants.SIP_CSEQ_PREFIX;
@@ -133,5 +137,13 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
             businessSceneRespArrayListNew.add(objectBusinessSceneResp);
         }
         RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,businessSceneRespArrayListNew);
+    }
+
+    @Override
+    public void addBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, String msgId) {
+        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(gatewayMsgType,msgId,userSetting.getBusinessSceneTimeout(),null);
+        ArrayList<BusinessSceneResp> businessSceneRespArrayList = new ArrayList<>();
+        businessSceneRespArrayList.add(objectBusinessSceneResp);
+        RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, businessSceneRespArrayList);
     }
 }

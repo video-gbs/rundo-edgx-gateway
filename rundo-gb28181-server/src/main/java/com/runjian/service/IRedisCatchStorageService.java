@@ -42,4 +42,6 @@ public interface IRedisCatchStorageService {
      */
     void editBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums, Object data);
 
+    void addBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, String msgId);
+
 }

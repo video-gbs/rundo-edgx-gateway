@@ -52,6 +52,8 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 点播相关流程
@@ -116,10 +118,8 @@ public class PlayServiceImpl implements IplayService {
     @Override
     public void play(PlayReq playReq) {
         String businessSceneKey = GatewayMsgType.PLAY.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+playReq.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+playReq.getChannelId();
-        RLock lock = redissonClient.getLock(businessSceneKey);
         try {
             //阻塞型,默认是30s无返回参数
-            lock.lock();
             PlayCommonSsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayMsgType.PLAY, playReq,true);
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "端口创建结果", playCommonSsrcInfo);
             if(ObjectUtils.isEmpty(playCommonSsrcInfo)){
@@ -170,10 +170,7 @@ public class PlayServiceImpl implements IplayService {
     public void playBack(PlayBackReq playBackReq) {
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播请求进入", playBackReq);
         String businessSceneKey = GatewayMsgType.PLAY_BACK.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+playBackReq.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+playBackReq.getChannelId();
-        RLock lock = redissonClient.getLock(businessSceneKey);
         try {
-            //阻塞型,默认是30s无返回参数
-            lock.lock();
             PlayCommonSsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayMsgType.PLAY_BACK, playBackReq,false);
             if(ObjectUtils.isEmpty(playCommonSsrcInfo)){
                 return;
@@ -217,10 +214,16 @@ public class PlayServiceImpl implements IplayService {
         return;
     }
 
-    private PlayCommonSsrcInfo playCommonProcess(String businessSceneKey, GatewayMsgType gatewayMsgType, PlayReq playReq,boolean isPlay){
-
-        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(gatewayMsgType,playReq.getMsgId(),userSetting.getBusinessSceneTimeout(),null);
-        RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
+    private PlayCommonSsrcInfo playCommonProcess(String businessSceneKey, GatewayMsgType gatewayMsgType, PlayReq playReq,boolean isPlay) throws InterruptedException {
+        redisCatchStorageService.addBusinessSceneKey(businessSceneKey,gatewayMsgType,playReq.getMsgId());
+        //尝试获取锁
+        RLock lock = redissonClient.getLock(businessSceneKey);
+        boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100, TimeUnit.MILLISECONDS);
+        if(!b){
+            //加锁失败，不继续执行
+            log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备点播服务,加锁失败，合并全局的请求",playReq);
+            return null;
+        }
 
         CommonResponse getResponse = RestTemplateUtil.postStreamNotifyRespons(playReq.getDispatchUrl() + streamNotifyApi, playReq.getStreamId(), restTemplate);
         if(getResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
@@ -540,9 +543,7 @@ public class PlayServiceImpl implements IplayService {
         //指令型操作 无需加redisson的锁
         String businessSceneKey = GatewayMsgType.STREAM_RECORD_SPEED.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         try {
-            //阻塞型,默认是30s无返回参数
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.STREAM_RECORD_SPEED,msgId,userSetting.getBusinessSceneTimeout(),null);
-            RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SPEED,msgId);
 
             SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamId);
             if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
@@ -573,8 +574,7 @@ public class PlayServiceImpl implements IplayService {
         String businessSceneKey = GatewayMsgType.STREAM_RECORD_PAUSE.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         try {
             //阻塞型,默认是30s无返回参数
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.STREAM_RECORD_PAUSE,msgId,userSetting.getBusinessSceneTimeout(),null);
-            RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_PAUSE,msgId);
 
             SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamId);
             if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
@@ -603,9 +603,7 @@ public class PlayServiceImpl implements IplayService {
 //指令型操作 无需加redisson的锁
         String businessSceneKey = GatewayMsgType.STREAM_RECORD_RESUME.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         try {
-            //阻塞型,默认是30s无返回参数
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.STREAM_RECORD_RESUME,msgId,userSetting.getBusinessSceneTimeout(),null);
-            RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_RESUME,msgId);
 
             SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamId);
             if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
@@ -636,8 +634,7 @@ public class PlayServiceImpl implements IplayService {
         String businessSceneKey = GatewayMsgType.STREAM_RECORD_SEEK.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         try {
             //阻塞型,默认是30s无返回参数
-            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.STREAM_RECORD_SEEK,msgId,userSetting.getBusinessSceneTimeout(),null);
-            RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SEEK,msgId);
 
             SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamId);
             if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){

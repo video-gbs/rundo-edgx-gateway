@@ -29,13 +29,14 @@ public class DeviceinfoServiceImpl implements InitializingBean, IMsgProcessorSer
 
     @Override
     public void process(CommonMqDto commonMqDto) {
-        JSONObject dataJson = (JSONObject) commonMqDto.getData();
-        //实际的请求参数
-        JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
-        //设备信息同步  获取设备信息
-        String deviceId = dataJson.getString("deviceId");
-        Device device = deviceService.getDevice(deviceId);
-        deviceService.deviceInfoQuery(device, commonMqDto.getMsgId());
+        //暂不进行对外接口提供
+//        JSONObject dataJson = (JSONObject) commonMqDto.getData();
+//        //实际的请求参数
+//        JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
+//        //设备信息同步  获取设备信息
+//        String deviceId = dataJson.getString("deviceId");
+//        Device device = deviceService.getDevice(deviceId);
+//        deviceService.deviceInfoQuery(device, commonMqDto.getMsgId());
     }
 
 
