@@ -98,11 +98,7 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                             }else {
                                 commonBusinessDeal(businessSceneResp,entrykey);
                             }
-                            if(!deleteKeyFlag){
-                                //同类key消息请求就删除一次
-                                RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey);
-                                deleteKeyFlag = true;
-                            }
+
                         }
                     }
                     //处理完毕，进行缓存删除
@@ -129,5 +125,10 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
         }
         //异步处理消息的mq发送
         gatewayBusinessAsyncSender.sendforAllScene(businessSceneResp);
+            //同类key消息请求就删除一次
+        if(!ObjectUtils.isEmpty(RedisCommonUtil.hget(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey))){
+            RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey);
+
+        }
     }
 }

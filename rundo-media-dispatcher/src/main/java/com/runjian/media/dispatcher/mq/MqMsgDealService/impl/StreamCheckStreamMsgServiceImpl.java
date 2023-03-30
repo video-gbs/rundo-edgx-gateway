@@ -10,6 +10,7 @@ import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
@@ -31,11 +32,14 @@ public class StreamCheckStreamMsgServiceImpl implements InitializingBean, IMsgPr
     public void process(CommonMqDto commonMqDto) {
         JSONObject dataJson = (JSONObject) commonMqDto.getData();
         //实际的请求参数
-        JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
+        if(!ObjectUtils.isEmpty(dataJson)){
+            JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
+            JSONArray streamArray = dataMapJson.getJSONArray("streamIdList");
+            List<String> streamIdList = JSONArray.parseArray(streamArray.toJSONString(), String.class);
+            imediaServerService.streamListByStreamIds(streamIdList,commonMqDto.getMsgId());
+        }
 
-        JSONArray streamArray = dataMapJson.getJSONArray("streamIdList");
-        List<String> streamIdList = JSONArray.parseArray(streamArray.toJSONString(), String.class);
-        imediaServerService.streamListByStreamIds(streamIdList,commonMqDto.getMsgId());
+
     }
 
 

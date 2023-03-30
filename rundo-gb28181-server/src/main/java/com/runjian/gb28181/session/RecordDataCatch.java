@@ -51,7 +51,7 @@ public class RecordDataCatch {
 
     public boolean isComplete(String deviceId, String sn) {
         RecordInfo recordInfo = data.get(deviceId + sn);
-        return recordInfo != null && recordInfo.getRecordList().size() == recordInfo.getSumNum();
+        return recordInfo != null && recordInfo.getRecordList().size() >= recordInfo.getSumNum();
     }
 
     public RecordInfo getRecordInfo(String deviceId, String sn) {

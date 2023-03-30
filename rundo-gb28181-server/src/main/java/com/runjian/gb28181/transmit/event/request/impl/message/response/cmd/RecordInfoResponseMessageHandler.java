@@ -40,11 +40,9 @@ import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 import static com.runjian.gb28181.utils.XmlUtil.getText;
 
@@ -97,83 +95,70 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
         }
         taskQueue.offer(new HandlerCatchData(evt, device, rootElement));
         taskExecutor.execute(()->{
-            while (!taskQueue.isEmpty()) {
-                try {
-                    //获取录像的设备数据
+            try {
+                String sn = getText(rootElement, "SN");
+                String channelId = getText(rootElement, "DeviceID");
+                String businessSceneKey = GatewayMsgType.RECORD_INFO.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId()+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
 
-                    HandlerCatchData take = taskQueue.poll();
-                    Element rootElementForCharset = getRootElement(take.getEvt(), take.getDevice().getCharset());
-                    if (rootElement == null) {
-                        logger.warn(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "国标级联-国标录像", "content cannot be null", evt.getRequest());
-                        continue;
-                    }
-                    String sn = getText(rootElementForCharset, "SN");
-                    String channelId = getText(rootElementForCharset, "DeviceID");
-                    //录像场景的key
-                    String businessSceneKey = GatewayMsgType.RECORD_INFO.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId()+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
-
-
-
-                    RecordInfo recordInfo = new RecordInfo();
-                    String sumNumStr = getText(rootElementForCharset, "SumNum");
-                    int sumNum = 0;
-                    if (!ObjectUtils.isEmpty(sumNumStr)) {
-                        sumNum = Integer.parseInt(sumNumStr);
-                    }
-                    Element recordListElement = rootElementForCharset.element("RecordList");
-                    if (recordListElement == null || sumNum == 0) {
-                        logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "国标级联-国标录像", "无录像数据");
-                        //国标级联场景处理 暂时不做
-                        eventPublisher.recordEndEventPush(recordInfo);
-                        recordDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, new ArrayList<>());
-                        releaseRequest(businessSceneKey, take.getDevice().getDeviceId(), sn);
-                    } else {
-                        Iterator<Element> recordListIterator = recordListElement.elementIterator();
-                        if (recordListIterator != null) {
-                            List<RecordItem> recordList = new ArrayList<>();
-                            // 遍历DeviceList
-                            while (recordListIterator.hasNext()) {
-                                Element itemRecord = recordListIterator.next();
-                                Element recordElement = itemRecord.element("DeviceID");
-                                if (recordElement == null) {
-                                    logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "国标级联-国标录像", "记录为空，下一个...");
-                                    continue;
-                                }
-                                RecordItem record = new RecordItem();
-                                record.setDeviceId(getText(itemRecord, "DeviceID"));
-                                record.setName(getText(itemRecord, "Name"));
-                                record.setFilePath(getText(itemRecord, "FilePath"));
-                                record.setFileSize(getText(itemRecord, "FileSize"));
-                                record.setAddress(getText(itemRecord, "Address"));
-
-                                String startTimeStr = getText(itemRecord, "StartTime");
-                                record.setStartTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(startTimeStr));
-
-                                String endTimeStr = getText(itemRecord, "EndTime");
-                                record.setEndTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(endTimeStr));
-
-                                record.setSecrecy(itemRecord.element("Secrecy") == null ? 0
-                                        : Integer.parseInt(getText(itemRecord, "Secrecy")));
-                                record.setType(getText(itemRecord, "Type"));
-                                record.setRecorderId(getText(itemRecord, "RecorderID"));
-                                recordList.add(record);
-                            }
-                            recordInfo.setRecordList(recordList);
-                            // 发送消息，如果是上级查询此录像，则会通过这里通知给上级
-                            eventPublisher.recordEndEventPush(recordInfo);
-                            int count = recordDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, recordList);
-                            logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "国标级联-国标录像", "日志记录", "设备id:" + take.getDevice().getDeviceId() + " sn:" + sn + " count:" + count + " sumNum:" + sumNum);
-                        }
-
-                        if (recordDataCatch.isComplete(take.getDevice().getDeviceId(), sn)){
-                            releaseRequest(businessSceneKey,take.getDevice().getDeviceId(), sn);
-                        }
-                    }
-                } catch (DocumentException e) {
-                    logger.info(LogTemplate.ERROR_LOG_TEMPLATE, "国标级联-国标录像", "xml解析异常", e);
-                }catch (Exception e){
-                    logger.info(LogTemplate.ERROR_LOG_TEMPLATE, "国标级联-国标录像", "处理异常", e);
+                RecordInfo recordInfo = new RecordInfo();
+                recordInfo.setChannelId(channelId);
+                recordInfo.setDeviceId(device.getDeviceId());
+                recordInfo.setSn(sn);
+                recordInfo.setName(getText(rootElement, "Name"));
+                String sumNumStr = getText(rootElement, "SumNum");
+                int sumNum = 0;
+                if (!ObjectUtils.isEmpty(sumNumStr)) {
+                    sumNum = Integer.parseInt(sumNumStr);
                 }
+                recordInfo.setSumNum(sumNum);
+                Element recordListElement = rootElement.element("RecordList");
+                if (recordListElement == null || sumNum == 0) {
+                    logger.info("无录像数据");
+                    eventPublisher.recordEndEventPush(recordInfo);
+                    recordDataCatch.put(device.getDeviceId(), sn, sumNum, new ArrayList<>());
+                    releaseRequest(businessSceneKey, device.getDeviceId(), sn);
+                } else {
+                    Iterator<Element> recordListIterator = recordListElement.elementIterator();
+                    if (recordListIterator != null) {
+                        List<RecordItem> recordList = new ArrayList<>();
+                        // 遍历DeviceList
+                        while (recordListIterator.hasNext()) {
+                            Element itemRecord = recordListIterator.next();
+                            Element recordElement = itemRecord.element("DeviceID");
+                            if (recordElement == null) {
+                                logger.info("记录为空，下一个...");
+                                continue;
+                            }
+                            RecordItem record = new RecordItem();
+                            record.setDeviceId(getText(itemRecord, "DeviceID"));
+                            record.setName(getText(itemRecord, "Name"));
+                            record.setFilePath(getText(itemRecord, "FilePath"));
+                            record.setFileSize(getText(itemRecord, "FileSize"));
+                            record.setAddress(getText(itemRecord, "Address"));
+
+                            String startTimeStr = getText(itemRecord, "StartTime");
+                            record.setStartTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(startTimeStr));
+
+                            String endTimeStr = getText(itemRecord, "EndTime");
+                            record.setEndTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(endTimeStr));
+
+                            record.setSecrecy(itemRecord.element("Secrecy") == null ? 0
+                                    : Integer.parseInt(getText(itemRecord, "Secrecy")));
+                            record.setType(getText(itemRecord, "Type"));
+                            record.setRecorderId(getText(itemRecord, "RecorderID"));
+                            recordList.add(record);
+                        }
+                        eventPublisher.recordEndEventPush(recordInfo);
+                        int count = recordDataCatch.put(device.getDeviceId(), sn, sumNum, recordList);
+                        logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "国标级联-国标录像", "日志记录", "设备id:" + device.getDeviceId() + " sn:" + sn + " count:" + count + " sumNum:" + sumNum);
+                        recordInfo.setRecordList(recordList);
+                        if (recordDataCatch.isComplete(device.getDeviceId(), sn)){
+                            releaseRequest(businessSceneKey,device.getDeviceId(), sn);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("[国标录像] 发现未处理的异常, "+e.getMessage(), e);
             }
         });
     }
