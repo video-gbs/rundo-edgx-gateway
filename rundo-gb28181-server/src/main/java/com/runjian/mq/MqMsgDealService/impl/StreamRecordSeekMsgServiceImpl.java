@@ -1,8 +1,11 @@
 package com.runjian.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
+import com.runjian.common.commonDto.Gateway.req.StreamSeekReq;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
+import com.runjian.common.utils.DateUtils;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.mq.MqMsgDealService.IMsgProcessorService;
 import com.runjian.service.IplayService;
@@ -31,9 +34,10 @@ public class StreamRecordSeekMsgServiceImpl implements InitializingBean, IMsgPro
         JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
         //设备信息同步  获取设备信息 String streamId,Double speed,String msgId
         //设备通道信息同步
-        String streamId = dataMapJson.getString("streamId");
-        long seekTime = dataMapJson.getLong("seekTime");
-        iplayService.playSeekControl(streamId, seekTime,commonMqDto.getMsgId());
+
+        StreamSeekReq streamSeekReq = JSONObject.toJavaObject(dataMapJson, StreamSeekReq.class);
+        long seekTime = DateUtils.StringToTimeStamp(streamSeekReq.getTargetTime()) - DateUtils.StringToTimeStamp(streamSeekReq.getCurrentTime());
+        iplayService.playSeekControl(streamSeekReq.getStreamId(), seekTime,commonMqDto.getMsgId());
     }
 
 

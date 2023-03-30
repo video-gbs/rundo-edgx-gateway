@@ -630,7 +630,7 @@ public class PlayServiceImpl implements IplayService {
 
     @Override
     public void playSeekControl(String streamId, long seekTime, String msgId) {
-//指令型操作 无需加redisson的锁
+        //指令型操作 无需加redisson的锁
         String businessSceneKey = GatewayMsgType.STREAM_RECORD_SEEK.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         try {
             //阻塞型,默认是30s无返回参数
