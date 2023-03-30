@@ -8,6 +8,7 @@ import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.mq.domain.CommonMqDto;
+import com.runjian.media.dispatcher.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -28,6 +29,9 @@ public class DispatcherBusinessMqListener implements ChannelAwareMessageListener
 
     @Autowired
     ImediaServerService imediaServerService;
+
+    @Autowired
+    IMqMsgDealServer mqMsgDealServer;
     @Override
     public void onMessage(Message message, Channel channel) throws Exception {
         try {
@@ -46,34 +50,7 @@ public class DispatcherBusinessMqListener implements ChannelAwareMessageListener
                 log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "调度服务消息监听服务", "消息接收成功，上层服务创建队列失败", jsonMsg, "");
                 return;
             }
-            JSONObject dataJson = (JSONObject) commonMqDto.getData();
-            //实际的请求参数
-            JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
-            String msgType = commonMqDto.getMsgType();
-            //bye请求
-            if(msgType.equals(GatewayMsgType.STREAM_PLAY_STOP.getTypeName())){
-                //bye指令信息
-                String streamId = dataJson.getString("streamId");
-                imediaServerService.streamStop(streamId, commonMqDto.getMsgId());
-
-            }else if(msgType.equals(GatewayMsgType.STREAM_CLOSE.getTypeName())){
-                Boolean canClose = dataMapJson.getBoolean("result");
-                String streamId = dataJson.getString("streamId");
-                if(canClose){
-                    //针对无人观看的处理 进行实际流的停止处理
-                    imediaServerService.streamBye(streamId, commonMqDto.getMsgId());
-                }
-
-            }else if(msgType.equals(GatewayMsgType.STREAM_CHECK_STREAM.getTypeName())){
-
-                JSONArray streamArray = dataMapJson.getJSONArray("streamIdList");
-                List<String> streamIdList = JSONArray.parseArray(streamArray.toJSONString(), String.class);
-                imediaServerService.streamListByStreamIds(streamIdList,commonMqDto.getMsgId());
-            }else if(msgType.equals(GatewayMsgType.STREAM_STOP_ALL.getTypeName())){
-
-                imediaServerService.streamStopAll();
-            }
-
+            mqMsgDealServer.msgProcess(commonMqDto);
 
         }catch (Exception ex){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "调度服务消息监听服务", "消息接收成功，处理失败", message, ex);
