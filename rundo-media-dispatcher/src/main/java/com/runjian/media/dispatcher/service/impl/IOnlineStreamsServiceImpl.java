@@ -5,25 +5,21 @@ import com.runjian.common.commonDto.StreamCloseDto;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
-import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 import com.runjian.media.dispatcher.mapper.OnlineStreamsMapper;
 import com.runjian.media.dispatcher.service.IOnlineStreamsService;
-import com.runjian.media.dispatcher.zlm.service.IRedisCatchStorageService;
+import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author chenjialing

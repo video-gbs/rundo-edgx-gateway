@@ -23,7 +23,7 @@ public class UserSetting {
     /**
      * 业务场景流程超时时间 单位秒
      */
-    private Integer businessSceneTimeout = 5;
+    private Integer businessSceneTimeout = 5000;
 
     private int platformPlayTimeout = 60000;
 

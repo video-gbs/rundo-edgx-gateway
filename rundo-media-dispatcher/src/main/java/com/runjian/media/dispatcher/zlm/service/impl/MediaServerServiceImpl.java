@@ -32,7 +32,7 @@ import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
 import com.runjian.media.dispatcher.zlm.event.publisher.EventPublisher;
 import com.runjian.media.dispatcher.zlm.mapper.MediaServerMapper;
 import com.runjian.media.dispatcher.zlm.service.IGatewayBindService;
-import com.runjian.media.dispatcher.zlm.service.IRedisCatchStorageService;
+import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -717,11 +717,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
         StreamPlayDto streamPlayResult = new StreamPlayDto();
         streamPlayResult.setStreamId(streamId);
         String businessSceneKey = GatewayMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
-        RLock lock = redissonClient.getLock(businessSceneKey);
-        //阻塞型,默认是30s无返回参数
-        lock.lock();
-        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(GatewayMsgType.STREAM_PLAY_RESULT,null,10,streamPlayResult);
-        RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
+        redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_PLAY_RESULT,null);
 
         return Boolean.TRUE;
     }

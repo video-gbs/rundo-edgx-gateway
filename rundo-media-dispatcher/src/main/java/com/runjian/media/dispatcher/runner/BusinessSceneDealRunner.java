@@ -90,8 +90,6 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
     private void commonBusinessDeal(BusinessSceneResp businessSceneResp,String entrykey){
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景常驻线程处理", "预处理可进行消费的场景信令", businessSceneResp);
         long threadId = businessSceneResp.getThreadId();
-        RLock lock = redissonClient.getLock(entrykey);
-        lock.unlockAsync(threadId);
         RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY,entrykey);
         //异步处理消息的mq发送
         businessAsyncSender.sendforAllScene(businessSceneResp);

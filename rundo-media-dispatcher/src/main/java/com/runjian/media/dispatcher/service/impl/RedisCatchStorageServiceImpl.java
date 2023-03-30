@@ -1,4 +1,4 @@
-package com.runjian.media.dispatcher.zlm.service.impl;
+package com.runjian.media.dispatcher.service.impl;
 
 
 import com.alibaba.fastjson.JSONObject;
@@ -10,7 +10,8 @@ import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.VideoManagerConstants;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.redis.RedisCommonUtil;
-import com.runjian.media.dispatcher.zlm.service.IRedisCatchStorageService;
+import com.runjian.media.dispatcher.conf.UserSetting;
+import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author chenjialing
@@ -33,6 +36,8 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     @Value("${dispatcher-info.serialNum}")
     private String serialNum;
 
+    @Autowired
+    private UserSetting userSetting;
 
 
     @Override
@@ -86,5 +91,12 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
         BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(gatewayMsgType, businessErrorEnums, businessSceneResp.getMsgId(),businessSceneResp.getThreadId(),businessSceneResp.getTime(),data);
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"业务消息修改修改",objectBusinessSceneResp);
         RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
+    }
+
+
+    @Override
+    public void addBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, String msgId) {
+        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(gatewayMsgType,msgId,userSetting.getBusinessSceneTimeout(),null);
+        RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, objectBusinessSceneResp);
     }
 }

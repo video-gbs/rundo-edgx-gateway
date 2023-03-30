@@ -72,7 +72,8 @@ public class BusinessSceneResp<T> {
      */
     public static<T> BusinessSceneResp<T> addSceneReady(GatewayMsgType gatewayMsgType,String msgId,int timeOut,T data){
         long id = Thread.currentThread().getId();
-        LocalDateTime now = LocalDateTime.now().plusSeconds(timeOut);
+        //timeOut毫秒转化为秒
+        LocalDateTime now = LocalDateTime.now().plusSeconds(timeOut/1000);
         return create(BusinessErrorEnums.BUSINESS_SCENE_EXCEPTION.getErrCode(), BusinessErrorEnums.BUSINESS_SCENE_EXCEPTION.getErrMsg(), BusinessSceneStatusEnum.ready, gatewayMsgType,msgId,id,now,data);
     }
 

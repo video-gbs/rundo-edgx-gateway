@@ -8,7 +8,7 @@ import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
-import com.runjian.media.dispatcher.zlm.service.IRedisCatchStorageService;
+import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

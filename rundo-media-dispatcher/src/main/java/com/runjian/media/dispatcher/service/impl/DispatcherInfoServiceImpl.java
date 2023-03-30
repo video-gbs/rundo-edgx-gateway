@@ -8,7 +8,7 @@ import com.runjian.common.utils.DateUtils;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.media.dispatcher.mq.dispatcherBusiness.DispatcherBusinessMqListener;
 import com.runjian.media.dispatcher.service.DispatcherInfoService;
-import com.runjian.media.dispatcher.zlm.service.IRedisCatchStorageService;
+import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.springframework.amqp.core.AcknowledgeMode;
@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

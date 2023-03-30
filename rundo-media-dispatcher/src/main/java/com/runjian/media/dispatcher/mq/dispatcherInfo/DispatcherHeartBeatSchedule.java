@@ -2,12 +2,11 @@ package com.runjian.media.dispatcher.mq.dispatcherInfo;
 
 import com.runjian.common.constant.GatewayCacheConstants;
 import com.runjian.common.constant.GatewayMsgType;
-import com.runjian.common.constant.MarkConstant;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.DateUtils;
 import com.runjian.common.utils.UuidUtil;
-import com.runjian.media.dispatcher.zlm.service.IRedisCatchStorageService;
+import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;

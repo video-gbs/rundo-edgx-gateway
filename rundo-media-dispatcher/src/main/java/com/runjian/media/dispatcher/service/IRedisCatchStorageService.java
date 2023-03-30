@@ -1,4 +1,4 @@
-package com.runjian.media.dispatcher.zlm.service;
+package com.runjian.media.dispatcher.service;
 
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.GatewayMsgType;
@@ -34,6 +34,12 @@ public interface IRedisCatchStorageService {
      */
     void editBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums, Object data);
 
-
+    /**
+     * redis的新增
+     * @param businessSceneKey
+     * @param gatewayMsgType
+     * @param msgId
+     */
+    void addBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, String msgId);
 
 }
