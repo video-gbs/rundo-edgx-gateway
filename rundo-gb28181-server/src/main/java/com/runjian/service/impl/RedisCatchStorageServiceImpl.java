@@ -133,7 +133,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
         ArrayList<BusinessSceneResp> businessSceneRespArrayListNew = new ArrayList<>();
         for (BusinessSceneResp businessSceneResp : businessSceneRespList) {
             //把其中全部的请求状态修改成一致
-            BusinessSceneResp objectBusinessSceneResp = businessSceneResp.addThisSceneEnd(GatewayMsgType.DEVICE_TOTAL_SYNC,BusinessErrorEnums.SIP_SEND_EXCEPTION, businessSceneResp,data);
+            BusinessSceneResp objectBusinessSceneResp = businessSceneResp.addThisSceneEnd(GatewayMsgType.DEVICE_TOTAL_SYNC,businessErrorEnums, businessSceneResp,data);
             businessSceneRespArrayListNew.add(objectBusinessSceneResp);
         }
         RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,businessSceneRespArrayListNew);

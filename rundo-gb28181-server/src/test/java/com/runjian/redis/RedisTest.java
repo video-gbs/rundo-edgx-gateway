@@ -124,4 +124,17 @@ public class RedisTest {
 
     }
 
+
+    @Test
+    public void testGetRedisHash(){
+        String businessSceneKey = "DEVICE_TOTAL_SYNC:";
+
+
+
+        //把其中全部的请求状态修改成一致
+
+        Object hget = RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey);
+
+        System.out.println(hget);
+    }
 }

@@ -70,6 +70,7 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                     //获取key与value  value为BusinessSceneResp
                     List<BusinessSceneResp> businessSceneRespList = JSONObject.parseArray((String) entry.getValue(), BusinessSceneResp.class);
                     String entrykey = (String)entry.getKey();
+                    Boolean deleteKeyFlag = false;
                     for (BusinessSceneResp businessSceneResp : businessSceneRespList) {
                         //同一组的消息状态均为一致，一个成功，最后一个发送完毕进行缓存删除
 
@@ -97,10 +98,14 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                             }else {
                                 commonBusinessDeal(businessSceneResp,entrykey);
                             }
+                            if(!deleteKeyFlag){
+                                //同类key消息请求就删除一次
+                                RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey);
+                                deleteKeyFlag = true;
+                            }
                         }
                     }
                     //处理完毕，进行缓存删除
-                    RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey);
                 }
                 Thread.yield();
             }catch (Exception e){
