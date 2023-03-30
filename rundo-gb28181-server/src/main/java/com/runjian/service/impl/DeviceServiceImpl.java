@@ -115,7 +115,7 @@ public class DeviceServiceImpl implements IDeviceService {
                     sipCommander.deviceInfoQuery(device);
                 }catch (Exception e){
                     log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.REGISTER,BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
 
                 }
             }else {
@@ -124,7 +124,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 deviceMapper.update(device);
                 //发送mq设备上线信息
 
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICEINFO,BusinessErrorEnums.SUCCESS,device);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.REGISTER,BusinessErrorEnums.SUCCESS,device);
 
             }
         }catch (Exception e){
