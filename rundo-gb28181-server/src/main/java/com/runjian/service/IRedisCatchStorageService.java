@@ -1,6 +1,7 @@
 package com.runjian.service;
 
 import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.conf.SsrcConfig;
@@ -42,6 +43,17 @@ public interface IRedisCatchStorageService {
      */
     void editBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums, Object data);
 
+    /**
+     * 新增业务缓存
+     * @param businessSceneKey
+     * @param gatewayMsgType
+     * @param msgId
+     */
     void addBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, String msgId);
 
+    /**
+     * 获取一个业务缓存
+     * @param businessSceneKey
+     */
+    BusinessSceneResp getOneBusinessSceneKey(String businessSceneKey);
 }

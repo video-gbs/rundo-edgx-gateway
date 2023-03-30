@@ -16,6 +16,7 @@ import com.runjian.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.runjian.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.runjian.gb28181.utils.XmlUtil;
 import com.runjian.service.IDeviceChannelService;
+import com.runjian.service.IRedisCatchStorageService;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -76,6 +77,9 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     @Autowired
     private UserSetting userSetting;
 
+    @Autowired
+    IRedisCatchStorageService redisCatchStorageService;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         responseMessageHandler.addHandler(cmdType, this);
@@ -92,110 +96,108 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
             logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "目录查询回复", "命令发送失败", e);
         }
         taskExecutor.execute(() -> {
-            while (!taskQueue.isEmpty()) {
-                //获取同步的设备数据
-                HandlerCatchData take = taskQueue.poll();
+            //获取同步的设备数据
+            HandlerCatchData take = taskQueue.poll();
+            if(ObjectUtils.isEmpty(take)){
+                return;
+            }
 
-                String businessSceneKey = GatewayMsgType.CATALOG.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+take.getDevice().getDeviceId();
-                String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey);
-                BusinessSceneResp businessSceneRedis = JSONObject.parseObject(businessSceneString, BusinessSceneResp.class);
+            String businessSceneKey = GatewayMsgType.CATALOG.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+take.getDevice().getDeviceId();
 
-                Element rootElement = null;
-                try {
-                    rootElement = getRootElement(take.getEvt(), take.getDevice().getCharset());
-                } catch (DocumentException e) {
-                    logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "目录查询回复", "xml解析失败", e);
-                    continue;
-                }
-                if (rootElement == null) {
-                    logger.warn(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "目录查询回复", "[ 收到通道 ] content cannot be null", evt.getRequest());
-                    continue;
-                }
-                Element deviceListElement = rootElement.element("DeviceList");
-                Element sumNumElement = rootElement.element("SumNum");
-                Element snElement = rootElement.element("SN");
-                int sumNum = Integer.parseInt(sumNumElement.getText());
+            BusinessSceneResp businessSceneRedis = redisCatchStorageService.getOneBusinessSceneKey(businessSceneKey);
 
-                if (sumNum == 0) {
-                    logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "目录查询回复", "[收到通道]设备: 0个", take.getDevice().getDeviceId());
-                    // 数据已经完整接收
-                    storager.cleanChannelsForDevice(take.getDevice().getDeviceId());
-                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
-                    BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS, businessSceneRedis.getMsgId(),businessSceneRedis.getThreadId(),businessSceneRedis.getTime(),new CatalogMqSyncDto());
-                    RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
-                } else {
-                    Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
-                    if (deviceListIterator != null) {
-                        List<DeviceChannel> channelList = new ArrayList<>();
-                        // 遍历DeviceList
-                        while (deviceListIterator.hasNext()) {
-                            Element itemDevice = deviceListIterator.next();
-                            Element channelDeviceElement = itemDevice.element("DeviceID");
-                            if (channelDeviceElement == null) {
-                                continue;
-                            }
-                            DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice, device, null);
-                            deviceChannel.setDeviceId(take.getDevice().getDeviceId());
+            Element rootElement = null;
+            try {
+                rootElement = getRootElement(take.getEvt(), take.getDevice().getCharset());
+            } catch (DocumentException e) {
+                logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "目录查询回复", "xml解析失败", e);
+            }
+            if (rootElement == null) {
+                logger.warn(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "目录查询回复", "[ 收到通道 ] content cannot be null", evt.getRequest());
+            }
+            Element deviceListElement = rootElement.element("DeviceList");
+            Element sumNumElement = rootElement.element("SumNum");
+            Element snElement = rootElement.element("SN");
+            int sumNum = Integer.parseInt(sumNumElement.getText());
 
-                            channelList.add(deviceChannel);
+            if (sumNum == 0) {
+                logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "目录查询回复", "[收到通道]设备: 0个", take.getDevice().getDeviceId());
+                // 数据已经完整接收
+                storager.cleanChannelsForDevice(take.getDevice().getDeviceId());
+                catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
+
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS,new CatalogMqSyncDto());
+            } else {
+                Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
+                if (deviceListIterator != null) {
+                    List<DeviceChannel> channelList = new ArrayList<>();
+                    // 遍历DeviceList
+                    while (deviceListIterator.hasNext()) {
+                        Element itemDevice = deviceListIterator.next();
+                        Element channelDeviceElement = itemDevice.element("DeviceID");
+                        if (channelDeviceElement == null) {
+                            continue;
                         }
-                        int sn = Integer.parseInt(snElement.getText());
-                        //超过超时时间便不在继续接收处理
-                        CatalogData catalogData = catalogDataCatch.getData(take.getDevice().getDeviceId());
-                        if(!ObjectUtils.isEmpty(catalogData)){
-                            if(catalogData.getSn() == sn){
-                                //仅仅处理本次请求的相关数据,至于上一次的请求数据先不处理
-                                //预留10毫秒的过期时间
-                                LocalDateTime expireTime = businessSceneRedis.getTime().minus(10, ChronoUnit.MILLIS);
-                                if(expireTime.isBefore(LocalDateTime.now())){
-                                    //同步已经超时
-                                    logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "目录查询回复", "查询过程超时,放弃后续的数据库同步", take.getDevice().getDeviceId());
+                        DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice, device, null);
+                        deviceChannel.setDeviceId(take.getDevice().getDeviceId());
+
+                        channelList.add(deviceChannel);
+                    }
+                    int sn = Integer.parseInt(snElement.getText());
+                    //超过超时时间便不在继续接收处理
+                    CatalogData catalogData = catalogDataCatch.getData(take.getDevice().getDeviceId());
+                    if(!ObjectUtils.isEmpty(catalogData)){
+                        if(catalogData.getSn() == sn){
+                            //仅仅处理本次请求的相关数据,至于上一次的请求数据先不处理
+                            //预留10毫秒的过期时间
+                            LocalDateTime expireTime = businessSceneRedis.getTime().minus(10, ChronoUnit.MILLIS);
+                            if(expireTime.isBefore(LocalDateTime.now())){
+                                //同步已经超时
+                                logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "目录查询回复", "查询过程超时,放弃后续的数据库同步", take.getDevice().getDeviceId());
 //                                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
-                                    if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
-                                        //只处理正在执行的通道同步
+                                if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
+                                    //只处理正在执行的通道同步
 
-                                        storager.resetChannelsForcatalog(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
+                                    storager.resetChannelsForcatalog(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
 
-                                        CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
-                                        catalogMqSyncDto.setTotal(catalogData.getTotal());
-                                        catalogMqSyncDto.setNum(catalogData.getChannelList().size());
-                                        catalogMqSyncDto.setChannelDetailList(catalogData.getChannelList());
-                                        //更新redis
-                                        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS, businessSceneRedis.getMsgId(),businessSceneRedis.getThreadId(),businessSceneRedis.getTime(),catalogMqSyncDto);
-                                        RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
-                                        catalogDataCatch.setChannelSyncEnd(catalogData.getDevice().getDeviceId(), null,0);
-                                        continue;
-                                    }
+                                    CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
+                                    catalogMqSyncDto.setTotal(catalogData.getTotal());
+                                    catalogMqSyncDto.setNum(catalogData.getChannelList().size());
+                                    catalogMqSyncDto.setChannelDetailList(catalogData.getChannelList());
+                                    //更新redis
 
+                                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
+                                    catalogDataCatch.setChannelSyncEnd(catalogData.getDevice().getDeviceId(), null,0);
                                 }
 
                             }
 
-
                         }
 
-                        catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(), channelList);
-                        logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "目录查询回复", "[收到通道]", "设备id" + take.getDevice().getDeviceId() + " 通道数量:" + channelList.size() + " " + (catalogDataCatch.get(take.getDevice().getDeviceId()) == null ? 0 : catalogDataCatch.get(take.getDevice().getDeviceId()).size()) + "/" + sumNum);
 
-                        if (catalogDataCatch.get(take.getDevice().getDeviceId()).size() == sumNum) {
-                            // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
-                            // 目前支持设备通道上线通知时和设备上线时向上级通知
-                            List<DeviceChannel> deviceChannels = catalogDataCatch.get(take.getDevice().getDeviceId());
-                            storager.resetChannelsForcatalog(take.getDevice().getDeviceId(), deviceChannels);
-
-                            CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
-                            catalogMqSyncDto.setTotal(sumNum);
-                            catalogMqSyncDto.setNum(sumNum);
-                            catalogMqSyncDto.setChannelDetailList(deviceChannels);
-                            BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS, businessSceneRedis.getMsgId(),businessSceneRedis.getThreadId(),businessSceneRedis.getTime(),catalogMqSyncDto);
-                            RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
-                            //该结束状态用于删除之前的本地缓存数据
-                            catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
-                        }
                     }
 
+                    catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(), channelList);
+                    logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "目录查询回复", "[收到通道]", "设备id" + take.getDevice().getDeviceId() + " 通道数量:" + channelList.size() + " " + (catalogDataCatch.get(take.getDevice().getDeviceId()) == null ? 0 : catalogDataCatch.get(take.getDevice().getDeviceId()).size()) + "/" + sumNum);
+
+                    if (catalogDataCatch.get(take.getDevice().getDeviceId()).size() == sumNum) {
+                        // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
+                        // 目前支持设备通道上线通知时和设备上线时向上级通知
+                        List<DeviceChannel> deviceChannels = catalogDataCatch.get(take.getDevice().getDeviceId());
+                        storager.resetChannelsForcatalog(take.getDevice().getDeviceId(), deviceChannels);
+
+                        CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
+                        catalogMqSyncDto.setTotal(sumNum);
+                        catalogMqSyncDto.setNum(sumNum);
+                        catalogMqSyncDto.setChannelDetailList(deviceChannels);
+                        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
+                        //该结束状态用于删除之前的本地缓存数据
+                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
+                    }
                 }
-                }
+
+            }
+
 
             });
 

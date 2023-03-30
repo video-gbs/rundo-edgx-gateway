@@ -133,7 +133,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
         ArrayList<BusinessSceneResp> businessSceneRespArrayListNew = new ArrayList<>();
         for (BusinessSceneResp businessSceneResp : businessSceneRespList) {
             //把其中全部的请求状态修改成一致
-            BusinessSceneResp objectBusinessSceneResp = businessSceneResp.addThisSceneEnd(GatewayMsgType.DEVICE_TOTAL_SYNC,businessErrorEnums, businessSceneResp,data);
+            BusinessSceneResp objectBusinessSceneResp = businessSceneResp.addThisSceneEnd(gatewayMsgType,businessErrorEnums, businessSceneResp,data);
             businessSceneRespArrayListNew.add(objectBusinessSceneResp);
         }
         RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,businessSceneKey,businessSceneRespArrayListNew);
@@ -145,5 +145,18 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
         ArrayList<BusinessSceneResp> businessSceneRespArrayList = new ArrayList<>();
         businessSceneRespArrayList.add(objectBusinessSceneResp);
         RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, businessSceneRespArrayList);
+    }
+
+    @Override
+    public BusinessSceneResp getOneBusinessSceneKey(String businessSceneKey) {
+        String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey);
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"业务消息获取",businessSceneKey);
+        if(ObjectUtils.isEmpty(businessSceneString)){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"业务消息获取","处理失败,对应的业务缓存不存在",businessSceneKey);
+            return null;
+        }
+        //其中data的数据格式为arraylist
+        List<BusinessSceneResp> businessSceneRespList = JSONObject.parseArray(businessSceneString, BusinessSceneResp.class);
+        return businessSceneRespList.get(0);
     }
 }
