@@ -541,28 +541,22 @@ public class PlayServiceImpl implements IplayService {
     @Override
     public void playSpeedControl(String streamId, Double speed, String msgId) {
         //指令型操作 无需加redisson的锁
-        String businessSceneKey = GatewayMsgType.STREAM_RECORD_SPEED.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         try {
-            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SPEED,msgId);
 
             SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamId);
             if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "倍速操作", "倍速操作--失败，流不存在", streamId);
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SPEED,BusinessErrorEnums.STREAM_NOT_FOUND,false);
                 return;
             }
             String deviceId = streamSessionSsrcTransaction.getDeviceId();
             Device device = deviceService.getDevice(deviceId);
             if(ObjectUtils.isEmpty(device)){
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "倍速操作", "倍速操作--失败，设备信息不存在", streamId);
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SPEED,BusinessErrorEnums.SIP_DEVICE_NOTFOUND_EVENT,false);
                 return;
             }
             sipCommander.playSpeedCmd(device,streamSessionSsrcTransaction,speed);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SPEED,BusinessErrorEnums.SUCCESS,true);
         }catch(Exception e){
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "倍速操作", "倍速操作--失败，未知异常", streamId);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SPEED,BusinessErrorEnums.UNKNOWN_ERROR,false);
             return;
         }
 
@@ -571,29 +565,23 @@ public class PlayServiceImpl implements IplayService {
     @Override
     public void playPauseControl(String streamId, String msgId) {
         //指令型操作 无需加redisson的锁
-        String businessSceneKey = GatewayMsgType.STREAM_RECORD_PAUSE.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         try {
             //阻塞型,默认是30s无返回参数
-            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_PAUSE,msgId);
 
             SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamId);
             if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "暂停操作", "暂停操作--失败，流不存在", streamId);
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_PAUSE,BusinessErrorEnums.STREAM_NOT_FOUND,false);
                 return;
             }
             String deviceId = streamSessionSsrcTransaction.getDeviceId();
             Device device = deviceService.getDevice(deviceId);
             if(ObjectUtils.isEmpty(device)){
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "暂停操作", "暂停操作--失败，设备信息不存在", streamId);
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_PAUSE,BusinessErrorEnums.SIP_DEVICE_NOTFOUND_EVENT,false);
                 return;
             }
             sipCommander.playPauseCmd(device,streamSessionSsrcTransaction);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_PAUSE,BusinessErrorEnums.SUCCESS,true);
         }catch(Exception e){
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "暂停操作", "暂停操作--失败，未知异常", streamId);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_PAUSE,BusinessErrorEnums.UNKNOWN_ERROR,false);
             return;
         }
     }
@@ -601,29 +589,23 @@ public class PlayServiceImpl implements IplayService {
     @Override
     public void playResumeControl(String streamId, String msgId) {
 //指令型操作 无需加redisson的锁
-        String businessSceneKey = GatewayMsgType.STREAM_RECORD_RESUME.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         try {
-            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_RESUME,msgId);
 
             SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamId);
             if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
                 //todo 重要，缓存异常，点播失败需要人工介入
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "录像恢复操作", "录像恢复操作--失败，流不存在", streamId);
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_RESUME,BusinessErrorEnums.STREAM_NOT_FOUND,false);
                 return;
             }
             String deviceId = streamSessionSsrcTransaction.getDeviceId();
             Device device = deviceService.getDevice(deviceId);
             if(ObjectUtils.isEmpty(device)){
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "录像恢复操作", "录像恢复操作--失败，设备信息不存在", streamId);
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_RESUME,BusinessErrorEnums.SIP_DEVICE_NOTFOUND_EVENT,false);
                 return;
             }
             sipCommander.playResumeCmd(device,streamSessionSsrcTransaction);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_RESUME,BusinessErrorEnums.SUCCESS,true);
         }catch(Exception e){
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "录像恢复操作", "录像恢复操作--失败，未知异常", streamId);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_RESUME,BusinessErrorEnums.UNKNOWN_ERROR,false);
             return;
         }
     }
@@ -631,30 +613,24 @@ public class PlayServiceImpl implements IplayService {
     @Override
     public void playSeekControl(String streamId, long seekTime, String msgId) {
         //指令型操作 无需加redisson的锁
-        String businessSceneKey = GatewayMsgType.STREAM_RECORD_SEEK.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         try {
             //阻塞型,默认是30s无返回参数
-            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SEEK,msgId);
 
             SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamId);
             if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
                 //todo 重要，缓存异常，点播失败需要人工介入
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "录像定点操作", "录像定点操作--失败，流不存在", streamId);
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SEEK,BusinessErrorEnums.STREAM_NOT_FOUND,false);
                 return;
             }
             String deviceId = streamSessionSsrcTransaction.getDeviceId();
             Device device = deviceService.getDevice(deviceId);
             if(ObjectUtils.isEmpty(device)){
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "录像定点操作", "录像定点操作--失败，设备信息不存在", streamId);
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SEEK,BusinessErrorEnums.SIP_DEVICE_NOTFOUND_EVENT,false);
                 return;
             }
             sipCommander.playSeekCmd(device,streamSessionSsrcTransaction,seekTime);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SEEK,BusinessErrorEnums.SUCCESS,true);
         }catch(Exception e){
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "录像定点操作", "录像定点操作--失败，未知异常", streamId);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_RECORD_SEEK,BusinessErrorEnums.UNKNOWN_ERROR,false);
             return;
         }
     }

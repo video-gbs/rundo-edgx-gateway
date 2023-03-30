@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class StreamRecordSeekMsgServiceImpl implements InitializingBean, IMsgProcessorService {
+public class DeviceRecordSeekMsgServiceImpl implements InitializingBean, IMsgProcessorService {
 
     @Autowired
     IMqMsgDealServer iMqMsgDealServer;
@@ -24,7 +24,7 @@ public class StreamRecordSeekMsgServiceImpl implements InitializingBean, IMsgPro
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.STREAM_RECORD_SPEED.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.DEVICE_RECORD_SEEK.getTypeName(),this);
     }
 
     @Override
