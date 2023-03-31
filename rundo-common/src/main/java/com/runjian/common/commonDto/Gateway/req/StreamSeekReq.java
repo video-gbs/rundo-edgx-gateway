@@ -9,7 +9,7 @@ import lombok.Data;
 public class StreamSeekReq {
 
     
-    String streamId;
+//    String streamId;
     /**
      * 开始时间
      */

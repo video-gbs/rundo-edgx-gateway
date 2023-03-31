@@ -34,10 +34,10 @@ public class DeviceRecordSeekMsgServiceImpl implements InitializingBean, IMsgPro
         JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
         //设备信息同步  获取设备信息 String streamId,Double speed,String msgId
         //设备通道信息同步
-
+        String streamId = dataJson.getString("streamId");
         StreamSeekReq streamSeekReq = JSONObject.toJavaObject(dataMapJson, StreamSeekReq.class);
         long seekTime = DateUtils.StringToTimeStamp(streamSeekReq.getTargetTime()) - DateUtils.StringToTimeStamp(streamSeekReq.getCurrentTime());
-        iplayService.playSeekControl(streamSeekReq.getStreamId(), seekTime,commonMqDto.getMsgId());
+        iplayService.playSeekControl(streamId, seekTime,commonMqDto.getMsgId());
     }
 
 

@@ -51,10 +51,9 @@ public class StreamRecordResumeMsgServiceImpl implements InitializingBean, IMsgP
     public void process(CommonMqDto commonMqDto) {
         JSONObject dataJson = (JSONObject) commonMqDto.getData();
         //实际的请求参数
-        JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
         //设备信息同步  获取设备信息 String streamId,Double speed,String msgId
         //设备通道信息同步
-        String streamId = dataMapJson.getString("streamId");
+        String streamId = dataJson.getString("streamId");
         //通知网关操作
         BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto) RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
         CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_RECORD_RESUME.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,commonMqDto.getMsgId());

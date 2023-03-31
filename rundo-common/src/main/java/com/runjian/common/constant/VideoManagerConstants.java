@@ -56,4 +56,20 @@ public class VideoManagerConstants {
 	 * 设备录像信息结果前缀
 	 */
 	public static final String REDIS_RECORD_INFO_RES_COUNT_PRE = "GB_RECORD_INFO_RES_COUNT:";
+
+	/***************************录像播放标准名称****************************/
+	/**
+	 * 录像播放速度
+	 */
+	public static final String RECORD_SPEED = "speed";
+
+	/**
+	 * 录像播放当前播放时间
+	 */
+	public static final String RECORD_CURRENT_TIME = "currentTime";
+
+	/**
+	 * 录像播放目标播放时间
+	 */
+	public static final String RECORD_TARGET_TIME = "targetTime";
 }

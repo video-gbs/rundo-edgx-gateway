@@ -1,15 +1,12 @@
 package com.runjian.media.dispatcher.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.runjian.common.commonDto.Gateway.req.StreamSeekReq;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
-import com.runjian.common.commonDto.StreamPlayDto;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
-import com.runjian.common.utils.DateUtils;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
@@ -52,10 +49,12 @@ public class StreamRecordSeekMsgServiceImpl implements InitializingBean, IMsgPro
     @Override
     public void process(CommonMqDto commonMqDto) {
         JSONObject dataJson = (JSONObject) commonMqDto.getData();
+
         //实际的请求参数
         JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
-        StreamSeekReq streamSeekReq = JSONObject.toJavaObject(dataMapJson, StreamSeekReq.class);
-        BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto) RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ + BusinessSceneConstants.SCENE_SEM_KEY + streamSeekReq.getStreamId());
+        String streamId = dataJson.getString("streamId");
+
+        BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto) RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
         CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_RECORD_SEEK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,commonMqDto.getMsgId());
         String mqGetQueue = dispatcherSignInConf.getMqSetQueue();
 
@@ -69,6 +68,7 @@ public class StreamRecordSeekMsgServiceImpl implements InitializingBean, IMsgPro
         }
         //通知网关进行设备操作  todo 暂时不考虑网关操作结果的返回
         CommonMqDto gatewayMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.DEVICE_RECORD_SEEK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
+
 
         gatewayMqInfo.setData(dataJson);
         GatewayBindReq gatewayBindReq = baseRtpServerDto.getGatewayBindReq();

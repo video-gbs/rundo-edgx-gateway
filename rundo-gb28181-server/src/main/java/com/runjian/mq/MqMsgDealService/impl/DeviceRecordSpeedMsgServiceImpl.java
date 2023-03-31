@@ -33,7 +33,7 @@ public class DeviceRecordSpeedMsgServiceImpl implements InitializingBean, IMsgPr
         JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
         //设备信息同步  获取设备信息 String streamId,Double speed,String msgId
         //设备通道信息同步
-        String streamId = dataMapJson.getString("streamId");
+        String streamId = dataJson.getString("streamId");
         Double speed = dataMapJson.getDouble("speed");
         iplayService.playSpeedControl(streamId, speed,commonMqDto.getMsgId());
     }
