@@ -168,6 +168,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
                                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
                                     catalogDataCatch.setChannelSyncEnd(catalogData.getDevice().getDeviceId(), null,0);
+                                    return;
                                 }
 
                             }
