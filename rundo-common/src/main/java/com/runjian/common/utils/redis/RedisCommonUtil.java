@@ -354,7 +354,7 @@ public class RedisCommonUtil {
      * @param time 时间
      * @return true / false
      */
-    public static boolean hmset(RedisTemplate redisTemplate,String key, Map<Object, Object> map, long time) {
+    public static boolean hmset(RedisTemplate redisTemplate,String key, Map<?, ?> map, long time) {
         try {
             redisTemplate.opsForHash().putAll(key, map);
             if (time > 0) {

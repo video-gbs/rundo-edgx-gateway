@@ -44,4 +44,16 @@ public class VideoManagerConstants {
 	/*****设备缓存 start*****/
 	public static final String REGISTER_EXPIRE_TASK_KEY_PREFIX = "device_register_expire_";
 	/****设备缓存 end*****/
+
+
+	/**
+	 * Redis Const
+	 * 设备录像信息结果前缀
+	 */
+	public static final String REDIS_RECORD_INFO_RES_PRE = "GB_RECORD_INFO_RES:";
+	/**
+	 * Redis Const
+	 * 设备录像信息结果前缀
+	 */
+	public static final String REDIS_RECORD_INFO_RES_COUNT_PRE = "GB_RECORD_INFO_RES_COUNT:";
 }

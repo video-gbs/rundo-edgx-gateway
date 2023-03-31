@@ -54,7 +54,7 @@ spring:
 
     # rabbitmq 配置
     rabbitmq:
-        host: 124.71.21.11
+        host: 124.71.20.118
         port: 5672
         username: wvp
         password: wvp12345678
@@ -166,7 +166,7 @@ user-settings:
     # 点播等待超时时间,单位：毫秒
     play-timeout: 5000
     # 信令场景超时时间 单位：毫秒
-    business-scene-timeout: 5000
+    business-scene-timeout: 10000
 
     # 上级点播等待超时时间,单位：毫秒
     platform-play-timeout: 60000

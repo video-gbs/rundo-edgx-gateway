@@ -191,7 +191,7 @@ public class PlayServiceImpl implements IplayService {
                 //todo 判断ssrc是否匹配
 
                 //传递ssrc进去，出现推流不成功的异常，进行相关逻辑处理
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.SIP_SEND_SUCESS,ssrcInfo);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY_BACK,BusinessErrorEnums.SIP_SEND_SUCESS,ssrcInfo);
                 streamSession.putSsrcTransaction(device.getDeviceId(), playBackReq.getChannelId(), sipSender.getNewCallIdHeader(device.getTransport()).getCallId(), ssrcInfo.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.playback,playBackReq.getDispatchUrl());
             },error->{
                 //失败业务处理
@@ -521,15 +521,15 @@ public class PlayServiceImpl implements IplayService {
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令点播失败", response);
 
             },ok->{
-                //释放ssrc
-                redisCatchStorageService.ssrcRelease(streamSessionSsrcTransaction.getSsrc());
 
-                //关闭推流端口
-                closeGb28181RtpServer(streamSessionSsrcTransaction.getStream(),streamSessionSsrcTransaction.getMediaServerId(),streamSessionSsrcTransaction.getDispatchUrl());
-                //剔除缓存
-                streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
             });
+            //释放ssrc
+            redisCatchStorageService.ssrcRelease(streamSessionSsrcTransaction.getSsrc());
 
+            //关闭推流端口
+            closeGb28181RtpServer(streamSessionSsrcTransaction.getStream(),streamSessionSsrcTransaction.getMediaServerId(),streamSessionSsrcTransaction.getDispatchUrl());
+            //剔除缓存
+            streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
 
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "[命令发送失败] 停止点播， 发送BYE", e);

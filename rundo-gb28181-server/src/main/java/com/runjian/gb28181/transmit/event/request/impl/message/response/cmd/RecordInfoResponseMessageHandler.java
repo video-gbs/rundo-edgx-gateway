@@ -7,6 +7,7 @@ import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.BusinessSceneConstants;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.constant.VideoManagerConstants;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.DateUtils;
 import com.runjian.common.utils.redis.RedisCommonUtil;
@@ -21,6 +22,7 @@ import com.runjian.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.runjian.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.runjian.service.IRedisCatchStorageService;
 import com.runjian.utils.DateUtil;
+import com.runjian.utils.UJson;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -56,7 +58,6 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
     private final Logger logger = LoggerFactory.getLogger(RecordInfoResponseMessageHandler.class);
     private final String cmdType = "RecordInfo";
 
-    private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Autowired
     private ResponseMessageHandler responseMessageHandler;
@@ -76,9 +77,15 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
     @Autowired
     private UserSetting userSetting;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Autowired
     IRedisCatchStorageService redisCatchStorageService;
+
+
+    private Long expireRecordInfoTtl = 300L;
+
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -93,7 +100,6 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
         }catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "国标级联-国标录像", "命令发送失败", e);
         }
-        taskQueue.offer(new HandlerCatchData(evt, device, rootElement));
         taskExecutor.execute(()->{
             try {
                 String sn = getText(rootElement, "SN");
@@ -114,9 +120,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                 Element recordListElement = rootElement.element("RecordList");
                 if (recordListElement == null || sumNum == 0) {
                     logger.info("无录像数据");
-                    eventPublisher.recordEndEventPush(recordInfo);
-                    recordDataCatch.put(device.getDeviceId(), sn, sumNum, new ArrayList<>());
-                    releaseRequest(businessSceneKey, device.getDeviceId(), sn);
+                    releaseRequest(businessSceneKey, new RecordInfo());
                 } else {
                     Iterator<Element> recordListIterator = recordListElement.elementIterator();
                     if (recordListIterator != null) {
@@ -148,13 +152,28 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                             record.setRecorderId(getText(itemRecord, "RecorderID"));
                             recordList.add(record);
                         }
-                        eventPublisher.recordEndEventPush(recordInfo);
-                        int count = recordDataCatch.put(device.getDeviceId(), sn, sumNum, recordList);
-                        logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "国标级联-国标录像", "日志记录", "设备id:" + device.getDeviceId() + " sn:" + sn + " count:" + count + " sumNum:" + sumNum);
+                        Map<String, String> map = recordList.stream()
+                                .filter(record -> record.getDeviceId() != null)
+                                .collect(Collectors.toMap(record -> record.getStartTime()+ record.getEndTime(), UJson::writeJson));
+                        // 获取任务结果数据
+                        String resKey = VideoManagerConstants.REDIS_RECORD_INFO_RES_PRE + channelId + sn;
+                        RedisCommonUtil.hmset(redisTemplate, resKey, map, expireRecordInfoTtl);
+                        String resCountKey = VideoManagerConstants.REDIS_RECORD_INFO_RES_COUNT_PRE + channelId + sn;
+                        long incr = RedisCommonUtil.incr(resCountKey, map.size(),redisTemplate);
+                        RedisCommonUtil.expire(redisTemplate,resCountKey, expireRecordInfoTtl);
                         recordInfo.setRecordList(recordList);
-                        if (recordDataCatch.isComplete(device.getDeviceId(), sn)){
-                            releaseRequest(businessSceneKey,device.getDeviceId(), sn);
+                        if (incr < sumNum) {
+                            return;
                         }
+                        // 已接收完成
+                        List<RecordItem> resList = RedisCommonUtil.hmget(redisTemplate,resKey).values().stream().map(e -> UJson.readJson(e.toString(), RecordItem.class)).collect(Collectors.toList());
+                        if (resList.size() < sumNum) {
+                            logger.error("[国标录像] 缓存异常={}| ",channelId);
+                            return;
+                        }
+                        recordInfo.setRecordList(resList);
+                        releaseRequest(businessSceneKey,recordInfo);
+
                     }
                 }
             } catch (Exception e) {
@@ -168,9 +187,9 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
     }
 
-    public void releaseRequest(String businessSceneKey,String deviceId, String sn){
+    public void releaseRequest(String businessSceneKey,RecordInfo recordInfo){
         // 对数据进行排序
-        RecordInfo recordInfo = recordDataCatch.getRecordInfo(deviceId, sn);
+        logger.info("录像数据数据完成={}",businessSceneKey);
         List<RecordItem> recordList = recordInfo.getRecordList();
         List<RecordItem> recordItems = new ArrayList<>();
         if(!CollectionUtils.isEmpty(recordList)){
