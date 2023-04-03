@@ -114,6 +114,10 @@ public enum BusinessErrorEnums {
 
     STREAM_NOT_FOUND(500,232013,"流不存在"),
 
+    DB_CHANNEL_NOT_FOUND(500,232014,"通道数据查找失败"),
+
+
+    PRESET_OPERATION_TYPE_NOT_FOUND(500,232015,"通道预置位操作信息不存在"),
     /************************** media异常 CODE:233xx ****************************/
     MEDIA_ZLM_EXSITED_ERROR(500,23300,"流媒体服务已存在"),
     MEDIA_ZLM_COLLECT_ERROR(500,23301,"流媒体服务连接失败"),

@@ -1,6 +1,10 @@
 package com.runjian.gb28181.transmit.event.request.impl.message.response.cmd;
 
+import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.constant.BusinessSceneConstants;
+import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.constant.PresetOperationTypeEnum;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.ParentPlatform;
 import com.runjian.gb28181.bean.PresetQuerySipReq;
@@ -9,6 +13,7 @@ import com.runjian.gb28181.transmit.callback.RequestMessage;
 import com.runjian.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.runjian.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.runjian.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
+import com.runjian.service.IRedisCatchStorageService;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -40,9 +45,9 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
     @Autowired
     private ResponseMessageHandler responseMessageHandler;
 
-    @Autowired
-    private DeferredResultHolder deferredResultHolder;
 
+    @Autowired
+    IRedisCatchStorageService redisCatchStorageService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -67,18 +72,11 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                 return;
             }
             Element presetListNumElement = rootElement.element("PresetList");
-            Element snElement = rootElement.element("SN");
             //该字段可能为通道或则设备的id
-            String deviceId = getText(rootElement, "DeviceID");
-            String key = DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + deviceId;
-            if (snElement == null || presetListNumElement == null) {
-                try {
-                    responseAck(request, Response.BAD_REQUEST, "xml error");
-                } catch (InvalidArgumentException | ParseException | SipException e) {
-                    logger.warn(LogTemplate.ERROR_LOG_TEMPLATE, "设备预置位查询应答", "命令发送失败", e);
-                }
-                return;
-            }
+            String channelId = getText(rootElement, "DeviceID");
+            //预置位查询的key
+            String businessSceneKey = GatewayMsgType.CHANNEL_PRESET_OPERATION.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+channelId+BusinessSceneConstants.SCENE_STREAM_KEY+ PresetOperationTypeEnum.PresetGet.getTypeName();
+
             int sumNum = Integer.parseInt(presetListNumElement.attributeValue("Num"));
             List<PresetQuerySipReq> presetQuerySipReqList = new ArrayList<>();
             if (sumNum > 0) {
@@ -99,10 +97,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                     presetQuerySipReqList.add(presetQuerySipReq);
                 }
             }
-            RequestMessage requestMessage = new RequestMessage();
-            requestMessage.setKey(key);
-            requestMessage.setData(presetQuerySipReqList);
-            deferredResultHolder.invokeAllResult(requestMessage);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PRESET_OPERATION, BusinessErrorEnums.SUCCESS,presetQuerySipReqList);
             try {
                 responseAck(request, Response.OK);
             } catch (InvalidArgumentException | ParseException | SipException e) {

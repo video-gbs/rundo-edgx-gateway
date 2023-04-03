@@ -59,6 +59,13 @@ public enum GatewayMsgType {
     DEVICE_RECORD_PAUSE("DEVICE_RECORD_PAUSE"),
     //回放恢复
     DEVICE_RECORD_RESUME("DEVICE_RECORD_RESUME"),
+    //预置位--操作
+    //预置位操作
+    CHANNEL_PRESET_OPERATION("CHANNEL_PRESET_OPERATION"),
+
+
+
+
     /********调度服务相关*************/
     //流注册  调度终于网关均需要处理
     PLAY_STREAM_CALLBACK("PLAY_STREAM_CALLBACK"),

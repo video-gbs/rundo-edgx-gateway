@@ -343,7 +343,19 @@ public class SIPCommander implements ISIPCommander {
 
     @Override
     public void presetQuery(Device device, String channelId, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+        StringBuffer cmdXml = new StringBuffer(200);
+        String charset = device.getCharset();
+        cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
+        cmdXml.append("<Query>\r\n");
+        cmdXml.append("<CmdType>PresetQuery</CmdType>\r\n");
+        cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+        cmdXml.append("</Query>\r\n");
 
+
+
+        Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(device.getTransport()));
+        sipSender.transmitRequest( request, errorEvent);
     }
 
     @Override

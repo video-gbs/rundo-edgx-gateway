@@ -101,4 +101,18 @@ public class MarkConstant {
 
     public static final String FOREIGN_PLATFORM_ID = "platformid";
 
+    /******************************国标ptz-- 10进制指令大全 **********************************************/
+    /**预置位
+     * start
+     */
+    public static final int PresetSet = 129;
+    public static final int PresetInvoke = 130;
+    public static final int PresetDel = 131;
+    /**预置位
+     * end
+     */
+
+
+
+
 }

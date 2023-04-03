@@ -1,17 +1,17 @@
 package com.runjian.service.impl;
 
 import com.runjian.common.commonDto.Gateway.req.DeviceControlReq;
+import com.runjian.common.commonDto.Gateway.req.PresetControlReq;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
-import com.runjian.common.constant.BusinessSceneConstants;
-import com.runjian.common.constant.GatewayMsgType;
-import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.constant.*;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.UserSetting;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceChannel;
 import com.runjian.gb28181.transmit.cmd.impl.SIPCommander;
+import com.runjian.service.IDeviceChannelService;
 import com.runjian.service.IDeviceService;
 import com.runjian.service.IPtzService;
 import com.runjian.service.IRedisCatchStorageService;
@@ -27,6 +27,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -38,6 +39,9 @@ import java.util.concurrent.TimeUnit;
 public class PtzServiceImpl implements IPtzService {
     @Autowired
     IDeviceService deviceService;
+
+    @Autowired
+    IDeviceChannelService deviceChannelService;
     @Autowired
     RedissonClient redissonClient;
 
@@ -125,6 +129,79 @@ public class PtzServiceImpl implements IPtzService {
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ptz服务", "ptz操作失败", deviceControlReq);
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL,BusinessErrorEnums.UNKNOWN_ERROR,null);
         }
+
+    }
+
+    @Override
+    public void presetControl(PresetControlReq presetControlReq,String msgId) {
+        //进行预置位操作
+        //校验参数
+        String businessSceneKey = GatewayMsgType.CHANNEL_PRESET_OPERATION.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+presetControlReq.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+presetControlReq.getChannelId()+BusinessSceneConstants.SCENE_STREAM_KEY+presetControlReq.getPresetOperationType();
+        RLock lock = redissonClient.getLock(businessSceneKey);
+
+        try {
+            //阻塞型,默认是30s无返回参数
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PRESET_OPERATION,msgId);
+            //尝试获取锁
+            boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100, TimeUnit.MILLISECONDS);
+            if(!b){
+                //加锁失败，不继续执行
+                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求,加锁失败，合并全局的请求",msgId);
+                return;
+            }
+            PresetOperationTypeEnum presetOperationTypeEnumOne = PresetOperationTypeEnum.getTypeByTypeId(presetControlReq.getPresetOperationType());
+            //查询通道数据
+            Device device = deviceService.getDevice(presetControlReq.getDeviceId());
+            if(ObjectUtils.isEmpty(device)){
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PRESET_OPERATION,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
+                return;
+            }
+            //查询通道
+            DeviceChannel channelOne = deviceChannelService.getOne(presetControlReq.getDeviceId(), presetControlReq.getChannelId());
+            if(ObjectUtils.isEmpty(channelOne)){
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PRESET_OPERATION,BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,null);
+                return;
+            }
+            if(ObjectUtils.isEmpty(presetOperationTypeEnumOne)){
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PRESET_OPERATION,BusinessErrorEnums.PRESET_OPERATION_TYPE_NOT_FOUND,null);
+                return;
+            }
+
+
+            switch (presetOperationTypeEnumOne){
+                case PresetGet:
+                    //查询
+                    sipCommander.presetQuery(device,presetControlReq.getChannelId(),null);
+                    break;
+                case PresetSet:
+                    //设置
+                    sipCommander.frontEndCmd(device, presetControlReq.getChannelId(), MarkConstant.PresetSet,0, Integer.parseInt(presetControlReq.getPresetId()),0);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PRESET_OPERATION, BusinessErrorEnums.SUCCESS,null);
+                    break;
+                case PresetInvoke:
+                    //调用
+                    sipCommander.frontEndCmd(device, presetControlReq.getChannelId(), MarkConstant.PresetInvoke,0, Integer.parseInt(presetControlReq.getPresetId()),0);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PRESET_OPERATION, BusinessErrorEnums.SUCCESS,null);
+                    break;
+                case PresetDel:
+                    //删除
+                    sipCommander.frontEndCmd(device, presetControlReq.getChannelId(), MarkConstant.PresetDel,0, Integer.parseInt(presetControlReq.getPresetId()),0);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PRESET_OPERATION, BusinessErrorEnums.SUCCESS,null);
+                    break;
+                default:
+                    //信令操作异常
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PRESET_OPERATION,BusinessErrorEnums.PRESET_OPERATION_TYPE_NOT_FOUND,null);
+                    break;
+            }
+
+        }catch (Exception e){
+            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ptz服务", "预置位操作失败", presetControlReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PRESET_OPERATION,BusinessErrorEnums.UNKNOWN_ERROR,null);
+        }
+
+
+
+
 
     }
 }
