@@ -56,7 +56,6 @@ public enum PtzOperationTypeEnum {
     private final String typeName;
 
     public static PtzOperationTypeEnum getTypeByTypeId(String id){
-        id = id.toUpperCase();
         for (PtzOperationTypeEnum videoType : values()){
             if (videoType.typeName.equals(id))
                 return videoType;

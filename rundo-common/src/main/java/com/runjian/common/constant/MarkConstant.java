@@ -123,15 +123,15 @@ public class MarkConstant {
 
 
     //倍率放大缩小
-    public static final int Zoomin = 20;
-    public static final int Zoomout = 10;
+    public static final int ZOOM_IN = 20;
+    public static final int ZOOM_OUT = 10;
 
     //F1指令----start
-    public static final int IrisReduce = 48;
-    public static final int IrisGrow = 44;
-    public static final int FocusNear = 42;
-    public static final int FocusFar = 41;
-    public static final int IrisAndFocusStop = 40;
+    public static final int IRIS_REDUCE = 48;
+    public static final int IRIS_GROW = 44;
+    public static final int FOCUS_NEAR = 42;
+    public static final int FOCUS_FAR = 41;
+    public static final int IRISE_AND_FOCUS_STOP = 40;
     //F1指令----stop
 
 
