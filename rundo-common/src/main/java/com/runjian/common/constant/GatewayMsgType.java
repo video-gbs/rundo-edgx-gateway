@@ -62,7 +62,8 @@ public enum GatewayMsgType {
     //预置位--操作
     //云台控制操作
     CHANNEL_PTZ_OPERATION("CHANNEL_PTZ_OPERATION"),
-
+    //拉框放大/缩小
+    CHANNEL_3D_OPERATION("CHANNEL_3D_OPERATION"),
 
 
 

@@ -380,7 +380,19 @@ public class SIPCommander implements ISIPCommander {
 
     @Override
     public void dragZoomCmd(Device device, String channelId, String cmdString) throws InvalidArgumentException, SipException, ParseException {
+        StringBuffer dragXml = new StringBuffer(200);
+        String charset = device.getCharset();
+        dragXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
+        dragXml.append("<Control>\r\n");
+        dragXml.append("<CmdType>DeviceControl</CmdType>\r\n");
+        dragXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        dragXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+        dragXml.append(cmdString);
+        dragXml.append("</Control>\r\n");
 
+        Request request = headerProvider.createMessageRequest(device, dragXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(device.getTransport()));
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE, "设备能力接口", "拉框信令：" + request.toString());
+        sipSender.transmitRequest(request);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.runjian.service.impl;
 
 import com.runjian.common.commonDto.Gateway.req.ChannelPtzControlReq;
 import com.runjian.common.commonDto.Gateway.req.DeviceControlReq;
+import com.runjian.common.commonDto.Gateway.req.DragZoomControlReq;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.*;
 import com.runjian.conf.UserSetting;
@@ -277,9 +278,86 @@ public class PtzServiceImpl implements IPtzService {
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PTZ_OPERATION,BusinessErrorEnums.UNKNOWN_ERROR,null);
         }
 
+    }
 
+    @Override
+    public void dragZoomControl(DragZoomControlReq dragZoomControlReq) {
+        //进行预置位操作
+        //校验参数
+        String msgId = dragZoomControlReq.getMsgId();;
+        String businessSceneKey = GatewayMsgType.CHANNEL_3D_OPERATION.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+dragZoomControlReq.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+dragZoomControlReq.getChannelId()+BusinessSceneConstants.SCENE_STREAM_KEY+dragZoomControlReq.getDragOperationType();
+        RLock lock = redissonClient.getLock(businessSceneKey);
 
+        try {
+            //阻塞型,默认是30s无返回参数
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayMsgType.CHANNEL_3D_OPERATION, msgId);
+            //尝试获取锁
+            boolean b = lock.tryLock(0, userSetting.getBusinessSceneTimeout() + 100, TimeUnit.MILLISECONDS);
+            if (!b) {
+                //加锁失败，不继续执行
+                log.info(LogTemplate.PROCESS_LOG_TEMPLATE, "设备信息同步请求,加锁失败，合并全局的请求", msgId);
+                return;
+            }
+            PtzOperationTypeEnum presetOperationTypeEnumOne = PtzOperationTypeEnum.getTypeByTypeId(dragZoomControlReq.getDragOperationType());
+            //查询通道数据
+            Device device = deviceService.getDevice(dragZoomControlReq.getDeviceId());
+            if(ObjectUtils.isEmpty(device)){
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
+                return;
+            }
+            //查询通道
+            DeviceChannel channelOne = deviceChannelService.getOne(dragZoomControlReq.getDeviceId(), dragZoomControlReq.getChannelId());
+            if(ObjectUtils.isEmpty(channelOne)){
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,null);
+                return;
+            }
+            if(ObjectUtils.isEmpty(presetOperationTypeEnumOne)){
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.PRESET_OPERATION_TYPE_NOT_FOUND,null);
+                return;
+            }
+            StringBuffer cmdXml = null;
+            int length = dragZoomControlReq.getLength();
+            int width = dragZoomControlReq.getWidth();
+            int lengthx = dragZoomControlReq.getLengthx();
+            int lengthy = dragZoomControlReq.getLengthy();
+            int midpointx = dragZoomControlReq.getMidpointx();
+            int midpointy = dragZoomControlReq.getMidpointy();
+            String channelId = dragZoomControlReq.getChannelId();
+            switch (presetOperationTypeEnumOne){
+                case DragZoomIn:
+                    cmdXml = new StringBuffer(200);
+                    cmdXml.append("<DragZoomIn>\r\n");
+                    cmdXml.append("<Length>" + length+ "</Length>\r\n");
+                    cmdXml.append("<Width>" + width+ "</Width>\r\n");
+                    cmdXml.append("<MidPointX>" + midpointx+ "</MidPointX>\r\n");
+                    cmdXml.append("<MidPointY>" + midpointy+ "</MidPointY>\r\n");
+                    cmdXml.append("<LengthX>" + lengthx+ "</LengthX>\r\n");
+                    cmdXml.append("<LengthY>" + lengthy+ "</LengthY>\r\n");
+                    cmdXml.append("</DragZoomIn>\r\n");
+                    sipCommander.dragZoomCmd(device,channelId,cmdXml.toString());
+                    break;
+                case DragZoomOut:
+                    cmdXml = new StringBuffer(200);
+                    cmdXml.append("<DragZoomOut>\r\n");
+                    cmdXml.append("<Length>" + length+ "</Length>\r\n");
+                    cmdXml.append("<Width>" + width+ "</Width>\r\n");
+                    cmdXml.append("<MidPointX>" + midpointx+ "</MidPointX>\r\n");
+                    cmdXml.append("<MidPointY>" + midpointy+ "</MidPointY>\r\n");
+                    cmdXml.append("<LengthX>" + lengthx+ "</LengthX>\r\n");
+                    cmdXml.append("<LengthY>" + lengthy+ "</LengthY>\r\n");
+                    cmdXml.append("</DragZoomOut>\r\n");
+                    sipCommander.dragZoomCmd(device,channelId,cmdXml.toString());
+                    break;
+                default:
+                    //信令操作异常
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.PRESET_OPERATION_TYPE_NOT_FOUND,null);
+                    break;
 
+            }
 
+        }catch (Exception e){
+            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "拉框服务", "拉框服务操作失败", dragZoomControlReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.UNKNOWN_ERROR,null);
+        }
     }
 }

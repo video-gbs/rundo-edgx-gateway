@@ -46,6 +46,11 @@ public enum PtzOperationTypeEnum {
     IrisAndFocusStop("IrisAndFocusStop"),
 
 
+    //3d放大缩小
+    //放大
+    DragZoomIn("DragZoomIn"),
+    //缩小
+    DragZoomOut("DragZoomOut"),
     ;
 
     private final String typeName;
