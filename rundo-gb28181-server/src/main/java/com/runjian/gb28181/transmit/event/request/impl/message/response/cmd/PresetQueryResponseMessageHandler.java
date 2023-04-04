@@ -4,12 +4,10 @@ import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.BusinessSceneConstants;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.constant.PresetOperationTypeEnum;
+import com.runjian.common.constant.PtzOperationTypeEnum;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.ParentPlatform;
 import com.runjian.gb28181.bean.PresetQuerySipReq;
-import com.runjian.gb28181.transmit.callback.DeferredResultHolder;
-import com.runjian.gb28181.transmit.callback.RequestMessage;
 import com.runjian.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.runjian.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.runjian.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
@@ -75,7 +73,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
             //该字段可能为通道或则设备的id
             String channelId = getText(rootElement, "DeviceID");
             //预置位查询的key
-            String businessSceneKey = GatewayMsgType.CHANNEL_PRESET_OPERATION.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+channelId+BusinessSceneConstants.SCENE_STREAM_KEY+ PresetOperationTypeEnum.PresetGet.getTypeName();
+            String businessSceneKey = GatewayMsgType.CHANNEL_PTZ_OPERATION.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+channelId+BusinessSceneConstants.SCENE_STREAM_KEY+ PtzOperationTypeEnum.PresetGet.getTypeName();
 
             int sumNum = Integer.parseInt(presetListNumElement.attributeValue("Num"));
             List<PresetQuerySipReq> presetQuerySipReqList = new ArrayList<>();
@@ -97,7 +95,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                     presetQuerySipReqList.add(presetQuerySipReq);
                 }
             }
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PRESET_OPERATION, BusinessErrorEnums.SUCCESS,presetQuerySipReqList);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PTZ_OPERATION, BusinessErrorEnums.SUCCESS,presetQuerySipReqList);
             try {
                 responseAck(request, Response.OK);
             } catch (InvalidArgumentException | ParseException | SipException e) {

@@ -105,13 +105,34 @@ public class MarkConstant {
     /**预置位
      * start
      */
-    public static final int PresetSet = 129;
-    public static final int PresetInvoke = 130;
-    public static final int PresetDel = 131;
+    public static final int PRESET_SET = 129;
+    public static final int PRESET_INVOKE = 130;
+    public static final int PRESET_DEL = 131;
     /**预置位
      * end
      */
+    public static final int PTZ_LEFT = 2;
+    public static final int PTZ_RIGHT = 1;
+    public static final int PTZ_UP = 8;
+    public static final int PTZ_DOWN = 4;
+    public static final int PTZ_UPLEFT = 10;
+    public static final int PTZ_UPRIGHT = 9;
+    public static final int PTZ_DOWNLEFT = 6;
+    public static final int PTZ_DOWNRIGHT = 5;
+    public static final int PTZ_STOP = 0;
 
+
+    //倍率放大缩小
+    public static final int Zoomin = 20;
+    public static final int Zoomout = 10;
+
+    //F1指令----start
+    public static final int IrisReduce = 48;
+    public static final int IrisGrow = 44;
+    public static final int FocusNear = 42;
+    public static final int FocusFar = 41;
+    public static final int IrisAndFocusStop = 40;
+    //F1指令----stop
 
 
 

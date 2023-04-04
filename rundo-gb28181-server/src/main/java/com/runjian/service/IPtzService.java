@@ -1,7 +1,7 @@
 package com.runjian.service;
 
+import com.runjian.common.commonDto.Gateway.req.ChannelPtzControlReq;
 import com.runjian.common.commonDto.Gateway.req.DeviceControlReq;
-import com.runjian.common.commonDto.Gateway.req.PresetControlReq;
 
 /**
  * ptz处理服务
@@ -17,7 +17,7 @@ public interface IPtzService {
 
     /**
      * 预置位控制
-     * @param presetControlReq
+     * @param channelPtzControlReq
      */
-    void presetControl(PresetControlReq presetControlReq,String msgId);
+    void ptzControl(ChannelPtzControlReq channelPtzControlReq);
 }

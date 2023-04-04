@@ -60,8 +60,8 @@ public enum GatewayMsgType {
     //回放恢复
     DEVICE_RECORD_RESUME("DEVICE_RECORD_RESUME"),
     //预置位--操作
-    //预置位操作
-    CHANNEL_PRESET_OPERATION("CHANNEL_PRESET_OPERATION"),
+    //云台控制操作
+    CHANNEL_PTZ_OPERATION("CHANNEL_PTZ_OPERATION"),
 
 
 
