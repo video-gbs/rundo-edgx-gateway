@@ -96,6 +96,8 @@ public enum GatewayMsgType {
     STREAM_RECORD_PAUSE("STREAM_RECORD_PAUSE"),
     //回放恢复
     STREAM_RECORD_RESUME("STREAM_RECORD_RESUME"),
+    //获取流信息
+    STREAM_MEDIA_INFO("STREAM_MEDIA_INFO"),
     /******调度服务业务队列场景*************/
 
 

@@ -16,6 +16,12 @@ public interface IOnlineStreamsService {
     int update(OnlineStreamsEntity onlineStreams);
 
     /**
+     * 获取一个流信息
+     * @param streamId
+     * @return
+     */
+    OnlineStreamsEntity getOneBystreamId(String streamId);
+    /**
      * 移除流列表
      * @param streamId
      * @return

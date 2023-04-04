@@ -12,6 +12,7 @@ import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 import com.runjian.media.dispatcher.mapper.OnlineStreamsMapper;
 import com.runjian.media.dispatcher.service.IOnlineStreamsService;
 import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
+import com.sun.org.apache.bcel.internal.generic.RETURN;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -55,6 +56,12 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
             return onlineStreamsMapper.add(onlineStreams);
 
         }
+
+    }
+
+    @Override
+    public OnlineStreamsEntity getOneBystreamId(String streamId) {
+        return onlineStreamsMapper.selectOne(streamId);
 
     }
 
