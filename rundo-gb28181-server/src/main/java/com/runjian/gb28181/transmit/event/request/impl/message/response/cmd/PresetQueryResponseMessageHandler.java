@@ -87,7 +87,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                         String name = itemOne.getName();
                         String textTrim = itemOne.getTextTrim();
                         if ("PresetID".equalsIgnoreCase(name)) {
-                            presetQuerySipReq.setPresetId(textTrim);
+                            presetQuerySipReq.setPresetId(Integer.parseInt(textTrim));
                         } else {
                             presetQuerySipReq.setPresetName(textTrim);
                         }

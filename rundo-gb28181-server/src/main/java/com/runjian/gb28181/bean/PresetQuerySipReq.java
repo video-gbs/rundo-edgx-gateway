@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class PresetQuerySipReq {
 
-    private String presetId;
+    private Integer presetId;
 
     private String presetName;
 }
