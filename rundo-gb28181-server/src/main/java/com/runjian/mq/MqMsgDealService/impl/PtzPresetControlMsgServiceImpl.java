@@ -33,11 +33,7 @@ public class PtzPresetControlMsgServiceImpl implements InitializingBean, IMsgPro
         //设备信息同步  获取设备信息
         String deviceId = dataJson.getString("deviceId");
         String channelId = dataJson.getString("channelId");
-        ChannelPtzControlReq channelPtzControlReq = JSONObject.toJavaObject(dataMapJson, ChannelPtzControlReq.class);
-        channelPtzControlReq.setDeviceId(deviceId);
-        channelPtzControlReq.setChannelId(channelId);
-        channelPtzControlReq.setMsgId(commonMqDto.getMsgId());
-        ptzService.ptzControl(channelPtzControlReq);
+        ptzService.ptzPresetControl(deviceId,channelId, commonMqDto.getMsgId());
 
     }
 

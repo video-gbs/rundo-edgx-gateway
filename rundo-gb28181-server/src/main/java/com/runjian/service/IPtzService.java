@@ -25,6 +25,15 @@ public interface IPtzService {
     void ptzControl(ChannelPtzControlReq channelPtzControlReq);
 
     /**
+     * 预置位查询
+     * @param deviceId
+     * @param channelId
+     * @param msgId
+     */
+
+    void ptzPresetControl(String deviceId, String channelId,String msgId);
+
+    /**
      * 拉框放大缩小
      * @param dragZoomControlReq
      */
