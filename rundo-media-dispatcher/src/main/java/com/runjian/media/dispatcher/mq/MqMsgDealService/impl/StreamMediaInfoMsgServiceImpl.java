@@ -2,6 +2,9 @@ package com.runjian.media.dispatcher.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.Gb28181Media.resp.StreamAudioMediaInfoResp;
+import com.runjian.common.commonDto.Gb28181Media.resp.StreamMediaInfoResp;
+import com.runjian.common.commonDto.Gb28181Media.resp.StreamVideoMediaInfoResp;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.GatewayCacheConstants;
 import com.runjian.common.constant.GatewayMsgType;
@@ -54,6 +57,34 @@ public class StreamMediaInfoMsgServiceImpl implements InitializingBean, IMsgProc
         iMqMsgDealServer.addRequestProcessor(GatewayMsgType.STREAM_MEDIA_INFO.getTypeName(),this);
     }
 
+
+//    {
+//        "code" : 0,
+//            "online" : true, # 是否在线
+//        "readerCount" : 0, # 本协议观看人数
+//        "totalReaderCount" : 0, # 观看总人数，包括hls/rtsp/rtmp/http-flv/ws-flv
+//        "tracks" : [ # 轨道列表
+//        {
+//            "channels" : 1, # 音频通道数
+//            "codec_id" : 2, # H264 = 0, H265 = 1, AAC = 2, G711A = 3, G711U = 4
+//            "codec_id_name" : "CodecAAC", # 编码类型名称
+//            "codec_type" : 1, # Video = 0, Audio = 1
+//            "ready" : true, # 轨道是否准备就绪
+//            "sample_bit" : 16, # 音频采样位数
+//            "sample_rate" : 8000 # 音频采样率
+//        },
+//        {
+//            "codec_id" : 0, # H264 = 0, H265 = 1, AAC = 2, G711A = 3, G711U = 4
+//            "codec_id_name" : "CodecH264", # 编码类型名称
+//            "codec_type" : 0, # Video = 0, Audio = 1
+//            "fps" : 59,  # 视频fps
+//            "height" : 720, # 视频高
+//            "ready" : true,  # 轨道是否准备就绪
+//            "width" : 1280 # 视频宽
+//        }
+//  ]
+//    }
+
     @Override
     public void process(CommonMqDto commonMqDto) {
         JSONObject dataJson = (JSONObject) commonMqDto.getData();
@@ -92,8 +123,47 @@ public class StreamMediaInfoMsgServiceImpl implements InitializingBean, IMsgProc
 
 
         JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServerItemOne, app, schema, streamId);
-        businessMqInfo.setData(mediaInfo);
-        rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),businessMqInfo,true);
+        boolean mediaInfoFlag = mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online");
+        if(mediaInfoFlag){
+            StreamMediaInfoResp streamMediaInfoResp = JSONObject.toJavaObject(mediaInfo, StreamMediaInfoResp.class);
+            //数值转驼峰  jsonarray
+            JSONArray tracksArray = (JSONArray)streamMediaInfoResp.getTracks();
+
+            JSONArray objectsArr = new JSONArray();
+            StreamAudioMediaInfoResp streamAudioMediaInfoResp = new StreamAudioMediaInfoResp();
+            StreamVideoMediaInfoResp streamVideoMediaInfoResp = new StreamVideoMediaInfoResp();
+            for (Object trackOne : tracksArray) {
+                JSONObject trackJson = (JSONObject)trackOne;
+                if(trackJson.getInteger("codec_type") == 0){
+                    //视频
+                    streamVideoMediaInfoResp.setCodecName(trackJson.getString("codec_id_name"));
+                    streamVideoMediaInfoResp.setCodecType(0);
+                    streamVideoMediaInfoResp.setFps(trackJson.getInteger("fps"));
+                    streamVideoMediaInfoResp.setHeight(trackJson.getInteger("height"));
+                    streamVideoMediaInfoResp.setWidth(trackJson.getInteger("width"));
+                    streamVideoMediaInfoResp.setReady(trackJson.getBoolean("ready"));
+                    objectsArr.add(streamVideoMediaInfoResp);
+                }else {
+                    streamAudioMediaInfoResp.setChannels(trackJson.getInteger("channels"));
+                    streamAudioMediaInfoResp.setCodecName(trackJson.getString("codec_id_name"));
+                    streamAudioMediaInfoResp.setCodecType(1);
+                    streamAudioMediaInfoResp.setReady(trackJson.getBoolean("ready"));
+                    streamAudioMediaInfoResp.setSampleBit(trackJson.getInteger("sample_bit"));
+                    streamAudioMediaInfoResp.setSampleRate(trackJson.getInteger("sample_rate"));
+                    objectsArr.add(streamAudioMediaInfoResp);
+                }
+
+            }
+            streamMediaInfoResp.setTracks(objectsArr);
+            businessMqInfo.setData(mediaInfo);
+            rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),businessMqInfo,true);
+        }else {
+            //获取信息失败
+            businessMqInfo.setCode(BusinessErrorEnums.STREAM_NOT_FOUND.getErrCode());
+            businessMqInfo.setMsg(BusinessErrorEnums.STREAM_NOT_FOUND.getErrMsg());
+            businessMqInfo.setData(false);
+            rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),businessMqInfo,true);
+        }
     }
 
 
