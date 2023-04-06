@@ -59,7 +59,8 @@ public enum GatewayMsgType {
     DEVICE_RECORD_PAUSE("DEVICE_RECORD_PAUSE"),
     //回放恢复
     DEVICE_RECORD_RESUME("DEVICE_RECORD_RESUME"),
-    //预置位--操作
+    //预置位--操作查询
+    CHANNEL_PTZ_PRESET("CHANNEL_PTZ_PRESET"),
     //云台控制操作
     CHANNEL_PTZ_OPERATION("CHANNEL_PTZ_OPERATION"),
     //拉框放大/缩小

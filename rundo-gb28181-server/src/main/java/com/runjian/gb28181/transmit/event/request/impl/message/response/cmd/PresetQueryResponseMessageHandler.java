@@ -73,7 +73,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
             //该字段可能为通道或则设备的id
             String channelId = getText(rootElement, "DeviceID");
             //预置位查询的key
-            String businessSceneKey = GatewayMsgType.CHANNEL_PTZ_OPERATION.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+channelId+BusinessSceneConstants.SCENE_STREAM_KEY+ PtzOperationTypeEnum.PresetGet.getTypeName();
+            String businessSceneKey = GatewayMsgType.CHANNEL_PTZ_OPERATION.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+channelId+BusinessSceneConstants.SCENE_STREAM_KEY;
 
             int sumNum = Integer.parseInt(presetListNumElement.attributeValue("Num"));
             List<PresetQuerySipReq> presetQuerySipReqList = new ArrayList<>();

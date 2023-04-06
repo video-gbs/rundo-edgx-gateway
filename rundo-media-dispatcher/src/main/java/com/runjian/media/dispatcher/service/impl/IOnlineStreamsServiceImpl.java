@@ -12,7 +12,6 @@ import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 import com.runjian.media.dispatcher.mapper.OnlineStreamsMapper;
 import com.runjian.media.dispatcher.service.IOnlineStreamsService;
 import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
-import com.sun.org.apache.bcel.internal.generic.RETURN;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -99,6 +98,7 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
                 streamCloseDto.setCanClose(false);
                 CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
 
+                mqInfo.setData(streamCloseDto);
                 mqInfo.setData(streamCloseDto);
                 rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
 

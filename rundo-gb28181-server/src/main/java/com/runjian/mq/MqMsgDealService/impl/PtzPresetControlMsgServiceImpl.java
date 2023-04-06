@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ChannelPtzControlMsgServiceImpl implements InitializingBean, IMsgProcessorService {
+public class PtzPresetControlMsgServiceImpl implements InitializingBean, IMsgProcessorService {
 
     @Autowired
     IMqMsgDealServer iMqMsgDealServer;
@@ -22,7 +22,7 @@ public class ChannelPtzControlMsgServiceImpl implements InitializingBean, IMsgPr
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.PTZ_CONTROL.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.CHANNEL_PTZ_PRESET.getTypeName(),this);
     }
 
     @Override

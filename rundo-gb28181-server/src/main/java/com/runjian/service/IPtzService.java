@@ -11,9 +11,11 @@ import com.runjian.common.commonDto.Gateway.req.DragZoomControlReq;
 public interface IPtzService {
 
     /**
+     * 废弃掉了
      * 云台控制
      * @param deviceControlReq
      */
+    @Deprecated
     void deviceControl(DeviceControlReq deviceControlReq);
 
     /**
