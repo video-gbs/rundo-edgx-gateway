@@ -138,7 +138,7 @@ public class PtzServiceImpl implements IPtzService {
         //进行预置位操作
         //校验参数
         String msgId = channelPtzControlReq.getMsgId();;
-        String businessSceneKey = GatewayMsgType.PTZ_CONTROL.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+channelPtzControlReq.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+channelPtzControlReq.getChannelId()+BusinessSceneConstants.SCENE_STREAM_KEY+channelPtzControlReq.getPtzOperationType();
+        String businessSceneKey = GatewayMsgType.PTZ_CONTROL.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+channelPtzControlReq.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+channelPtzControlReq.getChannelId()+BusinessSceneConstants.SCENE_STREAM_KEY+channelPtzControlReq.getCmdCode();
         RLock lock = redissonClient.getLock(businessSceneKey);
 
         try {
@@ -151,7 +151,7 @@ public class PtzServiceImpl implements IPtzService {
                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求,加锁失败，合并全局的请求",msgId);
                 return;
             }
-            PtzOperationTypeEnum ptzOperationTypeEnum = PtzOperationTypeEnum.getTypeByTypeId(channelPtzControlReq.getPtzOperationType());
+            PtzOperationTypeEnum ptzOperationTypeEnum = PtzOperationTypeEnum.getTypeByTypeId(channelPtzControlReq.getCmdCode());
             //查询通道数据
             Device device = deviceService.getDevice(channelPtzControlReq.getDeviceId());
             if(ObjectUtils.isEmpty(device)){
@@ -169,12 +169,11 @@ public class PtzServiceImpl implements IPtzService {
                 return;
             }
 
-            Map<String, Object> operationMap = channelPtzControlReq.getOperationMap();
             //通用的值
-            int operationValue = (int)operationMap.get(commonValue);
+            int operationValue = channelPtzControlReq.getCmdValue();
             //云台方向值
-            int horizonSpeedValue = (int)operationMap.get(horizonSpeed);
-            int verticalSpeedValue = (int)operationMap.get(verticalSpeed);
+            int horizonSpeedValue = (int) channelPtzControlReq.getHorizonSpeed();
+            int verticalSpeedValue = (int)channelPtzControlReq.getVerticalSpeed();
 
 
             switch (ptzOperationTypeEnum){
@@ -281,7 +280,7 @@ public class PtzServiceImpl implements IPtzService {
             }
 
         }catch (Exception e){
-            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ptz服务", "ptz操作失败", channelPtzControlReq);
+            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "ptz服务", "ptz操作失败", channelPtzControlReq,e);
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL,BusinessErrorEnums.UNKNOWN_ERROR,null);
         }
 

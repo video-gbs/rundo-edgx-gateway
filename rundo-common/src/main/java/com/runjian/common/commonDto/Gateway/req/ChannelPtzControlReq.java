@@ -12,10 +12,13 @@ import java.util.Map;
 public class ChannelPtzControlReq {
     private String deviceId;
     private String channelId;
-    //操作的数据，如速度，预置位id
-    private Map<String,Object> operationMap;
+
     //操作的类型
-    private int ptzOperationType;
+    private int cmdCode;
+    //值
+    private int cmdValue;
+    private int horizonSpeed;
+    private int verticalSpeed;
 
     /**
      * 业务消息id
