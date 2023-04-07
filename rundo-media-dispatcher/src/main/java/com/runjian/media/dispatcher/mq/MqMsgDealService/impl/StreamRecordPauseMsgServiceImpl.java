@@ -67,6 +67,10 @@ public class StreamRecordPauseMsgServiceImpl implements InitializingBean, IMsgPr
             rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),businessMqInfo,true);
             return;
         }
+
+        RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_STREAM_PAUSE+ BusinessSceneConstants.SCENE_SEM_KEY+streamId,streamId,60);
+        //通知网关进行bye请求的发送
+
         //通知网关进行设备操作  todo 暂时不考虑网关操作结果的返回
         CommonMqDto gatewayMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.DEVICE_RECORD_PAUSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
 

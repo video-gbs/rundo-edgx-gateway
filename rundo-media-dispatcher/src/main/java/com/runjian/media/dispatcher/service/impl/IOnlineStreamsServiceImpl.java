@@ -86,10 +86,22 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
         if(!regist){
             Object selfStreamBye = RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_STREAM_BYE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
 
+            Object selfStreamPause = RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_STREAM_PAUSE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
+
             //推拉流结束 过滤调度中心返回的bye指令 推流自动结束 通知网关和调度服务
-            if(!ObjectUtils.isEmpty(selfStreamBye)){
+            if(!ObjectUtils.isEmpty(selfStreamBye) || !ObjectUtils.isEmpty(selfStreamPause)){
                 //自行关闭的流 不进行通知
-                RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_STREAM_BYE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
+                if(!ObjectUtils.isEmpty(selfStreamBye) ){
+                    RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_STREAM_BYE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
+                    //删除流的通知
+                    remove(streamId);
+                }
+                if(!ObjectUtils.isEmpty(selfStreamPause) ){
+                    //不进行流的删除，只是现在暂停
+                    log.info(LogTemplate.ERROR_LOG_TEMPLATE, "zlm推流暂停", "客户端的暂停", streamId);
+                    RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_STREAM_PAUSE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
+
+                }
             }else {
                 //异常中断的流 非用户主动关闭，进行通知；  可能为设备推流到zlm的网络异常导致zlm判断收流失败了
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "zlm推流中断异常", "自行中断", streamId);
@@ -101,10 +113,10 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
                 mqInfo.setData(streamCloseDto);
                 mqInfo.setData(streamCloseDto);
                 rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
-
+                //删除流的通知
+                remove(streamId);
             }
-            //删除流的通知
-            remove(streamId);
+
         }else {
             //更新流信息
             BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ+BusinessSceneConstants.SCENE_SEM_KEY+streamId);
