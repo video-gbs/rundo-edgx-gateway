@@ -289,12 +289,12 @@ public class PtzServiceImpl implements IPtzService {
 
     @Override
     public void ptzPresetControl(String deviceId, String channelId, String msgId) {
-        String businessSceneKey = GatewayMsgType.CHANNEL_PTZ_PRESET.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceId+BusinessSceneConstants.SCENE_STREAM_KEY+channelId+BusinessSceneConstants.SCENE_STREAM_KEY;
+        String businessSceneKey = GatewayMsgType.CHANNEL_PTZ_PRESET.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceId+BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
         RLock lock = redissonClient.getLock(businessSceneKey);
 
         try {
             //阻塞型,默认是30s无返回参数
-            redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayMsgType.CHANNEL_3D_OPERATION, msgId);
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayMsgType.CHANNEL_PTZ_PRESET, msgId);
             //尝试获取锁
             boolean b = lock.tryLock(0, userSetting.getBusinessSceneTimeout() + 100, TimeUnit.MILLISECONDS);
             if (!b) {
@@ -304,19 +304,19 @@ public class PtzServiceImpl implements IPtzService {
             }
             Device device = deviceService.getDevice(deviceId);
             if(ObjectUtils.isEmpty(device)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PTZ_PRESET,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
                 return;
             }
             //查询通道
             DeviceChannel channelOne = deviceChannelService.getOne(deviceId, channelId);
             if(ObjectUtils.isEmpty(channelOne)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PTZ_PRESET,BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,null);
                 return;
             }
             sipCommander.presetQuery(device,channelId,null);
         }catch (Exception e){
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ptz服务", "预置位查询失败", msgId);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PTZ_PRESET,BusinessErrorEnums.UNKNOWN_ERROR,null);
         }
 
     }
