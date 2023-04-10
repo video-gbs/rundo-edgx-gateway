@@ -2,6 +2,7 @@ package com.runjian.media.dispatcher.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMqMsgDealServer;
@@ -34,9 +35,8 @@ public class StreamCheckStreamMsgServiceImpl implements InitializingBean, IMsgPr
         //实际的请求参数
         if(!ObjectUtils.isEmpty(dataJson)){
             JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
-            JSONArray streamArray = dataMapJson.getJSONArray("streamIdList");
-            List<String> streamIdList = JSONArray.parseArray(streamArray.toJSONString(), String.class);
-            imediaServerService.streamListByStreamIds(streamIdList,commonMqDto.getMsgId());
+            StreamCheckListResp streamCheckListResp = JSONObject.toJavaObject(dataMapJson, StreamCheckListResp.class);
+            imediaServerService.streamListByStreamIds(streamCheckListResp,commonMqDto.getMsgId());
         }
 
 

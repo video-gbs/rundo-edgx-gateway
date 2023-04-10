@@ -2,6 +2,7 @@ package com.runjian.media.dispatcher.zlm.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
+import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
@@ -115,10 +116,10 @@ public interface ImediaServerService {
 
     /**
      * 获取流列表
-     * @param streamLists
+     * @param streamCheckListResp
      * @return
      */
-    List<OnlineStreamsEntity> streamListByStreamIds(List<String> streamLists,String msgId);
+    List<OnlineStreamsEntity> streamListByStreamIds(StreamCheckListResp streamCheckListResp, String msgId);
 
     /**
      * 停止对应流媒体中全部的

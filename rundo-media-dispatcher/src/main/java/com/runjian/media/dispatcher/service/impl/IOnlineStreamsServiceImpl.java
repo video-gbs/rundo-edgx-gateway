@@ -19,6 +19,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -147,6 +148,11 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
     public List<OnlineStreamsEntity> streamListByStreamIds(List<String> streamLists) {
         //获取数据库中的数据
         return onlineStreamsMapper.selectStreamsByStreamIds(streamLists);
+    }
+
+    @Override
+    public List<OnlineStreamsEntity> streamListByCheckTime(List<String> streamLists, LocalDateTime checkTime) {
+        return onlineStreamsMapper.selectStreamsByCheckTime(streamLists,checkTime);
     }
 
     @Override

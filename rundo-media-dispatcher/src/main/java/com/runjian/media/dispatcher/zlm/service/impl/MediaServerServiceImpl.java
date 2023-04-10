@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.ZlmStreamDto;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
+import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamPlayDto;
 import com.runjian.common.commonDto.StreamInfo;
@@ -53,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -723,9 +725,15 @@ public class MediaServerServiceImpl implements ImediaServerService {
         return Boolean.TRUE;
     }
     @Override
-    public List<OnlineStreamsEntity> streamListByStreamIds(List<String> streamLists,String msgId) {
+    public List<OnlineStreamsEntity> streamListByStreamIds(StreamCheckListResp streamCheckListResp, String msgId) {
+        List<String> streamLists = streamCheckListResp.getStreamIdList();
+        if(CollectionUtils.isEmpty(streamLists)){
+            logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "流检查为空", streamCheckListResp);
+            return null;
+        }
+        LocalDateTime checkTime = streamCheckListResp.getCheckTime();
         //获取数据库中的数据
-        List<OnlineStreamsEntity> onlineStreamsEntities = onlineStreamsService.streamListByStreamIds(streamLists);
+        List<OnlineStreamsEntity> onlineStreamsEntities = onlineStreamsService.streamListByCheckTime(streamLists,checkTime);
         List<String> collect = onlineStreamsEntities.stream().map(OnlineStreamsEntity::getStreamId).collect(Collectors.toList());
         //获取差集
         List<String> streamListsBye = new ArrayList<>();

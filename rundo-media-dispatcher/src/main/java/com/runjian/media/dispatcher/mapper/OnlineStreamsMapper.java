@@ -6,6 +6,7 @@ import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -94,4 +95,17 @@ public interface OnlineStreamsMapper {
             " </script>"
     )
     List<OnlineStreamsEntity> selectStreamsByStreamIds(List<String> streamIds);
+
+    /**
+     * 查询流信息列表
+     * @param streamIds
+     * @param checkTime
+     * @return
+     */
+    @Select(" <script>" +
+            "select * FROM "+ONLINE_STREAMS+" WHERE created_at &lt; #{checkTime} and stream_id in "+
+            " <foreach collection='streamIds' item='item' open='(' separator=',' close=')'>#{item}</foreach>" +
+            " </script>"
+    )
+    List<OnlineStreamsEntity> selectStreamsByCheckTime(List<String> streamIds, LocalDateTime checkTime);
 }

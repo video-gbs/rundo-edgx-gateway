@@ -2,6 +2,7 @@ package com.runjian.media.dispatcher.service;
 
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -60,7 +61,13 @@ public interface IOnlineStreamsService {
      */
     List<OnlineStreamsEntity > streamListByStreamIds(List<String> streamLists);
 
-
+    /**
+     * 查找时间之前的流
+     * @param streamLists
+     * @param checkTime
+     * @return
+     */
+    List<OnlineStreamsEntity > streamListByCheckTime(List<String> streamLists, LocalDateTime checkTime);
     /**
      * 获取流媒体中的全部在线播放流列表
      * @return
