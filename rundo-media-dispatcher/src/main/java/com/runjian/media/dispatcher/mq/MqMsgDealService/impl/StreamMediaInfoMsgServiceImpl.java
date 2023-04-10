@@ -123,7 +123,7 @@ public class StreamMediaInfoMsgServiceImpl implements InitializingBean, IMsgProc
 
 
         JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServerItemOne, app, schema, streamId);
-        boolean mediaInfoFlag = mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online");
+        boolean mediaInfoFlag = mediaInfo.getInteger("code") == 0;
         if(mediaInfoFlag){
             StreamMediaInfoResp streamMediaInfoResp = JSONObject.toJavaObject(mediaInfo, StreamMediaInfoResp.class);
             //数值转驼峰  jsonarray
@@ -155,7 +155,7 @@ public class StreamMediaInfoMsgServiceImpl implements InitializingBean, IMsgProc
 
             }
             streamMediaInfoResp.setTracks(objectsArr);
-            businessMqInfo.setData(mediaInfo);
+            businessMqInfo.setData(streamMediaInfoResp);
             rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),businessMqInfo,true);
         }else {
             //获取信息失败
