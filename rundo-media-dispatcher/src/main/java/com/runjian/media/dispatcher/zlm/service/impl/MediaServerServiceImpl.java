@@ -744,7 +744,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
             }
         });
         //业务队列发送流的列表
-        CommonMqDto mqinfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CHECK_STREAM.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
+        CommonMqDto mqinfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CHECK_STREAM.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
         mqinfo.setData(collect);
         rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqinfo,true);
 
