@@ -56,9 +56,9 @@ public enum PtzOperationTypeEnum {
     PTZ_DOWNLEFT(6,"PTZ_DOWNLEFT"),
     PTZ_DOWNRIGHT(5,"PTZ_DOWNRIGHT"),
     //倍率缩小
-    ZOOM_IN(20,"ZOOM_IN"),
+    ZOOM_IN(16,"ZOOM_IN"),
     //倍率放大
-    ZOOM_OUT(10,"ZOOM_OUT"),
+    ZOOM_OUT(32,"ZOOM_OUT"),
 
     PTZ_STOP(0,"PTZ_STOP"),
     //预置位
@@ -68,13 +68,13 @@ public enum PtzOperationTypeEnum {
 
     //F1 指令
     //光圈缩小放大
-    IRIS_REDUCE(48,"IRIS_REDUCE"),
-    IRIS_GROW(44,"IRIS_GROW"),
+    IRIS_REDUCE(72,"IRIS_REDUCE"),
+    IRIS_GROW(68,"IRIS_GROW"),
     //聚焦近远
-    FOCUS_FAR(41,"FOCUS_FAR"),
-    FOCUS_NEAR(42,"FOCUS_NEAR"),
+    FOCUS_FAR(65,"FOCUS_FAR"),
+    FOCUS_NEAR(66,"FOCUS_NEAR"),
     //F1停止stop
-    IRISE_AND_FOCUS_STOP(40,"IRISE_AND_FOCUS_STOP"),
+    IRISE_AND_FOCUS_STOP(64,"IRISE_AND_FOCUS_STOP"),
 
     ;
     private final Integer code;

@@ -179,97 +179,97 @@ public class PtzServiceImpl implements IPtzService {
             switch (ptzOperationTypeEnum){
                 case PRESET_SET:
                     //预置位设置
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.PRESET_SET,0, operationValue,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, operationValue,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PRESET_INVOKE:
                     //预置位调用
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.PRESET_INVOKE,0, operationValue,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, operationValue,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PRESET_DEL:
                     //预置位删除
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.PRESET_DEL,0, operationValue,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, operationValue,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_LEFT:
                     //左转
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.PTZ_LEFT,operationValue, operationValue,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),operationValue, operationValue,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_RIGHT:
                     //右转
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.PTZ_RIGHT,operationValue, operationValue,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),operationValue, operationValue,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_UP:
                     //上
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.PTZ_UP,operationValue, operationValue,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),operationValue, operationValue,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_DOWN:
                     //下
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.PTZ_DOWN,operationValue, operationValue,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),operationValue, operationValue,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_UPLEFT:
                     //左上
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.PTZ_UPLEFT,horizonSpeedValue, verticalSpeedValue,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),horizonSpeedValue, verticalSpeedValue,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_UPRIGHT:
                     //右上
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.PTZ_UPRIGHT,horizonSpeedValue, verticalSpeedValue,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),horizonSpeedValue, verticalSpeedValue,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_DOWNLEFT:
                     //左下
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.PTZ_DOWNLEFT,horizonSpeedValue, verticalSpeedValue,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),horizonSpeedValue, verticalSpeedValue,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_DOWNRIGHT:
                     //右下
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.PTZ_DOWNRIGHT,horizonSpeedValue, verticalSpeedValue,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),horizonSpeedValue, verticalSpeedValue,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case ZOOM_IN:
                     //倍率放大
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.ZOOM_IN,0, 0,operationValue);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, 0,operationValue);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case ZOOM_OUT:
                     //倍率缩小
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.ZOOM_OUT,0, 0,operationValue);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, 0,operationValue);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_STOP:
                     //ptz停止
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.PTZ_STOP,0, 0,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, 0,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case IRIS_REDUCE:
                     //光圈缩小
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.IRIS_REDUCE,0, operationValue,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, operationValue,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case IRIS_GROW:
                     //光圈放大
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.IRIS_GROW,0, operationValue,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, operationValue,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case FOCUS_FAR:
                     //聚焦近远
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.FOCUS_FAR,operationValue, 0,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),operationValue, 0,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case FOCUS_NEAR:
                     //聚焦近远
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.FOCUS_NEAR,operationValue, 0,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),operationValue, 0,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case IRISE_AND_FOCUS_STOP:
                     //F1停止
-                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), MarkConstant.IRISE_AND_FOCUS_STOP,0, 0,0);
+                    sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, 0,0);
                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
                     break;
 
