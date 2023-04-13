@@ -58,17 +58,6 @@
             <artifactId>rundo-common</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.mybatis.spring.boot</groupId>
-            <artifactId>mybatis-spring-boot-starter</artifactId>
-            <version>2.2.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.zaxxer</groupId>
-                    <artifactId>HikariCP</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <!-- druid数据库连接池 -->
         <dependency>
             <groupId>com.alibaba</groupId>
@@ -83,12 +72,13 @@
             <version>8.0.30</version>
         </dependency>
 
-        <!--Mybatis分页插件 -->
+        <!--Mybatis-plus -->
         <dependency>
-            <groupId>com.github.pagehelper</groupId>
-            <artifactId>pagehelper-spring-boot-starter</artifactId>
-            <version>1.4.3</version>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>3.5.2</version>
         </dependency>
+
 
         <!--在线文档 -->
         <dependency>

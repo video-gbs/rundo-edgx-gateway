@@ -1,6 +1,4 @@
 spring:
-    application:
-        name: gb28181-server
     web:
         resources:
             static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:./static
@@ -23,7 +21,7 @@ spring:
     datasource:
         type: com.alibaba.druid.pool.DruidDataSource
         driver-class-name: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://127.0.0.1:3306/gb28181_gateway?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&autoReconnect=true
+        url: jdbc:mysql://127.0.0.1:3306/rundo_hiksdk_gateway?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&autoReconnect=true
         username: root
         password: root123
         druid:
@@ -48,14 +46,6 @@ spring:
             # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
             connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=1000
             #stat-view-servlet.url-pattern: /admin/druid/*
-    quartz:
-        scheduler-name: rundo-utils-timer
-        job-store-type: memory
-        overwrite-existing-jobs: true
-        jdbc:
-            comment-prefix: #
-            initialize-schema: never
-        wait-for-jobs-to-complete-on-shutdown: true
 
     # rabbitmq 配置
     rabbitmq:
@@ -83,35 +73,24 @@ rj-druid-manage:
     loginPassword: rj@2022     # 访问druid监控页面密码
     resetEnable: false            # 是否能够重置数据 禁用HTML页面上的“Reset All”功能
 
-mybatis:
+mybatis-plus:
+    global-config:
+        banner: off
+        db-config:
+            # logic-delete-field是entity的属性名
+            logic-delete-field: deleteFlag
+            # 1 代表已删除，不配置默认是1
+            logic-delete-value: 1
+            # 0 代表未删除，不配置默认是0
+            logic-not-delete-value: 0
+    mapper-locations: classpath*:/mapper/**/*.xml
     configuration:
-        mapUnderscoreToCamelCase: true
+        map-underscore-to-camel-case: true
+        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 ## [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
-    port: 18080
+    port: 18082
 
-# 作为28181服务器的配置
-sip:
-    # [必须修改] 本机的IP
-    ip: 192.168.0.73
-    # [可选] 28181服务监听的端口
-    port: 5060
-    # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
-    # 后两位为行业编码，定义参照附录D.3
-    # 3701020049标识山东济南历下区 信息行业接入
-    # [可选]
-    domain: 4401020049
-    # [可选]
-    id: 44010200492000000001
-    # [可选] 默认设备认证密码，后续扩展使用设备单独密码, 移除密码将不进行校验
-    password: admin123
-    # [可选] 心跳超时时间， 建议设置为心跳周期的三倍
-    keepalive-timeout: 255
-    # [可选] 国标级联注册失败，再次发起注册的时间间隔。 默认60秒
-    register-time-interval: 60
-    # [可选] 云台控制速度
-    ptz-speed: 100
-    alarm: true
 
 # [可选] 日志配置, 一般不需要改
 logging:
@@ -186,6 +165,6 @@ mq-defualt:
 
 gateway-info:
 #   网关的唯一id
-    serialNum: eb48104ddf2b4760be541783b3620001
+    serialNum: 28fc51254c0c4809a9f4851f994180ac
     #a网关过期时间 默认3分钟
     expire: 180
