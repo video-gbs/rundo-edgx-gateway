@@ -55,10 +55,6 @@
     <dependencies>
         <dependency>
             <groupId>com.runjian</groupId>
-            <artifactId>rundo-utils-timer</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.runjian</groupId>
             <artifactId>rundo-common</artifactId>
         </dependency>
 
@@ -234,14 +230,14 @@
             <groupId>com.runjian</groupId>
             <artifactId>jna</artifactId>
             <scope>system</scope>
-            <systemPath>${basedir}/src/main/resources/lib/jna.jar</systemPath>
+            <systemPath>${pom.basedir}/src/main/resources/lib/jna.jar</systemPath>
             <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.runjian</groupId>
             <artifactId>examples</artifactId>
             <scope>system</scope>
-            <systemPath>${basedir}/src/main/resources/lib/examples.jar</systemPath>
+            <systemPath>${pom.basedir}/src/main/resources/lib/examples.jar</systemPath>
             <version>1.0.0</version>
         </dependency>
     </dependencies>

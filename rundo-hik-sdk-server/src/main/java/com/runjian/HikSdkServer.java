@@ -1,6 +1,5 @@
 package com.runjian;
 
-import com.runjian.conf.druid.EnableDruidSupport;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
@@ -17,8 +16,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  */
 @SpringBootApplication
 @EnableScheduling
-//@EnableAsync
-@EnableDruidSupport
 public class HikSdkServer {
     private static ConfigurableApplicationContext context;
     private static String[] args;

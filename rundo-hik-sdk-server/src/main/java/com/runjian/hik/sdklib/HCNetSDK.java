@@ -1,4 +1,4 @@
-package com.runjian.hik;
+package com.runjian.hik.sdklib;
 
 import com.sun.jna.*;
 import com.sun.jna.examples.win32.W32API;
