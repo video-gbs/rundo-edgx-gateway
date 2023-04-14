@@ -3,7 +3,7 @@ package com.runjian.mq.MqMsgDealService.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
-import com.runjian.gb28181.bean.Device;
+import com.runjian.domain.dto.Device;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.mq.MqMsgDealService.IMsgProcessorService;
 import com.runjian.service.IDeviceService;
