@@ -133,6 +133,10 @@ dispatcher-info:
     serialNum: eb48104ddf2b4760be123783b3621041
     #a网关过期时间 默认3分钟
     expire: 180
+gb28181-gateway-info:
+    #   sip域 如有国标网关接入，请务必修改
+    sipDomain: 4401020049
+
 
 mq:
     enabled: true

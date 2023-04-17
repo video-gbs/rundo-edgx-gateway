@@ -19,12 +19,14 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * 废弃
  * 操作zlm开启与关闭rtp端口操作
  * @author chenjialing
  */
 @RestController
 @RequestMapping("/api")
 @Slf4j
+@Deprecated
 public class ApiOperationRtpServer {
 
     @Autowired
@@ -50,20 +52,22 @@ public class ApiOperationRtpServer {
     /**
      * 创建推流的端口
      */
+    @Deprecated
     @PostMapping(value = "/media/openRtpServer",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<SsrcInfo> openRtpServer(@RequestBody BaseRtpServerDto baseRtpServerDto){
-        validatorService.validateRequest(baseRtpServerDto);
-        //获取zlm流媒体配置
-        MediaServerItem defaultMediaServer = null;
-        if(!ObjectUtils.isEmpty(baseRtpServerDto.getMediaServerId())){
-            defaultMediaServer = imediaServerService.getOne(baseRtpServerDto.getMediaServerId());
-        }else {
-            defaultMediaServer = imediaServerService.getDefaultMediaServer();
-        }
-        baseRtpServerDto.setMediaServerId(defaultMediaServer.getId());
-        SsrcInfo ssrcInfo = imediaServerService.openRTPServer(defaultMediaServer, baseRtpServerDto);
-
-        return CommonResponse.success(ssrcInfo);
+//        validatorService.validateRequest(baseRtpServerDto);
+//        //获取zlm流媒体配置
+//        MediaServerItem defaultMediaServer = null;
+//        if(!ObjectUtils.isEmpty(baseRtpServerDto.getMediaServerId())){
+//            defaultMediaServer = imediaServerService.getOne(baseRtpServerDto.getMediaServerId());
+//        }else {
+//            defaultMediaServer = imediaServerService.getDefaultMediaServer();
+//        }
+//        baseRtpServerDto.setMediaServerId(defaultMediaServer.getId());
+//        SsrcInfo ssrcInfo = imediaServerService.openRTPServer(defaultMediaServer, baseRtpServerDto);
+//
+//        return CommonResponse.success(ssrcInfo);
+        return null;
     }
 
     /**

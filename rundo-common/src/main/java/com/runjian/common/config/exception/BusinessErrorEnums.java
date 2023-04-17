@@ -1,5 +1,6 @@
 package com.runjian.common.config.exception;
 
+import com.runjian.common.constant.GatewayProtocalEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
@@ -158,4 +159,13 @@ public enum BusinessErrorEnums {
      * 错误信息
      */
     private final String errMsg;
+
+    public static BusinessErrorEnums getOneBusinessNum(Integer errCode){
+        for (BusinessErrorEnums businessErrorEnums : values()){
+            if (businessErrorEnums.errCode.equals(errCode)){
+                return businessErrorEnums;
+            }
+        }
+        return null;
+    }
 }

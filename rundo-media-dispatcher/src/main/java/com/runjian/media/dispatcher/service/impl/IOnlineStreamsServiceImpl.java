@@ -82,7 +82,7 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
 
     @Async("taskExecutor")
     @Override
-    public void streamChangeDeal(String streamId,Boolean regist) {
+    public void streamChangeDeal(String streamId,Boolean regist,String app) {
 
         if(!regist){
             Object selfStreamBye = RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_STREAM_BYE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
@@ -131,6 +131,7 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
                 onlineStreamsEntity.setMediaServerId(baseRtpServerDto.getMediaServerId());
                 onlineStreamsEntity.setRecordState(baseRtpServerDto.getRecordState());
                 onlineStreamsEntity.setStreamId(streamId);
+                onlineStreamsEntity.setApp(app);
                 update(onlineStreamsEntity);
 
             }

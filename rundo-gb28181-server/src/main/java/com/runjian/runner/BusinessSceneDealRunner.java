@@ -82,22 +82,7 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
 
                         if(time.isBefore(now) || statusEnum.equals(BusinessSceneStatusEnum.end)){
                             //消息跟踪完毕 删除指定的键值 异步处理对应的mq消息发送,并释放相应的redisson锁
-                            //释放全局redisson锁
-                            //针对点播失败的异常场景，需要：1.自行释放ssrc和2.删除相关的缓存，3.判断是否需要进行设备指令的bye和4.流媒体推流端口的关闭
-                            if(businessSceneResp.getGatewayMsgType().equals(GatewayMsgType.PLAY) || businessSceneResp.getGatewayMsgType().equals(GatewayMsgType.PLAY_BACK)){
-                                //businessSceneResp.getCode() == BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode()
-                                if(businessSceneResp.getCode() == BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode()){
-                                    //BusinessErrorEnums.SIP_SEND_SUCESS.getErrCode() 只处理超时的请求
-                                    if(time.isBefore(now)){
-                                        commonBusinessDeal(businessSceneResp,entrykey);
-                                        iplayService.playBusinessErrorScene(entrykey,businessSceneResp);
-                                    }
-                                }else {
-                                    commonBusinessDeal(businessSceneResp,entrykey);
-                                }
-                            }else {
-                                commonBusinessDeal(businessSceneResp,entrykey);
-                            }
+                            commonBusinessDeal(businessSceneResp,entrykey);
 
                         }
                     }
@@ -123,8 +108,9 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景常驻线程处理","redis解锁异常处理失败",e);
             }
         }
+        //区分mq与restful接口
         //异步处理消息的mq发送
-        gatewayBusinessAsyncSender.sendforAllScene(businessSceneResp);
+        gatewayBusinessAsyncSender.sendforAllScene(businessSceneResp,entrykey);
             //同类key消息请求就删除一次
         if(!ObjectUtils.isEmpty(RedisCommonUtil.hget(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey))){
             RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey);

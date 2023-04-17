@@ -45,7 +45,7 @@ public interface IOnlineStreamsService {
      * 流注册相关的操作
      * @param streamId
      */
-    void streamChangeDeal(String streamId,Boolean regist);
+    void streamChangeDeal(String streamId,Boolean regist,String app);
 
     /**
      * 获取流媒体中的全部在线播放流列表

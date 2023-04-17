@@ -306,9 +306,10 @@ public class ZLMHttpHookListener {
 		Boolean regist = json.getBoolean("regist");
 		String streamId = json.getString("stream");
 		String schema = json.getString("schema");
+		String app = json.getString("app");
 		//同一个流 只处理一种协议的通知 暂定未rtsp流
 		if(schema.equals("rtsp")){
-			onlineStreamsService.streamChangeDeal(streamId,regist);
+			onlineStreamsService.streamChangeDeal(streamId,regist,app);
 		}
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);

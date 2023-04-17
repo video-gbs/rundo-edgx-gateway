@@ -24,6 +24,11 @@ public class OnlineStreamsEntity {
      * 流id
      */
     private String streamId;
+
+    /**
+     * 流应用
+     */
+    private String app;
     /**
      * 录像状态0，1
      */

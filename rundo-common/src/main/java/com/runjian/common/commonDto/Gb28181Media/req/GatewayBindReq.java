@@ -22,4 +22,10 @@ public class GatewayBindReq {
 
     @NotNull(message = "mq的队列名称")
     private String mqQueueName;
+
+
+    /**
+     * 调度服务地址
+     */
+    private String dispatchUrl;
 }

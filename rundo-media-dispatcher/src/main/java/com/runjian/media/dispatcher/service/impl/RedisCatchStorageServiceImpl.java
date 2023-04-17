@@ -2,12 +2,10 @@ package com.runjian.media.dispatcher.service.impl;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.Gateway.dto.SsrcConfig;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
-import com.runjian.common.constant.BusinessSceneConstants;
-import com.runjian.common.constant.GatewayMsgType;
-import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.constant.VideoManagerConstants;
+import com.runjian.common.constant.*;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.UserSetting;
@@ -35,6 +33,10 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
 
     @Value("${dispatcher-info.serialNum}")
     private String serialNum;
+
+
+    @Value("${gb28181-gateway-info.sipDomain}")
+    private String sipDomain;
 
     @Autowired
     private UserSetting userSetting;
@@ -81,6 +83,43 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     }
 
     @Override
+    public Boolean ssrcInit() {
+        Object o = RedisCommonUtil.get(redisTemplate, VideoManagerConstants.SSRC_CACHE_KEY+sipDomain);
+        if(ObjectUtils.isEmpty(o)){
+            SsrcConfig ssrcConfig = new SsrcConfig(null, sipDomain);
+            RedisCommonUtil.set(redisTemplate, VideoManagerConstants.SSRC_CACHE_KEY+sipDomain,ssrcConfig);
+
+        }
+        return true;
+    }
+
+    @Override
+    public Boolean ssrcRelease(String ssrc) {
+        Object o = RedisCommonUtil.get(redisTemplate, VideoManagerConstants.SSRC_CACHE_KEY+sipDomain);
+        if(ObjectUtils.isEmpty(o)){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"释放ssrc","释放失败,对应的ssrc缓存不存在",ssrc);
+            return false;
+        }
+        SsrcConfig ssrcConfig = (SsrcConfig)o;
+        Boolean aBoolean = ssrcConfig.releaseSsrc(ssrc);
+        if(aBoolean){
+            RedisCommonUtil.set(redisTemplate, VideoManagerConstants.SSRC_CACHE_KEY+sipDomain,ssrcConfig);
+        }
+        return aBoolean;
+
+    }
+
+    @Override
+    public SsrcConfig getSsrcConfig() {
+        return  (SsrcConfig)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.SSRC_CACHE_KEY+sipDomain);
+    }
+
+    @Override
+    public Boolean setSsrcConfig(SsrcConfig ssrcConfig) {
+        return RedisCommonUtil.set(redisTemplate, VideoManagerConstants.SSRC_CACHE_KEY+sipDomain,ssrcConfig);
+    }
+
+    @Override
     public void editBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums, Object data) {
         String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey);
         if(ObjectUtils.isEmpty(businessSceneString)){
@@ -88,6 +127,11 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
             return;
         }
         BusinessSceneResp businessSceneResp = JSONObject.parseObject(businessSceneString, BusinessSceneResp.class);
+        if(businessSceneResp.getStatus().equals(BusinessSceneStatusEnum.end)){
+            //消息不允许再次修改了
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"业务消息已经结束","不允许再次修改",businessSceneResp);
+            return;
+        }
         BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(gatewayMsgType, businessErrorEnums, businessSceneResp.getMsgId(),businessSceneResp.getThreadId(),businessSceneResp.getTime(),data);
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"业务消息修改修改",objectBusinessSceneResp);
         RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);

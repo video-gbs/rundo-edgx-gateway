@@ -15,8 +15,6 @@ public class BaseRtpServerDto {
     /**
      * 网关的id
      */
-    @NotNull(message = "网关的id")
-    private String gatewayId;
 
     @NotNull(message = "流id不得为null")
     private String streamId;
@@ -28,6 +26,10 @@ public class BaseRtpServerDto {
     @NotNull(message = "通道id不得为null")
     private String channelId;
 
+    /**
+     * 流传输模式
+     */
+    String streamMode;
     /**
      * ssrc的参数
      */
