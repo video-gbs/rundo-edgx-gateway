@@ -162,7 +162,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.MEDIA_ZLM_RTPSERVER_CREATE_ERROR,null);
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_RTPSERVER_CREATE_ERROR);
         }
-        ssrcInfo = new SsrcInfo(rtpServerPort, streamId,ssrc,mediaServerItem.getId());
+        ssrcInfo = new SsrcInfo(rtpServerPort,ssrc,streamId,mediaServerItem.getId());
         ssrcInfo.setSdpIp(mediaServerItem.getSdpIp());
         return ssrcInfo;
 
@@ -569,9 +569,12 @@ public class MediaServerServiceImpl implements ImediaServerService {
     @Override
     public boolean checkRtpServer(MediaServerItem mediaServerItem, String stream) {
         JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, stream);
-        if(rtpInfo.getInteger("code") == 0){
-            return rtpInfo.getBoolean("exist");
+        if(!ObjectUtils.isEmpty(rtpInfo)){
+            if(rtpInfo.getInteger("code") == 0){
+                return rtpInfo.getBoolean("exist");
+            }
         }
+
         return false;
     }
 

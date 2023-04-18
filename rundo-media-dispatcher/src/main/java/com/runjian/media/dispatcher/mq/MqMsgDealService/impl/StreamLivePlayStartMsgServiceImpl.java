@@ -37,10 +37,13 @@ public class StreamLivePlayStartMsgServiceImpl implements InitializingBean, IMsg
         JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
 
         MediaPlayReq playReq = JSONObject.toJavaObject(dataMapJson, MediaPlayReq.class);
+        playReq.setStreamId(dataJson.getString("streamId"));
         playReq.setMsgId(commonMqDto.getMsgId());
         playReq.setGatewayMqExchange(dataMapJson.getString("exchangeName"));
-        playReq.setGatewayMqRouteKey(dataJson.getString("gatewayMq"));
+        playReq.setGatewayMqRouteKey(dataMapJson.getString("gatewayMq"));
         playReq.setMsgId(commonMqDto.getMsgId());
+        playReq.setDispatchUrl(dataMapJson.getString("mediaUrl"));
+        playReq.setStreamMode(dataMapJson.getInteger("streamMode")==1?"UDP":"TCP");
         iMediaPlayService.play(playReq);
 
 

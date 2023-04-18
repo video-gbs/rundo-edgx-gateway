@@ -1,5 +1,6 @@
 package com.runjian.media.dispatcher.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.runjian.common.commonDto.Gateway.dto.SsrcConfig;
 import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
@@ -85,10 +86,10 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
     @Override
     public void playBack(MediaPlayBackReq mediaPlayBackReq) {
-        String businessSceneKey = GatewayMsgType.STREAM_LIVE_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+mediaPlayBackReq.getStreamId();
+        String businessSceneKey = GatewayMsgType.STREAM_RECORD_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+mediaPlayBackReq.getStreamId();
         try {
             //阻塞型,默认是30s无返回参数
-            SsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayMsgType.STREAM_LIVE_PLAY_START, mediaPlayBackReq,false);
+            SsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayMsgType.STREAM_RECORD_PLAY_START, mediaPlayBackReq,false);
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播回放服务", "端口创建结果", playCommonSsrcInfo);
             //直播
             PlayReq gatewayPlayReq = new PlayReq();
@@ -161,7 +162,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         baseRtpServerDto.setGatewayBindReq(gatewayBindReq);
         baseRtpServerDto.setRecordState(playReq.getRecordState());
         baseRtpServerDto.setStreamMode(playReq.getStreamMode());
-        baseRtpServerDto.setMediaServerId(oneMedia.getIp());
+        baseRtpServerDto.setMediaServerId(oneMedia.getId());
         if(playReq.getSsrcCheck()){
             SsrcConfig ssrcConfig = redisCatchStorageService.getSsrcConfig();
             if(isPlay){
@@ -180,21 +181,23 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
     @Override
     public void streamNotifyServer(GatewayStreamNotify gatewayStreamNotify) {
-        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"点播通知",gatewayStreamNotify);
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"点播通知", JSON.toJSONString(gatewayStreamNotify));
         String streamId = gatewayStreamNotify.getStreamId();
         BusinessSceneResp businessSceneResp = gatewayStreamNotify.getBusinessSceneResp();
         //判断点播回放
         GatewayMsgType gatewayMsgType = businessSceneResp.getGatewayMsgType();
         String businessKey;
+        GatewayMsgType gatewayType = GatewayMsgType.STREAM_LIVE_PLAY_START;
         if(gatewayMsgType.equals(GatewayMsgType.PLAY)){
             //直播
             businessKey = GatewayMsgType.STREAM_LIVE_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         }else {
             businessKey = GatewayMsgType.STREAM_RECORD_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
+            gatewayType = GatewayMsgType.STREAM_RECORD_PLAY_START;
         }
         BusinessErrorEnums oneBusinessNum = BusinessErrorEnums.getOneBusinessNum(businessSceneResp.getCode());
         //设备交互成功，状态为进行状态
-        redisCatchStorageService.editRunningBusinessSceneKey(businessKey,businessSceneResp.getGatewayMsgType(),oneBusinessNum,businessSceneResp.getData());
+        redisCatchStorageService.editRunningBusinessSceneKey(businessKey,gatewayType,oneBusinessNum,null);
     }
     @Async("taskExecutor")
     @Override
@@ -202,7 +205,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         //点播相关的key的组合条件
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播失败，异常处理流程", businessSceneResp);
         //处理sip交互成功，但是流注册未返回的情况
-        String streamId = businessKey.substring(businessKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY));
+        String streamId = businessKey.substring(businessKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY)+1);
         //通知网关bye
         mediaServerService.streamBye(streamId,null);
 
