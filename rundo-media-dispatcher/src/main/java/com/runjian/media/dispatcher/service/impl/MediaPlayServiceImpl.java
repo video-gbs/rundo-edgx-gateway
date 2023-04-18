@@ -16,6 +16,7 @@ import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.UuidUtil;
+import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 import com.runjian.media.dispatcher.service.IMediaPlayService;
 import com.runjian.media.dispatcher.service.IOnlineStreamsService;
@@ -25,6 +26,8 @@ import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -48,6 +51,9 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
     @Autowired
     RabbitMqSender rabbitMqSender;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     public void play(MediaPlayReq playReq) {
@@ -155,7 +161,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         baseRtpServerDto.setGatewayBindReq(gatewayBindReq);
         baseRtpServerDto.setRecordState(playReq.getRecordState());
         baseRtpServerDto.setStreamMode(playReq.getStreamMode());
-
+        baseRtpServerDto.setMediaServerId(oneMedia.getIp());
         if(playReq.getSsrcCheck()){
             SsrcConfig ssrcConfig = redisCatchStorageService.getSsrcConfig();
             if(isPlay){
@@ -166,6 +172,8 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             //更新ssrc的缓存
             redisCatchStorageService.setSsrcConfig(ssrcConfig);
         }
+        //缓存相关的请求参数  用于on_publish的回调 以及停止点播
+        RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_RTP_SERVER_REQ+ BusinessSceneConstants.SCENE_SEM_KEY+baseRtpServerDto.getStreamId(),baseRtpServerDto);
         return mediaServerService.openRTPServer(oneMedia, baseRtpServerDto,gatewayMsgType,businessSceneKey);
 
     }
@@ -185,6 +193,18 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             businessKey = GatewayMsgType.STREAM_RECORD_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         }
         BusinessErrorEnums oneBusinessNum = BusinessErrorEnums.getOneBusinessNum(businessSceneResp.getCode());
-        redisCatchStorageService.editBusinessSceneKey(businessKey,businessSceneResp.getGatewayMsgType(),oneBusinessNum,businessSceneResp.getData());
+        //设备交互成功，状态为进行状态
+        redisCatchStorageService.editRunningBusinessSceneKey(businessKey,businessSceneResp.getGatewayMsgType(),oneBusinessNum,businessSceneResp.getData());
+    }
+    @Async("taskExecutor")
+    @Override
+    public void playBusinessErrorScene(String businessKey, BusinessSceneResp businessSceneResp) {
+        //点播相关的key的组合条件
+        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播失败，异常处理流程", businessSceneResp);
+        //处理sip交互成功，但是流注册未返回的情况
+        String streamId = businessKey.substring(businessKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY));
+        //通知网关bye
+        mediaServerService.streamBye(streamId,null);
+
     }
 }

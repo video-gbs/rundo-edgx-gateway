@@ -127,7 +127,6 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
             }else {
                 //记录流信息
                 OnlineStreamsEntity onlineStreamsEntity = new OnlineStreamsEntity();
-                onlineStreamsEntity.setGatewaySerialnum(baseRtpServerDto.getGatewayId());
                 onlineStreamsEntity.setMediaServerId(baseRtpServerDto.getMediaServerId());
                 onlineStreamsEntity.setRecordState(baseRtpServerDto.getRecordState());
                 onlineStreamsEntity.setStreamId(streamId);

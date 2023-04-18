@@ -51,6 +51,13 @@ public interface IRedisCatchStorageService {
     void editBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums, Object data);
 
     /**
+     * 操作业务场景的redis修改
+     * @param businessSceneKey
+     * @param gatewayMsgType
+     * @param data
+     */
+    void editRunningBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums, Object data);
+    /**
      * redis的新增
      * @param businessSceneKey
      * @param gatewayMsgType

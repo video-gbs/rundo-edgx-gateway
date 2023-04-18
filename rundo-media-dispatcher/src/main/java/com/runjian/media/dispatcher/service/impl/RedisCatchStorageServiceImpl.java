@@ -11,6 +11,7 @@ import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.internal.engine.messageinterpolation.parser.ELState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -137,6 +138,31 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
         RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
     }
 
+    @Override
+    public void editRunningBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums, Object data) {
+        String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey);
+        if(ObjectUtils.isEmpty(businessSceneString)){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"处理调度服务业务状态","处理失败,对应的业务缓存不存在",businessSceneKey);
+            return;
+        }
+        BusinessSceneResp businessSceneResp = JSONObject.parseObject(businessSceneString, BusinessSceneResp.class);
+        if(businessSceneResp.getStatus().equals(BusinessSceneStatusEnum.end)){
+            //消息不允许再次修改了
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"业务消息已经结束","不允许再次修改",businessSceneResp);
+            return;
+        }
+        BusinessSceneResp<Object> objectBusinessSceneResp;
+        if(businessErrorEnums.equals(BusinessErrorEnums.SIP_SEND_SUCESS)){
+            objectBusinessSceneResp = BusinessSceneResp.addSceneRunning(gatewayMsgType, businessErrorEnums, businessSceneResp,data);
+
+        }else {
+            objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(gatewayMsgType, businessErrorEnums, businessSceneResp,data);
+
+        }
+
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"业务消息修改修改",objectBusinessSceneResp);
+        RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY,businessSceneKey,objectBusinessSceneResp);
+    }
 
     @Override
     public void addBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, String msgId) {

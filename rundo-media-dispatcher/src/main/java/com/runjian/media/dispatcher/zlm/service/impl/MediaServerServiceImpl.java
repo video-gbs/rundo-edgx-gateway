@@ -134,8 +134,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
         String ssrc = baseRtpServerDto.getSsrc();
         Boolean ssrcCheck = baseRtpServerDto.getSsrcCheck();
         Integer port = baseRtpServerDto.getPort();
-        //缓存相关的请求参数  用于on_publish的回调
-        RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_RTP_SERVER_REQ+ BusinessSceneConstants.SCENE_SEM_KEY+baseRtpServerDto.getStreamId(),baseRtpServerDto);
+
 
         //流注册成功 回调
         HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.GB28181_APP, baseRtpServerDto.getStreamId(),true, VideoManagerConstants.GB28181_SCHEAM ,mediaServerItem.getId());
@@ -663,7 +662,12 @@ public class MediaServerServiceImpl implements ImediaServerService {
         byeMqInfo.setData(streamPlayDto);
         GatewayBindReq gatewayBindReq = baseRtpServerDto.getGatewayBindReq();
         rabbitMqSender.sendMsgByExchange(gatewayBindReq.getMqExchange(), gatewayBindReq.getMqRouteKey(), UuidUtil.toUuid(),byeMqInfo,true);
+        //关闭端口
 
+        closeRTPServer(baseRtpServerDto.getMediaServerId(),streamId);
+        //释放ssrc
+
+        redisCatchStorageService.ssrcRelease(baseRtpServerDto.getSsrc());
     }
 
     @Override

@@ -7,6 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum BusinessSceneStatusEnum {
     ready("ready"),
+    running("running"),
     end("end"),
 
     ;

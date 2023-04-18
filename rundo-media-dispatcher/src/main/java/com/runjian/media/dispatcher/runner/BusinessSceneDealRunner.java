@@ -8,6 +8,7 @@ import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.mq.dispatcherBusiness.asyncSender.BusinessAsyncSender;
+import com.runjian.media.dispatcher.service.IMediaPlayService;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -41,6 +42,8 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
     BusinessAsyncSender businessAsyncSender;
 
 
+    @Autowired
+    IMediaPlayService mediaPlayService;
 
     @Async
     @Override
@@ -68,12 +71,18 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
 
                     LocalDateTime now = LocalDateTime.now();
                     String entrykey = (String)entry.getKey();
-                    if(time.isBefore(now) || statusEnum.equals(BusinessSceneStatusEnum.end)){
+                    if(time.isBefore(now)){
                         //消息跟踪完毕 删除指定的键值 异步处理对应的mq消息发送,并释放相应的redisson锁
 
                         commonBusinessDeal(businessSceneResp,entrykey);
+                        if(statusEnum.equals(BusinessSceneStatusEnum.running)){
+                            //推流是失败的信令 进行bye指令发送给网关
+                            mediaPlayService.playBusinessErrorScene(entrykey,businessSceneResp);
+                        }
 
 
+                    }else if(statusEnum.equals(BusinessSceneStatusEnum.end)){
+                        commonBusinessDeal(businessSceneResp,entrykey);
                     }
                 }
                 Thread.yield();
@@ -92,5 +101,6 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
         RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY,entrykey);
         //异步处理消息的mq发送
         businessAsyncSender.sendforAllScene(businessSceneResp);
+
     }
 }

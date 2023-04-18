@@ -38,9 +38,7 @@ public class PlayTest {
         PlayReq playReq = new PlayReq();
         playReq.setChannelId("34020000001310000001");
         playReq.setDeviceId("34020000001110000001");
-        playReq.setEnableAudio(false);
         playReq.setMsgId("12345678");
-        playReq.setSsrcCheck(Boolean.TRUE);
         playReq.setStreamMode("UDP");
 
         playService.play(playReq);
