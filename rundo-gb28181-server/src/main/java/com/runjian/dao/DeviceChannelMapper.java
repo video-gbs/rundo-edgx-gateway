@@ -1,6 +1,5 @@
 package com.runjian.dao;
 
-import com.runjian.conf.dao.SimpleInsertExtendedLanguageDriver;
 import com.runjian.conf.dao.SimpleUpdateExtendedLanguageDriver;
 import com.runjian.gb28181.bean.DeviceChannel;
 import org.apache.ibatis.annotations.*;

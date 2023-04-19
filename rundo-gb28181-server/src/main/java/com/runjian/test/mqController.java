@@ -4,7 +4,6 @@ import com.runjian.common.mq.RabbitMqConfig;
 import com.runjian.conf.mq.GatewaySignInConf;
 import com.runjian.mq.gatewayBusiness.GatewayBusinessMqListener;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;

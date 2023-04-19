@@ -1,20 +1,14 @@
 package com.runjian.service.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
 import com.runjian.common.config.exception.BusinessErrorEnums;
-import com.runjian.common.config.response.BusinessSceneResp;
-import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.BusinessSceneConstants;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.utils.BeanUtil;
-import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.UserSetting;
 import com.runjian.dao.DeviceChannelMapper;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceChannel;
-import com.runjian.gb28181.bean.RecordInfo;
 import com.runjian.gb28181.transmit.cmd.ISIPCommander;
 import com.runjian.service.IDeviceChannelService;
 import com.runjian.service.IDeviceService;
