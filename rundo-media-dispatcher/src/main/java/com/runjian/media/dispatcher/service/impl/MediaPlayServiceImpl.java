@@ -108,6 +108,10 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             gatewayPlayBackReq.setStreamMode(mediaPlayBackReq.getStreamMode());
             gatewayPlayBackReq.setDispatchUrl(mediaPlayBackReq.getDispatchUrl());
             gatewayPlayBackReq.setStreamId(mediaPlayBackReq.getStreamId());
+            gatewayPlayBackReq.setStartTime(mediaPlayBackReq.getStartTime());
+            gatewayPlayBackReq.setEndTime(mediaPlayBackReq.getEndTime());
+
+
             businessMqInfo.setData(gatewayPlayBackReq);
 
             rabbitMqSender.sendMsgByExchange(mediaPlayBackReq.getGatewayMqExchange(), mediaPlayBackReq.getGatewayMqRouteKey(), UuidUtil.toUuid(),businessMqInfo,true);

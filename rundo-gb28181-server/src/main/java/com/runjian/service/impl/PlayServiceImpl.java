@@ -194,11 +194,11 @@ public class PlayServiceImpl implements IplayService {
                 //剔除缓存
                 streamSession.removeSsrcTransaction(device.getDeviceId(), playBackReq.getChannelId(), playBackReq.getStreamId());
 
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.SIP_SEND_EXCEPTION,playBackReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY_BACK,BusinessErrorEnums.SIP_SEND_EXCEPTION,playBackReq);
             });
         }catch (Exception e){
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播失败", playBackReq);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.UNKNOWN_ERROR,playBackReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY_BACK,BusinessErrorEnums.UNKNOWN_ERROR,playBackReq);
         }
     }
 
