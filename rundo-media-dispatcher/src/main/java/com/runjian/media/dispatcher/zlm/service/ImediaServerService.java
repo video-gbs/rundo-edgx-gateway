@@ -5,6 +5,7 @@ import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
+import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 import com.runjian.media.dispatcher.zlm.ZLMServerConfig;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
@@ -48,7 +49,7 @@ public interface ImediaServerService {
      * @param baseRtpServerDto
      * @return
      */
-    SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto);
+    SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto, GatewayMsgType gatewayMsgType,String businessSceneKey);
 
 
     Boolean closeRTPServer(MediaServerItem mediaServerItem, String streamId);
@@ -92,7 +93,16 @@ public interface ImediaServerService {
 
     void removeMediaServer(String id);
 
-    boolean checkRtpServer(MediaServerItem mediaServerItem, String rtp, String stream);
+    /**
+     * 组装流地址
+     * @param mediaInfo
+     * @param app
+     * @param stream
+     * @return
+     */
+    StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream);
+
+    boolean checkRtpServer(MediaServerItem mediaServerItem,String stream);
 
     /**
      * 通知网关停止流

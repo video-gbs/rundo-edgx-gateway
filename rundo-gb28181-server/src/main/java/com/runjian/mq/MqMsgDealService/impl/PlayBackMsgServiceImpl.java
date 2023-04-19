@@ -30,14 +30,9 @@ public class PlayBackMsgServiceImpl implements InitializingBean, IMsgProcessorSe
     public void process(CommonMqDto commonMqDto) {
         JSONObject dataJson = (JSONObject) commonMqDto.getData();
         //实际的请求参数
-        JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
         //设备信息同步  获取设备信息
         //设备点播同步
-        String deviceId = dataJson.getString("deviceId");
-        String channelId = dataJson.getString("channelId");
-        PlayBackReq playBackReq = JSONObject.toJavaObject(dataMapJson, PlayBackReq.class);
-        playBackReq.setDeviceId(deviceId);
-        playBackReq.setChannelId(channelId);
+        PlayBackReq playBackReq = JSONObject.toJavaObject(dataJson, PlayBackReq.class);
         playBackReq.setMsgId(commonMqDto.getMsgId());
         iplayService.playBack(playBackReq);
     }

@@ -1,5 +1,6 @@
 package com.runjian.common.commonDto.Gateway.req;
 
+import com.runjian.common.commonDto.SsrcInfo;
 import lombok.Data;
 
 /**
@@ -21,14 +22,6 @@ public class PlayReq {
      * channelId
      */
     String channelId;
-    /**
-     * 是否开启音频
-     */
-    Boolean enableAudio =false;
-    /**
-     * 是否ssrc校验
-     */
-    Boolean ssrcCheck = true;
 
     /**
      * 调度服务地址
@@ -40,11 +33,8 @@ public class PlayReq {
      */
     private String streamId;
 
-    /**
-     * 录像状态
-     */
-    private Integer recordState;
 
+    private SsrcInfo ssrcInfo;
     /**
      * 业务消息id
      */

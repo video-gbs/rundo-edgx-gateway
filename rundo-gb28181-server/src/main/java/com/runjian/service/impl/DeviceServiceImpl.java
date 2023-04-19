@@ -172,7 +172,8 @@ public class DeviceServiceImpl implements IDeviceService {
         DeviceSendDto deviceSendDto = new DeviceSendDto();
         BeanUtil.copyProperties(device,deviceSendDto);
         BusinessSceneResp<DeviceSendDto> tBusinessSceneResp = BusinessSceneResp.addSceneEnd(GatewayMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), deviceSendDto);
-        gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp);
+        String businessSceneKey = GatewayMsgType.REGISTER.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
+        gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp,businessSceneKey);
     }
 
     @Override

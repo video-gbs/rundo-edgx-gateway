@@ -3,6 +3,7 @@ package com.runjian.media.dispatcher.zlm.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.ZlmStreamDto;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
@@ -125,21 +126,15 @@ public class MediaServerServiceImpl implements ImediaServerService {
     IOnlineStreamsService onlineStreamsService;
 
     @Override
-    public SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto) {
+    public SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto,GatewayMsgType gatewayMsgType,String businessSceneKey) {
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "调度服务", "创建端口请求", baseRtpServerDto);
-        StreamPlayDto streamPlayResult = new StreamPlayDto();
-        streamPlayResult.setStreamId(baseRtpServerDto.getStreamId());
-        String businessSceneKey = GatewayMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+baseRtpServerDto.getStreamId();
+
         SsrcInfo ssrcInfo = null;
-        if (mediaServerItem == null || mediaServerItem.getId() == null) {
-            throw new BusinessException(BusinessErrorEnums.VALID_BIND_EXCEPTION_ERROR);
-        }
         String streamId = baseRtpServerDto.getStreamId();
         String ssrc = baseRtpServerDto.getSsrc();
         Boolean ssrcCheck = baseRtpServerDto.getSsrcCheck();
         Integer port = baseRtpServerDto.getPort();
-        //缓存相关的请求参数
-        RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_RTP_SERVER_REQ+ BusinessSceneConstants.SCENE_SEM_KEY+baseRtpServerDto.getStreamId(),baseRtpServerDto);
+
 
         //流注册成功 回调
         HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.GB28181_APP, baseRtpServerDto.getStreamId(),true, VideoManagerConstants.GB28181_SCHEAM ,mediaServerItem.getId());
@@ -148,22 +143,9 @@ public class MediaServerServiceImpl implements ImediaServerService {
             logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm推流注册成功通知", "收到推流订阅消息", json.toJSONString());
             //拼接拉流的地址
             String pushStreamId = json.getString("stream");
-
-
-            GatewayBindReq gatewayBind = baseRtpServerDto.getGatewayBindReq();
-            if(ObjectUtils.isEmpty(gatewayBind)){
-                logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"zlm回调点播成功异常","网关绑定异常",baseRtpServerDto);
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_PLAY_RESULT,BusinessErrorEnums.MEDIA_ZLM_RTPSERVER_CREATE_ERROR,null);
-                return;
-            }
             StreamInfo streamInfoByAppAndStream = getStreamInfoByAppAndStream(mediaServerItem, VideoManagerConstants.GB28181_APP, pushStreamId);
-            CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_STREAM_CALLBACK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
-            //通知网关进行播放结果显示
-            mqInfo.setData(streamInfoByAppAndStream);
-            rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
             //发送调度服务的业务队列 通知流实际成功
-            streamPlayResult.setIsSuccess(true);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_PLAY_RESULT,BusinessErrorEnums.SUCCESS,streamPlayResult);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.SUCCESS,streamInfoByAppAndStream);
 
             // hook响应
             subscribe.removeSubscribe(hookSubscribe);
@@ -177,14 +159,11 @@ public class MediaServerServiceImpl implements ImediaServerService {
             rtpServerPort = mediaServerItem.getRtpProxyPort();
         }
         if(rtpServerPort <=0 ){
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_PLAY_RESULT,BusinessErrorEnums.MEDIA_ZLM_RTPSERVER_CREATE_ERROR,streamPlayResult);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.MEDIA_ZLM_RTPSERVER_CREATE_ERROR,null);
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_RTPSERVER_CREATE_ERROR);
         }
-        ssrcInfo = new SsrcInfo(rtpServerPort, ssrc, streamId,mediaServerItem.getId());
+        ssrcInfo = new SsrcInfo(rtpServerPort,ssrc,streamId,mediaServerItem.getId());
         ssrcInfo.setSdpIp(mediaServerItem.getSdpIp());
-
-
-
         return ssrcInfo;
 
     }
@@ -588,11 +567,14 @@ public class MediaServerServiceImpl implements ImediaServerService {
 
 
     @Override
-    public boolean checkRtpServer(MediaServerItem mediaServerItem, String app, String stream) {
+    public boolean checkRtpServer(MediaServerItem mediaServerItem, String stream) {
         JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, stream);
-        if(rtpInfo.getInteger("code") == 0){
-            return rtpInfo.getBoolean("exist");
+        if(!ObjectUtils.isEmpty(rtpInfo)){
+            if(rtpInfo.getInteger("code") == 0){
+                return rtpInfo.getBoolean("exist");
+            }
         }
+
         return false;
     }
 
@@ -603,6 +585,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
         deleteDb(id);
     }
 
+    @Override
     public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream) {
         StreamInfo streamInfoResult = new StreamInfo();
         streamInfoResult.setStreamId(stream);
@@ -682,7 +665,12 @@ public class MediaServerServiceImpl implements ImediaServerService {
         byeMqInfo.setData(streamPlayDto);
         GatewayBindReq gatewayBindReq = baseRtpServerDto.getGatewayBindReq();
         rabbitMqSender.sendMsgByExchange(gatewayBindReq.getMqExchange(), gatewayBindReq.getMqRouteKey(), UuidUtil.toUuid(),byeMqInfo,true);
+        //关闭端口
 
+        closeRTPServer(baseRtpServerDto.getMediaServerId(),streamId);
+        //释放ssrc
+
+        redisCatchStorageService.ssrcRelease(baseRtpServerDto.getSsrc());
     }
 
     @Override

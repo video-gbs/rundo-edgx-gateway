@@ -39,12 +39,7 @@ public enum GatewayMsgType {
     DEVICE_DELETE("DEVICE_DELETE"),
 //    设备通道
     CATALOG("CHANNEL_SYNC"),
-    //点播
-    PLAY("CHANNEL_PLAY"),
-    //回放
-    PLAY_BACK("CHANNEL_PLAYBACK"),
-    //停播 调度服务请求网关
-    STOP_PLAY("CHANNEL_STOP_PLAY"),
+
     //云台控制
     PTZ_CONTROL("CHANNEL_PTZ_CONTROL"),
     //录像列表
@@ -64,7 +59,7 @@ public enum GatewayMsgType {
     //云台控制操作
     CHANNEL_PTZ_OPERATION("CHANNEL_PTZ_OPERATION"),
     //拉框放大/缩小
-    CHANNEL_3D_OPERATION("CHANNEL_3D_OPERATION"),
+    CHANNEL_3D_OPERATION("CHANNEL_PTZ_3D"),
 
 
 
@@ -99,19 +94,24 @@ public enum GatewayMsgType {
     STREAM_RECORD_RESUME("STREAM_RECORD_RESUME"),
     //获取流信息
     STREAM_MEDIA_INFO("STREAM_MEDIA_INFO"),
+    //直播迁移
+    STREAM_LIVE_PLAY_START("STREAM_LIVE_PLAY_START"),
+    //录播迁移
+    STREAM_RECORD_PLAY_START("STREAM_RECORD_PLAY_START"),
     /******调度服务业务队列场景*************/
 
 
+    /******调度服务调用网关业务队列场景*************/
+    //点播
+    PLAY("CHANNEL_PLAY"),
+    //回放
+    PLAY_BACK("CHANNEL_PLAYBACK"),
+    //停播 调度服务请求网关
+    STOP_PLAY("CHANNEL_STOP_PLAY"),
+
+    /******调度服务调用网关业务队列场景*************/
     ;
 
     private final String typeName;
 
-    public static GatewayMsgType getTypeByTypeId(String id){
-        id = id.toUpperCase();
-        for (GatewayMsgType videoType : values()){
-            if (videoType.typeName.equals(id))
-                return videoType;
-        }
-        return null;
-    }
 }

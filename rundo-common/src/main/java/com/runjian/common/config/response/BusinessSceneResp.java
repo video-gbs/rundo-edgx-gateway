@@ -86,9 +86,30 @@ public class BusinessSceneResp<T> {
         return create(businessErrorEnums.getErrCode(), businessErrorEnums.getErrMsg(), BusinessSceneStatusEnum.end,gatewayMsgType,msgId,threadId,time ,data);
     }
 
+    /**
+     * 创建初始数据
+     * @param <T>
+     * @return
+     */
+    public static<T> BusinessSceneResp<T> addSceneEnd(GatewayMsgType gatewayMsgType,BusinessErrorEnums businessErrorEnums,BusinessSceneResp businessSceneResp,T data){
+        return create(businessErrorEnums.getErrCode(), businessErrorEnums.getErrMsg(), BusinessSceneStatusEnum.end,gatewayMsgType,businessSceneResp.getMsgId(),businessSceneResp.getThreadId(),businessSceneResp.getTime() ,data);
+    }
 
     public <T> BusinessSceneResp<T> addThisSceneEnd(GatewayMsgType gatewayMsgType,BusinessErrorEnums businessErrorEnums,BusinessSceneResp businessSceneResp,T data){
         return create(businessErrorEnums.getErrCode(), businessErrorEnums.getErrMsg(), BusinessSceneStatusEnum.end,gatewayMsgType,businessSceneResp.getMsgId(),businessSceneResp.getThreadId(),businessSceneResp.getTime() ,data);
+    }
+
+    /**
+     * 业务运行状态修改
+     * @param gatewayMsgType
+     * @param businessErrorEnums
+     * @param businessSceneResp
+     * @param data
+     * @param <T>
+     * @return
+     */
+    public static<T> BusinessSceneResp<T> addSceneRunning(GatewayMsgType gatewayMsgType,BusinessErrorEnums businessErrorEnums,BusinessSceneResp businessSceneResp,T data){
+        return create(businessErrorEnums.getErrCode(), businessErrorEnums.getErrMsg(), BusinessSceneStatusEnum.running,gatewayMsgType,businessSceneResp.getMsgId(),businessSceneResp.getThreadId(),businessSceneResp.getTime() ,data);
     }
     /**
      * 自创建异常

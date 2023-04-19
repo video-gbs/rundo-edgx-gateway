@@ -57,7 +57,6 @@ public class BusinessAsyncSender {
             return;
         }
         taskExecutor.execute(()->{
-            while (!taskQueue.isEmpty()){
                 BusinessSceneResp businessSceneRespPoll = taskQueue.poll();
                 GatewayMsgType gatewayMsgType = businessSceneRespPoll.getGatewayMsgType();
                 String msgId = businessSceneRespPoll.getMsgId();
@@ -67,7 +66,6 @@ public class BusinessAsyncSender {
                 mqInfo.setMsg(businessSceneResp.getMsg());
                 log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", businessSceneResp);
                 rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),mqInfo,true);
-            }
         });
     }
 

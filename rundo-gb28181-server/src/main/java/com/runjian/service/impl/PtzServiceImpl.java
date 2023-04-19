@@ -325,7 +325,7 @@ public class PtzServiceImpl implements IPtzService {
         //进行预置位操作
         //校验参数
         String msgId = dragZoomControlReq.getMsgId();;
-        String businessSceneKey = GatewayMsgType.CHANNEL_3D_OPERATION.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+dragZoomControlReq.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+dragZoomControlReq.getChannelId()+BusinessSceneConstants.SCENE_STREAM_KEY+dragZoomControlReq.getDragOperationType();
+        String businessSceneKey = GatewayMsgType.CHANNEL_3D_OPERATION.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+dragZoomControlReq.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+dragZoomControlReq.getChannelId()+BusinessSceneConstants.SCENE_STREAM_KEY+dragZoomControlReq.getDragType();
         RLock lock = redissonClient.getLock(businessSceneKey);
 
         try {
@@ -338,7 +338,7 @@ public class PtzServiceImpl implements IPtzService {
                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE, "设备信息同步请求,加锁失败，合并全局的请求", msgId);
                 return;
             }
-            DragRoomTypeEnum dragRoomTypeEnumOne = DragRoomTypeEnum.getTypeByTypeId(dragZoomControlReq.getDragOperationType());
+            DragRoomTypeEnum dragRoomTypeEnumOne = DragRoomTypeEnum.getTypeByTypeId(dragZoomControlReq.getDragType());
             //查询通道数据
             Device device = deviceService.getDevice(dragZoomControlReq.getDeviceId());
             if(ObjectUtils.isEmpty(device)){
@@ -394,7 +394,7 @@ public class PtzServiceImpl implements IPtzService {
                     break;
 
             }
-
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.SUCCESS,null);
         }catch (Exception e){
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "拉框服务", "拉框服务操作失败", dragZoomControlReq);
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.UNKNOWN_ERROR,null);

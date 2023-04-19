@@ -33,9 +33,7 @@ public class PlayController {
         PlayReq playReq = new PlayReq();
         playReq.setChannelId("34020000001310000001");
         playReq.setDeviceId("34020000001180000241");
-        playReq.setEnableAudio(false);
         playReq.setMsgId("12345678");
-        playReq.setSsrcCheck(Boolean.TRUE);
         playReq.setStreamMode("UDP");
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"请求进入","无");
         playService.play(playReq);

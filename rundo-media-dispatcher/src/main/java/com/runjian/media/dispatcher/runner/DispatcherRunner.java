@@ -1,6 +1,7 @@
 package com.runjian.media.dispatcher.runner;
 
 import com.runjian.media.dispatcher.service.DispatcherInfoService;
+import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -20,8 +21,13 @@ public class DispatcherRunner implements CommandLineRunner {
     @Autowired
     DispatcherInfoService dispatcherInfoService;
 
+    @Autowired
+    IRedisCatchStorageService redisCatchStorageService;
+
     @Override
     public void run(String... args) throws Exception {
+        //初始化国标的ssrc
+        redisCatchStorageService.ssrcInit();
         //发送注册
         dispatcherInfoService.sendRegisterInfo();
     }

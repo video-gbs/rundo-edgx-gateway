@@ -93,7 +93,6 @@ public class DynamicTask {
         if (future != null){
             futureMap.put(key, future);
             runnableMap.put(key, task);
-            logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "动态定时任务", String.format("任务【%s】启动成功！！！", key));
         }else {
             logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "动态定时任务", String.format("任务【%s】启动失败！！！", key));
         }

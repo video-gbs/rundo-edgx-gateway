@@ -40,7 +40,7 @@ public class DragZoomControlReq {
     /**
      * 拉框放大和缩小
      */
-    private Integer dragOperationType;
+    private Integer dragType;
 
     /**
      * 业务消息id
