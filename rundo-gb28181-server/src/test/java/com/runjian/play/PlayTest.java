@@ -8,6 +8,7 @@ import com.runjian.common.commonDto.Gb28181Media.resp.StreamMediaInfoResp;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamVideoMediaInfoResp;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.service.IDeviceService;
 import com.runjian.service.IplayService;
@@ -112,4 +113,22 @@ public class PlayTest {
         log.info("哈哈={}",streamMediaInfoResp);
 
     }
+
+    @Test
+    public void testaaPlay(){
+        String ss = "{\"serialNum\":\"eb48104ddf2b4760be123783b3621051\",\"msgType\":\"CHANNEL_PLAY\",\"msgId\":\"4357\",\"time\":\"2023-04-19 19:04:10\",\"code\":0,\"\n" +
+                "msg\":\"SUCCESS\",\"data\":{\"streamMode\":\"UDP\",\"deviceId\":\"34020000001330000185\",\"channelId\":\"34020000001320000185\",\"dispatchUrl\":\"http://192.168.0.84:18081\",\"streamId\":\"LIVE_91\",\"ssrcInfo\":{\"port\":22136,\"ssrc\":\"0102002823\",\"sdpIp\":\"124.71.21.11\",\"streamId\":\"LIVE_91\",\"mediaServerId\":\"LORVY158beilorvy\"},\"msgId\":null}}";
+        JSONObject jsonMsg = JSONObject.parseObject(ss);
+
+        CommonMqDto commonMqDto = JSONObject.toJavaObject(jsonMsg, CommonMqDto.class);
+
+        JSONObject dataJson = (JSONObject) commonMqDto.getData();
+        //设备信息同步  获取设备信息
+        PlayReq playReq = JSONObject.toJavaObject(dataJson, PlayReq.class);
+        playReq.setMsgId(commonMqDto.getMsgId());
+
+
+
+    }
+
 }
