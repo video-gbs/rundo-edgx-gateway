@@ -13,6 +13,9 @@ import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMsgProcessorService;
 import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
+import com.runjian.media.dispatcher.zlm.ZLMRESTfulUtils;
+import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
+import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +44,10 @@ public class StreamRecordPauseMsgServiceImpl implements InitializingBean, IMsgPr
 
     @Autowired
     DispatcherSignInConf dispatcherSignInConf;
+    @Autowired
+    ImediaServerService imediaServerService;
+    @Autowired
+    private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -70,6 +77,17 @@ public class StreamRecordPauseMsgServiceImpl implements InitializingBean, IMsgPr
 
         RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_STREAM_PAUSE+ BusinessSceneConstants.SCENE_SEM_KEY+streamId,streamId,60);
         //通知网关进行bye请求的发送
+        //zlm 暂停流检查
+        MediaServerItem one = imediaServerService.getOne(baseRtpServerDto.getMediaServerId());
+        JSONObject jsonObject = zlmresTfulUtils.pauseRtpCheck(one, streamId);
+        if (jsonObject == null || jsonObject.getInteger("code") != 0) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流暂停操作","操作失败,暂停RTP接收失败",commonMqDto);
+            businessMqInfo.setCode(BusinessErrorEnums.MEDIA_SERVER_PAUSE_ERROR.getErrCode());
+            businessMqInfo.setMsg(BusinessErrorEnums.MEDIA_SERVER_PAUSE_ERROR.getErrMsg());
+            businessMqInfo.setData(false);
+            rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),businessMqInfo,true);
+            return;
+        }
 
         //通知网关进行设备操作  todo 暂时不考虑网关操作结果的返回
         CommonMqDto gatewayMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.DEVICE_RECORD_PAUSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
