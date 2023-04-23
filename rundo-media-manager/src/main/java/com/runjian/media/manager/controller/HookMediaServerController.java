@@ -26,6 +26,7 @@ public class HookMediaServerController {
      */
     @PostMapping(value = "/registerMediaNode",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> registerMediaNode(@RequestBody MediaServerConfigDto req){//获取zlm流媒体配置
+        log.info("请求={}",req);
         return CommonResponse.success();
     }
 
@@ -36,6 +37,7 @@ public class HookMediaServerController {
      */
     @PostMapping(value = "/updateKeepalive",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> updateKeepalive(@RequestBody JSONObject req){//获取zlm流媒体配置
+        log.info("请求={}",req);
         return CommonResponse.success();
     }
 
@@ -45,7 +47,8 @@ public class HookMediaServerController {
      * @return
      */
     @PostMapping(value = "/unregisterMediaNode",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    public CommonResponse<Boolean> unregisterMediaNode(@RequestBody MediaServerConfigDto req){//获取zlm流媒体配置
+    public CommonResponse<Boolean> unregisterMediaNode(@RequestBody MediaServerConfigDto req){
+        log.info("请求={}",req);
         return CommonResponse.success();
     }
 }
