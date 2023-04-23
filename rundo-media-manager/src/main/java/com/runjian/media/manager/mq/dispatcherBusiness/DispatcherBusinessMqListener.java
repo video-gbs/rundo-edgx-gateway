@@ -6,7 +6,6 @@ import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.media.manager.mq.MqMsgDealService.IMqMsgDealServer;
-import com.runjian.media.manager.zlm.service.ImediaServerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
@@ -21,8 +20,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class DispatcherBusinessMqListener implements ChannelAwareMessageListener {
 
-    @Autowired
-    ImediaServerService imediaServerService;
 
     @Autowired
     IMqMsgDealServer mqMsgDealServer;

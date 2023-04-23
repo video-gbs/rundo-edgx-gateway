@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
 import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.UuidUtil;

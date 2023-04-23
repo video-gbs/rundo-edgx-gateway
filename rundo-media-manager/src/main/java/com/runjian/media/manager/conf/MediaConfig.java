@@ -1,6 +1,6 @@
 package com.runjian.media.manager.conf;
 
-import com.runjian.media.manager.zlm.dto.MediaServerItem;
+import com.runjian.media.manager.dto.entity.MediaServerEntity;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ public class MediaConfig {
     private Integer httpPort;
 
     @Value("${media.http-ssl-port:0}")
-    private Integer httpSSlPort = 0;
+    private Integer httpSslPort = 0;
 
     @Value("${media.http-play-port}")
     private Integer httpPlayPort;
@@ -51,7 +51,7 @@ public class MediaConfig {
     private Integer rtmpPort = 0;
 
     @Value("${media.rtmp-ssl-port:0}")
-    private Integer rtmpSSlPort = 0;
+    private Integer rtmpSslPort = 0;
 
     @Value("${media.rtp-proxy-port:0}")
     private Integer rtpProxyPort = 0;
@@ -60,7 +60,7 @@ public class MediaConfig {
     private Integer rtspPort = 0;
 
     @Value("${media.rtsp-ssl-port:0}")
-    private Integer rtspSSLPort = 0;
+    private Integer rtspSslPort = 0;
 
     @Value("${media.auto-config:true}")
     private boolean autoConfig = true;
@@ -112,8 +112,8 @@ public class MediaConfig {
 
 
 
-    public MediaServerItem getMediaSerItem(){
-        MediaServerItem mediaServerItem = new MediaServerItem();
+    public MediaServerEntity getMediaSerConfig(){
+        MediaServerEntity mediaServerItem = new MediaServerEntity();
         mediaServerItem.setId(id);
         mediaServerItem.setIp(ip);
         mediaServerItem.setDefaultServer(true);
@@ -121,23 +121,18 @@ public class MediaConfig {
         mediaServerItem.setSdpIp(getSdpIp());
         mediaServerItem.setStreamIp(getStreamIp());
         mediaServerItem.setHttpPort(httpPort);
-        mediaServerItem.setHttpSslPort(httpSSlPort);
         //增加扩展字段
         mediaServerItem.setHttpPlayPort(httpPlayPort);
 
         mediaServerItem.setEnableHttps(enableHttps);
 
         mediaServerItem.setRtmpPort(rtmpPort);
-        mediaServerItem.setRtmpSslPort(rtmpSSlPort);
         mediaServerItem.setRtpProxyPort(getRtpProxyPort());
         mediaServerItem.setRtspPort(rtspPort);
-        mediaServerItem.setRtspSslPort(rtspSSLPort);
-        mediaServerItem.setAutoConfig(autoConfig);
         mediaServerItem.setSecret(secret);
         mediaServerItem.setRtpEnable(rtpEnable);
         mediaServerItem.setRtpPortRange(rtpPortRange);
         mediaServerItem.setSendRtpPortRange(sendRtpPortRange);
-        mediaServerItem.setRecordAssistPort(recordAssistPort);
         mediaServerItem.setHookAliveInterval(120);
 
         return mediaServerItem;

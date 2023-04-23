@@ -112,14 +112,13 @@
             <artifactId>fst</artifactId>
             <version>2.57</version>
         </dependency>
+
+        <!-- HuTool -->
         <dependency>
-            <groupId>com.runjian</groupId>
-            <artifactId>rundo-media-dispatcher</artifactId>
-            <version>1.0.0</version>
-            <scope>compile</scope>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.8.10</version>
         </dependency>
-
-
     </dependencies>
 
 
