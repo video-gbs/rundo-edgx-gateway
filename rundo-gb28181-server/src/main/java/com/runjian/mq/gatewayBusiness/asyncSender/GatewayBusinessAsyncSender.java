@@ -67,33 +67,35 @@ public class GatewayBusinessAsyncSender {
             return;
         }
         taskExecutor.execute(()->{
+            while (!taskQueue.isEmpty()) {
                 BusinessSceneResp businessSceneRespPoll = taskQueue.poll();
-                if(ObjectUtils.isEmpty(businessSceneRespPoll)){
+                if (ObjectUtils.isEmpty(businessSceneRespPoll)) {
                     return;
                 }
                 GatewayMsgType gatewayMsgType = businessSceneRespPoll.getGatewayMsgType();
                 String msgId = businessSceneRespPoll.getMsgId();
-                CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
+                CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix, msgId);
                 mqInfo.setData(businessSceneRespPoll.getData());
                 mqInfo.setCode(businessSceneRespPoll.getCode());
                 mqInfo.setMsg(businessSceneResp.getMsg());
                 log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", mqInfo);
                 //针对点播和回放的通知 仅通知调度服务
-                if(gatewayMsgType.equals(GatewayMsgType.PLAY_BACK) || gatewayMsgType.equals(GatewayMsgType.PLAY)){
+                if (gatewayMsgType.equals(GatewayMsgType.PLAY_BACK) || gatewayMsgType.equals(GatewayMsgType.PLAY)) {
                     //restfulapi请求 分离请求中的streamId
-                    String streamId = businessSceneKey.substring(businessSceneKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY)+1);
+                    String streamId = businessSceneKey.substring(businessSceneKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY) + 1);
                     GatewayStreamNotify gatewayStreamNotify = new GatewayStreamNotify();
                     gatewayStreamNotify.setStreamId(streamId);
                     gatewayStreamNotify.setBusinessSceneResp(businessSceneResp);
                     //获取实体中的设备数据 转换为playreq
                     //设备信息同步  获取设备信息
-                    PlayReq playReq = JSONObject.toJavaObject((JSONObject)businessSceneResp.getData(), PlayReq.class);
-                    CommonResponse<Boolean> booleanCommonResponse = RestTemplateUtil.postStreamNotifyRespons(playReq.getDispatchUrl()+streamNotifyApi, gatewayStreamNotify, restTemplate);
+                    PlayReq playReq = JSONObject.toJavaObject((JSONObject) businessSceneResp.getData(), PlayReq.class);
+                    CommonResponse<Boolean> booleanCommonResponse = RestTemplateUtil.postStreamNotifyRespons(playReq.getDispatchUrl() + streamNotifyApi, gatewayStreamNotify, restTemplate);
                     log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", booleanCommonResponse);
 
-                }else {
-                    rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),mqInfo,true);
+                } else {
+                    rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
                 }
+            }
         });
     }
 
