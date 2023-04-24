@@ -1,6 +1,5 @@
 spring:
-    application:
-        name: rundo-media-dispatcher
+
     # REDIS数据库配置
     redis:
         # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1
@@ -95,7 +94,7 @@ mybatis-plus:
 
 ## [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
-    port: 18081
+    port: 18090
 
 #zlm 默认服务器配置
 media:
