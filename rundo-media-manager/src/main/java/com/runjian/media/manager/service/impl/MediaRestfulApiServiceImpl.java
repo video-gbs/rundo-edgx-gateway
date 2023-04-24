@@ -41,7 +41,7 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
 
     @Override
     public MediaServerEntity getMediaServerConfigApi(MediaServerEntity mediaServerEntity) {
-        String url = String.format("http://%s:%s/index/api/%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), getServerConfigApi);
+        String url = String.format("http://%s:%s%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), getServerConfigApi);
 
         String result = RestTemplateUtil.get(url, makeTokenHeader(mediaServerEntity.getSecret()), restTemplate);
         if (ObjectUtils.isEmpty(result)) {
@@ -59,9 +59,9 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
 
     @Override
     public Boolean setMediaServerConfigApi(MediaServerConfigDto mediaServerConfigDto,MediaServerEntity mediaServerEntity) {
-        String url = String.format("http://%s:%s/index/api/%s",  mediaServerConfigDto.getHttpIp(), mediaServerConfigDto.getHttpPort(), setServerConfigApi);
+        String url = String.format("http://%s:%s%s",  mediaServerConfigDto.getHttpIp(), mediaServerConfigDto.getHttpPort(), setServerConfigApi);
 
-        String result = RestTemplateUtil.get(url, makeTokenHeader(mediaServerEntity.getSecret()), restTemplate);
+        String result = RestTemplateUtil.postString(url, JSON.toJSONString(mediaServerConfigDto),makeTokenHeader(mediaServerEntity.getSecret()), restTemplate);
         if (ObjectUtils.isEmpty(result)) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",result);
             return false;

@@ -9,20 +9,20 @@ import lombok.Data;
 @Data
 public class MediaServerConfigDto {
 
-    private int  apiDebug = 1;
-    private int streamNoneReaderDelayMS;
+    private Integer  apiDebug = 1;
+    private Integer streamNoneReaderDelayMS;
     private String schedulerIp;
-    private int schedulerPort;
+    private Integer schedulerPort;
     private String mediaServerId;
-    private int msgPushEnable;
+    private Integer msgPushEnable;
     private String serverStarted;
     private String serverKeepalive;
     private String streamChanged;
     private String streamNoneReader;
-    private int httpPort;
+    private Integer httpPort;
     private String httpIp;
     private String rtpPortRange;
-    private int keepAliveTTL;
-
+    private Integer keepAliveTTL;
+    
 
 }
