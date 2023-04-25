@@ -8,7 +8,6 @@ import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.conf.mq.GatewaySignInConf;
-import com.runjian.gb28181.session.CatalogDataCatch;
 import com.runjian.service.IRedisCatchStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +34,6 @@ public class GatewayBusinessAsyncSender {
     @Autowired
     GatewaySignInConf gatewaySignInConf;
 
-    @Autowired
-    CatalogDataCatch catalogDataCatch;
 
     @Autowired
     RedisTemplate redisTemplate;

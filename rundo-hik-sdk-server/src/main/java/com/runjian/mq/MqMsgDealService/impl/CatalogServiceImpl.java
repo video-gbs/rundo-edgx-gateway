@@ -33,8 +33,6 @@ public class CatalogServiceImpl implements InitializingBean, IMsgProcessorServic
         //设备信息同步  获取设备信息
         //设备通道信息同步
         String deviceId = dataJson.getString("deviceId");
-        Device device = deviceService.getDevice(deviceId);
-        deviceService.sync(device, commonMqDto.getMsgId());
     }
 
 

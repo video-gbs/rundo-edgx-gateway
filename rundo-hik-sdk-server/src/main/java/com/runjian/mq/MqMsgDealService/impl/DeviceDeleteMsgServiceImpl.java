@@ -31,7 +31,6 @@ public class DeviceDeleteMsgServiceImpl implements InitializingBean, IMsgProcess
         JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
         //设备信息同步  获取设备信息
         String deviceId = dataJson.getString("deviceId");
-        deviceService.deviceDelete(deviceId, commonMqDto.getMsgId());
     }
 
 

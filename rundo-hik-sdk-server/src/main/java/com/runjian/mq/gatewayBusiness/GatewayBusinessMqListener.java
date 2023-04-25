@@ -1,13 +1,10 @@
 package com.runjian.mq.gatewayBusiness;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.rabbitmq.client.Channel;
 import com.runjian.common.config.exception.BusinessErrorEnums;
-import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.mq.domain.CommonMqDto;
-import com.runjian.gb28181.bean.Device;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -55,20 +52,4 @@ public class GatewayBusinessMqListener implements ChannelAwareMessageListener {
         }
     }
 
-    public static void main(String[] args) {
-        CommonMqDto commonMqDto = new CommonMqDto();
-        commonMqDto.setMsgType("sign-in");
-        commonMqDto.setSerialNum("asdasd");
-        commonMqDto.setMsgId("b_123123");
-        Device device = new Device();
-        device.setCharset("asdas");
-        device.setDeviceId("12112312");
-        commonMqDto.setData(device);
-        CommonResponse<CommonMqDto> success = CommonResponse.success(commonMqDto);
-        String s = JSON.toJSONString(success);
-
-        JSONObject jsonObject = JSON.parseObject(s);
-        System.out.println(JSON.toJSONString(success));
-
-    }
 }

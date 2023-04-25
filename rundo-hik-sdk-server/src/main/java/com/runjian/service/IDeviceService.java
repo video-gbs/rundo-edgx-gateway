@@ -1,76 +1,33 @@
 package com.runjian.service;
 
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.runjian.domain.dto.Device;
+import com.runjian.entity.DeviceEntity;
 
 import java.util.List;
 
 /**
  * @author chenjialing
  */
-public interface IDeviceService {
+public interface IDeviceService extends IService<DeviceEntity> {
     /**
      * 设备上线
-     * @param device 设备信息
+     * String ip, short port, String user, String psw
      */
-    void online(Device device);
+    void online(String ip, short port, String user, String psw);
 
     /**
      * 设备下线
-     * @param device 设备信息
+     * @param lUserId 登录句柄
      */
-    void offline(Device device);
-
-    /**
-     * 查询设备信息
-     * @param deviceId 设备编号
-     * @return 设备信息
-     */
-    Device getDevice(String deviceId);
-
-    /**
-     * 同步设备信息
-     * @param device
-     */
-    void sync(Device device,String msgId);
-
-    /**
-     * 更新设备
-     * @param device 设备信息
-     */
-    void updateDevice(Device device);
-
-    /**
-     * 判断是否注册已经失效
-     * @param device 设备信息
-     * @return 布尔
-     */
-    boolean expire(Device device);
-
-    /**
-     * 查询设备信息
-     * @param device
-     */
-    void deviceInfoQuery(Device device,String msgId);
-
-    /**
-     *
-     * @param deviceId
-     * @return
-     */
-    void deviceDelete(String deviceId,String msgId);
-
-    /**
-     * 设备全量数据同步
-     * @param msgId
-     * @return
-     */
-    void deviceList(String msgId);
+    void offline(int lUserId);
 
 
     /**
-     * 获取所有在线设备
-     * @return 设备列表
+     * 设备下线
+     * @param lUserId 登录句柄
      */
-    List<Device> getAllOnlineDevice();
+    void deviceInfo(int lUserId);
+
 }

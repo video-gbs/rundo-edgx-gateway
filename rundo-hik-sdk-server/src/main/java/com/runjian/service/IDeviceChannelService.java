@@ -1,14 +1,17 @@
 package com.runjian.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
-import com.runjian.gb28181.bean.DeviceChannel;
+import com.runjian.domain.dto.DeviceChannel;
+import com.runjian.entity.DeviceChannelEntity;
+import com.runjian.entity.DeviceEntity;
 
 import java.util.List;
 
 /**
  * @author chenjialing
  */
-public interface IDeviceChannelService {
+public interface IDeviceChannelService extends IService<DeviceChannelEntity> {
 
     /**
      * catlog查询结束后完全重写通道信息----流程优化

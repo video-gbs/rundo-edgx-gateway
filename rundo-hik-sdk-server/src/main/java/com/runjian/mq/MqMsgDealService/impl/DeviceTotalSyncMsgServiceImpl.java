@@ -25,7 +25,7 @@ public class DeviceTotalSyncMsgServiceImpl implements InitializingBean, IMsgProc
 
     @Override
     public void process(CommonMqDto commonMqDto) {
-        deviceService.deviceList(commonMqDto.getMsgId());
+
     }
 
 

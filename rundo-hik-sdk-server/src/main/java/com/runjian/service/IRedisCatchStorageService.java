@@ -4,7 +4,6 @@ import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
-import com.runjian.conf.SsrcConfig;
 
 /**
  * @author chenjialing
@@ -28,13 +27,6 @@ public interface IRedisCatchStorageService {
 
     CommonMqDto getMqInfo(String msgType, String snIncr, String snPrefix, String msgId);
 
-    Boolean ssrcInit();
-
-    Boolean ssrcRelease(String ssrc);
-
-    SsrcConfig getSsrcConfig();
-
-    Boolean setSsrcConfig(SsrcConfig ssrcConfig);
     /**
      * 操作业务场景的redis修改
      * @param businessSceneKey
