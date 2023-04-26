@@ -65,6 +65,10 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             SsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayMsgType.STREAM_LIVE_PLAY_START, playReq,true);
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "端口创建结果", playCommonSsrcInfo);
             //直播
+            if(ObjectUtils.isEmpty(playCommonSsrcInfo)){
+                //流复用，不用通知网关
+                return;
+            }
             PlayReq gatewayPlayReq = new PlayReq();
             gatewayPlayReq.setSsrcInfo(playCommonSsrcInfo);
             gatewayPlayReq.setDeviceId(playReq.getDeviceId());
@@ -91,6 +95,10 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             //阻塞型,默认是30s无返回参数
             SsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayMsgType.STREAM_RECORD_PLAY_START, mediaPlayBackReq,false);
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播回放服务", "端口创建结果", playCommonSsrcInfo);
+            if(ObjectUtils.isEmpty(playCommonSsrcInfo)){
+                //流复用，不用通知网关
+                return;
+            }
             //直播
             PlayReq gatewayPlayReq = new PlayReq();
             gatewayPlayReq.setSsrcInfo(playCommonSsrcInfo);
