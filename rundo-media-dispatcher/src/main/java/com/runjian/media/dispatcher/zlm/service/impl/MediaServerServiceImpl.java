@@ -153,11 +153,11 @@ public class MediaServerServiceImpl implements ImediaServerService {
 
         int rtpServerPort;
         if (mediaServerItem.isRtpEnable()) {
-            rtpServerPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck?Integer.parseInt(ssrc):0, port);
+            rtpServerPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId, 0, port);
         } else {
             // todo 暂时不考虑单端口服用的情况
             rtpServerPort = mediaServerItem.getRtpProxyPort();
-        }
+        }1
         if(rtpServerPort <=0 ){
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.MEDIA_ZLM_RTPSERVER_CREATE_ERROR,null);
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_RTPSERVER_CREATE_ERROR);
