@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.alibaba.fastjson.JSON;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
+import com.runjian.common.commonDto.Gb28181Media.req.CustomPlayReq;
 import com.runjian.common.commonDto.StreamCloseDto;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
@@ -176,31 +177,44 @@ public class ZLMHttpHookListener {
 		String mediaServerId = json.getString("mediaServerId");
 		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 		String app = json.getString("app");
-		String stream = json.getString("stream");
+		String streamId = json.getString("stream");
 		ret.put("code", 0);
 		ret.put("msg", "success");
 		ret.put("enable_hls", true);
 
-		//todo 判断是否录制mp4 以及是否开启音频
-		BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ+BusinessSceneConstants.SCENE_SEM_KEY+stream);
-		if(ObjectUtils.isEmpty(baseRtpServerDto)){
-			//缓存不存在或则推流超时了
-			logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"on_publish API调用","rtpserver信息缓存不存在",json);
-			ret.put("code", 1);
-			ret.put("msg", "rtpServer not exists");
-		}else {
-			//正常推流，判断是否开启音频
-			ret.put("enable_audio", baseRtpServerDto.getEnableAudio());
-			ret.put("enable_mp4", baseRtpServerDto.getRecordState() != 0);
-		}
-		if ("rtp".equals(app)) {
+		//判断推流的方式
+		if (VideoManagerConstants.GB28181_APP.equals(app)) {
 
-			//todo 判断是否要进行级联推流
-			//zlmMediaListManager.sendStreamEvent(param.getApp(),param.getStream(), param.getMediaServerId());
+			//todo 判断是否录制mp4 以及是否开启音频
+			BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ+BusinessSceneConstants.SCENE_SEM_KEY+streamId);
+			if(ObjectUtils.isEmpty(baseRtpServerDto)){
+				//缓存不存在或则推流超时了
+				logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"on_publish API调用","rtpserver信息缓存不存在",json);
+				ret.put("code", 1);
+				ret.put("msg", "rtpServer not exists");
+			}else {
+				//正常推流，判断是否开启音频
+				ret.put("enable_audio", baseRtpServerDto.getEnableAudio());
+				ret.put("enable_mp4", baseRtpServerDto.getRecordState() != 0);
+			}
 		}else {
-			//todo 非国标的推流鉴权
+			//rtsp或则rtmp的推流 获取流对应的缓存是否存在
+			CustomPlayReq customPlayReq= (CustomPlayReq)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_PUSH_STREAM_REQ+BusinessSceneConstants.SCENE_SEM_KEY+streamId);
 
+			if(ObjectUtils.isEmpty(customPlayReq)){
+				//缓存不存在或则推流超时了
+				logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"on_publish API调用","customPlayReq信息缓存不存在",json);
+				ret.put("code", 1);
+				ret.put("msg", "rtpServer not exists");
+			}else {
+				//正常推流，判断是否开启音频
+				ret.put("enable_audio", customPlayReq.getEnableAudio());
+				ret.put("enable_mp4", customPlayReq.getRecordState() != 0);
+			}
 		}
+
+
+
 		return ret;
 	}
 
@@ -334,37 +348,31 @@ public class ZLMHttpHookListener {
 		ret.put("close", false);
 		if (VideoManagerConstants.GB28181_APP.equals(app)){
 			// 国标流， 点播/录像回放/录像下载
+			CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
+			StreamCloseDto streamCloseDto = new StreamCloseDto();
+			streamCloseDto.setStreamId(streamId);
+			streamCloseDto.setCanClose(true);
+			mqInfo.setData(streamCloseDto);
+			if(!ObjectUtils.isEmpty(dispatcherSignInConf.getMqExchange())){
+				rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
 
+			}else {
+				logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"on_stream_none_reader异常","业务队列未初始化",json);
+			}
 		}else {
 			// 非国标流 推流/拉流代理
-			// 拉流代理
+			//rtsp或则rtmp的推流 获取流对应的缓存是否存在
+			CustomPlayReq customPlayReq= (CustomPlayReq)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_PUSH_STREAM_REQ+BusinessSceneConstants.SCENE_SEM_KEY+streamId);
 
+			if(!ObjectUtils.isEmpty(customPlayReq)){
+				//是否关闭
+				Integer autoCloseState = customPlayReq.getAutoCloseState();
+				if(ObjectUtils.isEmpty(autoCloseState)){
+					autoCloseState = 1;
+				}
+				ret.put("close", autoCloseState==1);
+			}
 		}
-		CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
-		StreamCloseDto streamCloseDto = new StreamCloseDto();
-		streamCloseDto.setStreamId(streamId);
-		streamCloseDto.setCanClose(true);
-		mqInfo.setData(streamCloseDto);
-		if(!ObjectUtils.isEmpty(dispatcherSignInConf.getMqExchange())){
-			rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
-
-		}else {
-			logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"on_stream_none_reader异常","业务队列未初始化",json);
-		}
-		//todo 根据上层的判断进行是否进行无人观看的拉流关闭
-//		NoneStreamReaderReq noneStreamReaderReq = new NoneStreamReaderReq();
-//		noneStreamReaderReq.setApp(app);
-//		noneStreamReaderReq.setMediaServerId(mediaServerId);
-//		noneStreamReaderReq.setSchema(json.getString("schema"));
-//		noneStreamReaderReq.setStreamId(streamId);
-//		//获取绑定的网关信息 根据流媒体id
-//		GatewayBind gatewayBind = gatewayBindService.findOneByMediaId(mediaServerId);
-//		if(!ObjectUtils.isEmpty(gatewayBind)){
-//			CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_NONE_STREAM_READER_CALLBACK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
-//			mqInfo.setData(noneStreamReaderReq);
-//			logger.info("流无人观看调用={}",mqInfo);
-//			rabbitMqSender.sendMsgByExchange(gatewayBind.getMqExchange(), gatewayBind.getMqRouteKey(), UuidUtil.toUuid(),mqInfo,true);
-//		}
 
 		return ret;
 	}

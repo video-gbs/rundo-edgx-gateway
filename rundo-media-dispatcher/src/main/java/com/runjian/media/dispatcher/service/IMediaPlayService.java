@@ -1,9 +1,11 @@
 package com.runjian.media.dispatcher.service;
 
 
+import com.runjian.common.commonDto.Gb28181Media.req.CustomPlayReq;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayBackReq;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayReq;
+import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.response.BusinessSceneResp;
 
 /**
@@ -25,6 +27,11 @@ public interface IMediaPlayService {
      */
     void playBack(MediaPlayBackReq mediaPlayBackReq);
 
+    /**
+     * 自定义直播
+     * @param customPlayReq
+     */
+    StreamInfo playCustom(CustomPlayReq customPlayReq);
     /**
      * 点播通知
      * @param gatewayStreamNotify

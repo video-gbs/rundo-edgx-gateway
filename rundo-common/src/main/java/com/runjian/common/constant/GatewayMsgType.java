@@ -98,6 +98,8 @@ public enum GatewayMsgType {
     STREAM_LIVE_PLAY_START("STREAM_LIVE_PLAY_START"),
     //录播迁移
     STREAM_RECORD_PLAY_START("STREAM_RECORD_PLAY_START"),
+    //自定义直播
+    STREAM_CUSTOM_LIVE_START("STREAM_CUSTOM_LIVE_START"),
     /******调度服务业务队列场景*************/
 
 
