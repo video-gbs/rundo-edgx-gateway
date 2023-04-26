@@ -9,9 +9,12 @@ import com.runjian.hik.module.service.SdkInitService;
 import com.runjian.hik.sdklib.HCNetSDK;
 import com.runjian.mapper.DeviceMapper;
 import com.runjian.service.IDeviceService;
+import com.sun.jna.Pointer;
+import com.sun.jna.ptr.IntByReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
@@ -53,6 +56,9 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"sdk登陆失败",m_strLoginInfo,hCNetSDK.NET_DVR_GetLastError());
         }
 
+        LambdaQueryWrapper<DeviceEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(DeviceEntity::getLUserId,lUserId);
+        DeviceEntity one = deviceMapper.selectOne(queryWrapper);
         DeviceEntity deviceEntity = new DeviceEntity();
         deviceEntity.setLUserId(lUserId);
         deviceEntity.setIp(ip);
@@ -60,8 +66,18 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
         deviceEntity.setOnline(lUserId<0?0:1);
         deviceEntity.setPassword(psw);
         deviceEntity.setUserName(user);
-        deviceMapper.insert(deviceEntity);
 
+        if(ObjectUtils.isEmpty(one)){
+
+            deviceMapper.insert(deviceEntity);
+        }else {
+            LambdaQueryWrapper<DeviceEntity> updateWrapper = new LambdaQueryWrapper<>();
+            updateWrapper.eq(DeviceEntity::getLUserId,lUserId);
+            deviceMapper.update(deviceEntity,updateWrapper);
+        }
+
+        deviceInfo(lUserId);
+        nvrDeviceInfo(lUserId);
     }
 
     @Override
@@ -81,6 +97,43 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
 
     @Override
     public void deviceInfo(int lUserId) {
+        IntByReference ibrBytesReturned = new IntByReference(0);//获取IP接入配置参数
+        HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40 = new HCNetSDK.NET_DVR_DEVICECFG_V40();
+        devicecfgV40.write();
+        //lpIpParaConfig 接收数据的缓冲指针
+        Pointer lpIpParaConfig = devicecfgV40.getPointer();
+        boolean bRet = hCNetSDK.NET_DVR_GetDVRConfig(lUserId, HCNetSDK.NET_DVR_GET_DEVICECFG_V40, 0, lpIpParaConfig, devicecfgV40.size(), ibrBytesReturned);
+        devicecfgV40.read();
+        if(bRet){
+            String name = new String(devicecfgV40.sDVRName).trim();
+            String serialNumber = new String(devicecfgV40.sSerialNumber).trim();
+            DeviceEntity deviceEntity = new DeviceEntity();
+            deviceEntity.setName(name);
+            deviceEntity.setSerialNumber(serialNumber);
+            LambdaQueryWrapper<DeviceEntity> updateWrapper = new LambdaQueryWrapper<>();
+            updateWrapper.eq(DeviceEntity::getLUserId,lUserId);
+            deviceMapper.update(deviceEntity,updateWrapper);
+        }else {
+            //失败
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"设备信息获取失败",lUserId,hCNetSDK.NET_DVR_GetLastError());
+        }
 
+
+
+    }
+
+    @Override
+    public void nvrDeviceInfo(int lUserId) {
+        IntByReference ibrBytesReturned = new IntByReference(0);//获取IP接入配置参数
+        HCNetSDK.NET_DVR_IPPARACFG_V40 devicecfgV40 = new HCNetSDK.NET_DVR_IPPARACFG_V40();
+        devicecfgV40.write();
+        //lpIpParaConfig 接收数据的缓冲指针
+        Pointer lpIpParaConfig = devicecfgV40.getPointer();
+        boolean bRet = hCNetSDK.NET_DVR_GetDVRConfig(lUserId, HCNetSDK.NET_DVR_GET_IPPARACFG_V40, 0, lpIpParaConfig, devicecfgV40.size(), ibrBytesReturned);
+        devicecfgV40.read();
+        //lpIpParaConfig 接收数据的缓冲指针
+//        Pointer lpIpParaConfig = m_strIpparaCfg.getPointer();
+//        bRet = hCNetSDK.NET_DVR_GetDVRConfig(lUserId, HCNetSDK.NET_DVR_GET_IPPARACFG_V40, i, lpIpParaConfig, m_strIpparaCfg.size(), ibrBytesReturned);
+//        m_strIpparaCfg.read();
     }
 }

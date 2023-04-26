@@ -19,6 +19,19 @@ public class DeviceTest {
     @Test
     public void testLogin(){
 
-        deviceService.online("192.168.0.203",(short)8000,"admin","rj123456");
+//        deviceService.online("192.168.0.203",(short)8000,"admin","rj123456");
+        deviceService.online("192.168.0.241",(short)8000,"admin","rj123456");
+    }
+
+    @Test
+    public void testOffline(){
+
+        deviceService.offline(0);
+    }
+
+    @Test
+    public void testDeviceInfo(){
+
+        deviceService.deviceInfo(0);
     }
 }

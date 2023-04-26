@@ -30,6 +30,11 @@ public class DeviceEntity {
 
 	private String userName;
 
+
+	private String serialNumber;
+
+	private String name;
+
 	/**
 	 * wan地址_ip
 	 */

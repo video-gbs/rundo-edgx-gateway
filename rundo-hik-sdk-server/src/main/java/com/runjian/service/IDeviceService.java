@@ -25,9 +25,16 @@ public interface IDeviceService extends IService<DeviceEntity> {
 
 
     /**
-     * 设备下线
+     * 设备信息获取
      * @param lUserId 登录句柄
      */
     void deviceInfo(int lUserId);
 
+
+
+    /**
+     * 设备下线
+     * @param lUserId 登录句柄
+     */
+    void nvrDeviceInfo(int lUserId);
 }
