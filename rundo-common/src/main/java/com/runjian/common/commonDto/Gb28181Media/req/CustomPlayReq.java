@@ -81,6 +81,6 @@ public class CustomPlayReq {
      */
     @NotNull(message = "自动关闭状态不能为空")
     @Range(min = 0, max = 1, message = "非法自动关闭状态")
-    private Integer autoCloseState;
+    private Integer autoCloseState = 0;
 
 }

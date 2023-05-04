@@ -55,7 +55,7 @@ public class StreamCustomStartMsgServiceImpl implements InitializingBean, IMsgPr
         CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CUSTOM_LIVE_START.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,commonMqDto.getMsgId());
         String mqGetQueue = dispatcherSignInConf.getMqSetQueue();
         //通知调度中心成功
-        businessMqInfo.setData(true);
+        businessMqInfo.setData(streamInfo);
         rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),businessMqInfo,true);
     }
 
