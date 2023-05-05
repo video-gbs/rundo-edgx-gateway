@@ -92,11 +92,8 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
         if (device.getOnline() == 1) {
             deviceService.updateDevice(device);
         }else {
-
             // 对于已经离线的设备判断他的注册是否已经过期
-            if (!deviceService.expire(device)){
                 deviceService.online(device);
-            }
         }
         // 刷新过期任务
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();

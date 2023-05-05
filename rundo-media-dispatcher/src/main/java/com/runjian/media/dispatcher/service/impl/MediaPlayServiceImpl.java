@@ -5,10 +5,7 @@ import com.runjian.common.commonDto.Gateway.dto.SsrcConfig;
 import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
-import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
-import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
-import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayBackReq;
-import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayReq;
+import com.runjian.common.commonDto.Gb28181Media.req.*;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
@@ -65,6 +62,10 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             SsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayMsgType.STREAM_LIVE_PLAY_START, playReq,true);
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "端口创建结果", playCommonSsrcInfo);
             //直播
+            if(ObjectUtils.isEmpty(playCommonSsrcInfo)){
+                //流复用，不用通知网关
+                return;
+            }
             PlayReq gatewayPlayReq = new PlayReq();
             gatewayPlayReq.setSsrcInfo(playCommonSsrcInfo);
             gatewayPlayReq.setDeviceId(playReq.getDeviceId());
@@ -91,6 +92,10 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             //阻塞型,默认是30s无返回参数
             SsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayMsgType.STREAM_RECORD_PLAY_START, mediaPlayBackReq,false);
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播回放服务", "端口创建结果", playCommonSsrcInfo);
+            if(ObjectUtils.isEmpty(playCommonSsrcInfo)){
+                //流复用，不用通知网关
+                return;
+            }
             //直播
             PlayReq gatewayPlayReq = new PlayReq();
             gatewayPlayReq.setSsrcInfo(playCommonSsrcInfo);
@@ -121,6 +126,40 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "点播回放服务", "回放失败", mediaPlayBackReq,e);
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_LIVE_PLAY_START,BusinessErrorEnums.UNKNOWN_ERROR,null);
         }
+
+    }
+
+    @Override
+    public StreamInfo playCustom(CustomPlayReq customPlayReq) {
+        //复用流判断
+        String streamId = customPlayReq.getStreamId();
+        MediaServerItem oneMedia;
+
+        OnlineStreamsEntity oneBystreamId = onlineStreamsService.getOneBystreamId(streamId);
+        if(!ObjectUtils.isEmpty(oneBystreamId)){
+            //判断流复用
+            oneMedia = mediaServerService.getOne(oneBystreamId.getMediaServerId());
+            if(!mediaServerService.checkRtpServer(oneMedia, streamId)){
+                //流其实不存在
+                onlineStreamsService.remove(streamId);
+
+            }else{
+                //留存在 直接返回
+                StreamInfo streamInfoByAppAndStream = mediaServerService.getStreamInfoByAppAndStream(oneMedia, oneBystreamId.getApp(), streamId);
+
+                return streamInfoByAppAndStream;
+            }
+
+        }else {
+            //获取默认的zlm流媒体
+            oneMedia =  mediaServerService.getDefaultMediaServer();
+        }
+
+        StreamInfo streamInfoByAppAndStream = mediaServerService.getStreamInfoByAppAndStream(oneMedia, VideoManagerConstants.PUSH_LIVE_APP, streamId);
+        customPlayReq.setMediaServerId(oneMedia.getId());
+        RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_PUSH_STREAM_REQ+ BusinessSceneConstants.SCENE_SEM_KEY+streamId,customPlayReq);
+
+        return streamInfoByAppAndStream;
 
     }
 

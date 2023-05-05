@@ -1,6 +1,7 @@
 package com.runjian.media.dispatcher.service.impl;
 
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
+import com.runjian.common.commonDto.Gb28181Media.req.CustomPlayReq;
 import com.runjian.common.commonDto.StreamCloseDto;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
@@ -87,22 +88,16 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
         if(!regist){
             Object selfStreamBye = RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_STREAM_BYE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
 
-            Object selfStreamPause = RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_STREAM_PAUSE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
 
             //推拉流结束 过滤调度中心返回的bye指令 推流自动结束 通知网关和调度服务
-            if(!ObjectUtils.isEmpty(selfStreamBye) || !ObjectUtils.isEmpty(selfStreamPause)){
+            if(!ObjectUtils.isEmpty(selfStreamBye) ){
                 //自行关闭的流 不进行通知
                 if(!ObjectUtils.isEmpty(selfStreamBye) ){
                     RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_STREAM_BYE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
                     //删除流的通知
                     remove(streamId);
                 }
-                if(!ObjectUtils.isEmpty(selfStreamPause) ){
-                    //不进行流的删除，只是现在暂停
-                    log.info(LogTemplate.ERROR_LOG_TEMPLATE, "zlm推流暂停", "客户端的暂停", streamId);
-                    RedisCommonUtil.del(redisTemplate,VideoManagerConstants.MEDIA_STREAM_PAUSE + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
 
-                }
             }else {
                 //异常中断的流 非用户主动关闭，进行通知；  可能为设备推流到zlm的网络异常导致zlm判断收流失败了
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "zlm推流中断异常", "自行中断", streamId);
@@ -120,20 +115,32 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
 
         }else {
             //更新流信息
+            CustomPlayReq customPlayReq= (CustomPlayReq)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_PUSH_STREAM_REQ+BusinessSceneConstants.SCENE_SEM_KEY+streamId);
+
+            String mediaServerId;
+            Integer recordState;
             BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ+BusinessSceneConstants.SCENE_SEM_KEY+streamId);
-            if(ObjectUtils.isEmpty(baseRtpServerDto)){
+            if(ObjectUtils.isEmpty(baseRtpServerDto) && ObjectUtils.isEmpty(customPlayReq)){
                 //缓存不存在或则推流超时了
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "zlm推流注册异常", "非正常请求点播流", streamId);
+                return;
             }else {
-                //记录流信息
-                OnlineStreamsEntity onlineStreamsEntity = new OnlineStreamsEntity();
-                onlineStreamsEntity.setMediaServerId(baseRtpServerDto.getMediaServerId());
-                onlineStreamsEntity.setRecordState(baseRtpServerDto.getRecordState());
-                onlineStreamsEntity.setStreamId(streamId);
-                onlineStreamsEntity.setApp(app);
-                update(onlineStreamsEntity);
+                if(!ObjectUtils.isEmpty(baseRtpServerDto)){
+                    mediaServerId = baseRtpServerDto.getMediaServerId();
+                    recordState = baseRtpServerDto.getRecordState();
+                }else {
+                    mediaServerId = customPlayReq.getMediaServerId();
+                    recordState = customPlayReq.getRecordState();
+                }
 
             }
+            //记录流信息
+            OnlineStreamsEntity onlineStreamsEntity = new OnlineStreamsEntity();
+            onlineStreamsEntity.setMediaServerId(mediaServerId);
+            onlineStreamsEntity.setRecordState(recordState);
+            onlineStreamsEntity.setStreamId(streamId);
+            onlineStreamsEntity.setApp(app);
+            update(onlineStreamsEntity);
         }
     }
 

@@ -23,7 +23,7 @@ public class DeviceDeleteMsgServiceImpl implements InitializingBean, IMsgProcess
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.PLAY_BACK.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.DEVICE_DELETE.getTypeName(),this);
     }
 
     @Override

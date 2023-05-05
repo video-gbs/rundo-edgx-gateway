@@ -126,6 +126,8 @@ public enum BusinessErrorEnums {
     MEDIA_ZLM_RTPSERVER_CREATE_ERROR(500,23303,"流媒体ZLM推流端口创建失败"),
     MEDIA_SERVER_BIND_ERROR(500,23304,"流媒体服务暂未绑定网关"),
     MEDIA_SERVER_BUSINESS_ERROR(500,23305,"流媒体服务请求业务失败"),
+    MEDIA_SERVER_PAUSE_ERROR(500,23305,"流媒体服务暂停失败"),
+    MEDIA_SERVER_RESUME_ERROR(500,23306,"流媒体服务恢复失败"),
 
 
     /**************************** 对外api类型异常,PREFIX:模块名 CODE:3xxxx ****************************/

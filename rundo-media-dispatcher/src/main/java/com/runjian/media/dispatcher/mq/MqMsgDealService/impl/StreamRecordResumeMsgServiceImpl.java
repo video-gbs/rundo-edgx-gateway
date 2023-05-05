@@ -13,6 +13,9 @@ import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMsgProcessorService;
 import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
+import com.runjian.media.dispatcher.zlm.ZLMRESTfulUtils;
+import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
+import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +45,10 @@ public class StreamRecordResumeMsgServiceImpl implements InitializingBean, IMsgP
     @Autowired
     DispatcherSignInConf dispatcherSignInConf;
 
+    @Autowired
+    ImediaServerService imediaServerService;
+    @Autowired
+    private ZLMRESTfulUtils zlmresTfulUtils;
     @Override
     public void afterPropertiesSet() throws Exception {
         iMqMsgDealServer.addRequestProcessor(GatewayMsgType.STREAM_RECORD_RESUME.getTypeName(),this);
@@ -63,6 +70,18 @@ public class StreamRecordResumeMsgServiceImpl implements InitializingBean, IMsgP
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流恢复操作","操作失败,流的缓存信息不存在",commonMqDto);
             businessMqInfo.setCode(BusinessErrorEnums.STREAM_NOT_FOUND.getErrCode());
             businessMqInfo.setMsg(BusinessErrorEnums.STREAM_NOT_FOUND.getErrMsg());
+            businessMqInfo.setData(false);
+            rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),businessMqInfo,true);
+            return;
+        }
+
+        MediaServerItem one = imediaServerService.getOne(baseRtpServerDto.getMediaServerId());
+        // zlm 恢复RTP超时检查
+        JSONObject jsonObject = zlmresTfulUtils.resumeRtpCheck(one, streamId);
+        if (jsonObject == null || jsonObject.getInteger("code") != 0) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流暂停操作","操作失败,暂停RTP接收失败",commonMqDto);
+            businessMqInfo.setCode(BusinessErrorEnums.MEDIA_SERVER_RESUME_ERROR.getErrCode());
+            businessMqInfo.setMsg(BusinessErrorEnums.MEDIA_SERVER_RESUME_ERROR.getErrMsg());
             businessMqInfo.setData(false);
             rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),businessMqInfo,true);
             return;
