@@ -122,7 +122,7 @@ public class GatewayInfoServiceImpl implements IGatewayInfoService {
         config.setPort(port);
         config.setIp(ip);
         config.setGatewayType(GatewayTypeEnum.OTHER.getTypeName());
-        config.setProtocol(GatewayProtocalEnum.GB28181.getTypeName());
+        config.setProtocol(GatewayProtocalEnum.HIK_SDK.getTypeName());
         config.setOutTime(DateUtils.getExpireTimestamp(expire));
         gatewayInfoConf.setEdgeGatewayInfoDto(config);
 

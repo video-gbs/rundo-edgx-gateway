@@ -15,7 +15,7 @@ import lombok.ToString;
 public enum GatewayProtocalEnum {
 //    国标协议
     GB28181("GB28181"),
-    HIK_SDK("HIK_SDK"),
+    HIK_SDK("HIK-DEVICE_NET_SDK_V6"),
 
 
 

@@ -39,4 +39,11 @@ public interface IDeviceChannelService extends IService<DeviceChannelEntity> {
      * @param recordInfoReq
      */
     void recordInfo(RecordInfoReq recordInfoReq);
+
+    /**
+     * 通道同步
+     * @param id
+     * @return
+     */
+    List<DeviceChannelEntity> channelSync(Long id);
 }

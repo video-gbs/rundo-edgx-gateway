@@ -32,6 +32,6 @@ public class DeviceTest {
     @Test
     public void testDeviceInfo(){
 
-        deviceService.deviceInfo(0);
+        deviceService.deviceInfo(null,0);
     }
 }

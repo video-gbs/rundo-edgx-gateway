@@ -21,19 +21,29 @@ public class DeviceEntity {
 	@TableId(value = "id",type = IdType.AUTO)
 	private long id;
 	/**
-	 * 数据流传输模式
-	 * UDP:udp传输
-	 * TCP-ACTIVE：tcp主动模式
-	 * TCP-PASSIVE：tcp被动模式
+	 * 登陆句柄
 	 */
 	private int lUserId;
 
+	/**
+	 * 账户
+	 */
 	private String userName;
 
-
+	/**
+	 * 序列号
+	 */
 	private String serialNumber;
 
+	/**
+	 * 设备名称
+	 */
 	private String name;
+
+	/**
+	 * 编码
+	 */
+	private String charset;
 
 	/**
 	 * wan地址_ip
@@ -44,10 +54,12 @@ public class DeviceEntity {
 	 * wan地址_port
 	 */
 
-	private int port;
-	
+	private Short port;
 
 
+	/**
+	 * 在线与否
+	 */
 	private int online;
 
 
