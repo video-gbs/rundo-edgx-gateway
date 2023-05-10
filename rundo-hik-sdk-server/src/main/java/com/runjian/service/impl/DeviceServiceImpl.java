@@ -22,6 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.util.List;
+
 @Service
 @Slf4j
 public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> implements IDeviceService {
@@ -74,6 +76,14 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
         deviceOnlineDto.setDeviceinfoV40(login.getDeviceinfoV40());
         deviceOnlineDto.setDeviceEntity(deviceEntity);
         return deviceOnlineDto;
+    }
+
+    @Override
+    public void startOnline() {
+        List<DeviceEntity> deviceEntities = deviceMapper.selectList(null);
+        for (DeviceEntity deviceEntity :deviceEntities){
+            online(deviceEntity.getIp(),deviceEntity.getPort(),deviceEntity.getUsername(),deviceEntity.getPassword());
+        }
     }
 
     @Override

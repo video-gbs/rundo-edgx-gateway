@@ -2,6 +2,7 @@ package com.runjian.runner;
 
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.conf.GatewayInfoConf;
+import com.runjian.service.IDeviceService;
 import com.runjian.service.IGatewayInfoService;
 import com.runjian.service.IRedisCatchStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +42,15 @@ public class GatewayRunner implements CommandLineRunner {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private IDeviceService deviceService;
+
     @Override
     public void run(String... args) throws Exception {
 
         //发送注册
         gatewayInfoService.sendRegisterInfo();
+        //设备全部重新注册
+        deviceService.startOnline();
     }
 }
