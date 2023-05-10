@@ -3,6 +3,7 @@ package com.runjian.hik.module.service;
 import com.runjian.domain.dto.commder.ChannelInfoDto;
 import com.runjian.domain.dto.commder.DeviceConfigDto;
 import com.runjian.domain.dto.commder.DeviceLoginDto;
+import com.runjian.domain.dto.commder.PlayInfoDto;
 import com.runjian.hik.sdklib.HCNetSDK;
 
 public interface ISdkCommderService {
@@ -54,9 +55,14 @@ public interface ISdkCommderService {
      * 直播
      * @return
      */
-    Boolean play(int lUserId,int channelNum,int dwStreamType,int dwLinkMode);
+    PlayInfoDto play(int lUserId, int channelNum, int dwStreamType, int dwLinkMode);
 
 
+    /**
+     * 点播停止
+     * @return
+     */
+    PlayInfoDto stopPlay(int lPreviewHandle);
 
 
 }

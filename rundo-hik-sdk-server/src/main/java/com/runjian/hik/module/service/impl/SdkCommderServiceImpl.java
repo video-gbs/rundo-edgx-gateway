@@ -1,14 +1,17 @@
 package com.runjian.hik.module.service.impl;
 
 import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.constant.MarkConstant;
 import com.runjian.common.utils.StringUtils;
 import com.runjian.domain.dto.DeviceChannel;
 import com.runjian.domain.dto.commder.ChannelInfoDto;
 import com.runjian.domain.dto.commder.DeviceConfigDto;
 import com.runjian.domain.dto.commder.DeviceLoginDto;
+import com.runjian.domain.dto.commder.PlayInfoDto;
 import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.hik.module.service.ISdkCommderService;
 import com.runjian.hik.module.service.SdkInitService;
+import com.runjian.hik.module.service.impl.callBack.FRealDataCallBack;
 import com.runjian.hik.sdklib.HCNetSDK;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
@@ -16,6 +19,7 @@ import com.sun.jna.examples.win32.W32API;
 import com.sun.jna.ptr.ByteByReference;
 import com.sun.jna.ptr.IntByReference;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedWriter;
@@ -32,38 +36,15 @@ import static com.runjian.hik.sdklib.HCNetSDK.NET_DVR_GET_PICCFG_V30;
 @Slf4j
 public class SdkCommderServiceImpl implements ISdkCommderService {
     private static HCNetSDK hCNetSDK = SdkInitService.hCNetSDK;
-    int  lPreviewHandle;//预览句柄
+    //预览句柄
+    int  lPreviewHandle;
 
-    static FRealDataCallBack fRealDataCallBack;//预览回调函数实现
+    //预览回调函数实现
+    @Autowired
+    private FRealDataCallBack fRealDataCallBack;
 
 
-    class FRealDataCallBack implements HCNetSDK.FRealDataCallBack_V30 {
-        //预览回调
-        @Override
-        public void invoke(int lRealHandle, int dwDataType, ByteByReference pBuffer, int dwBufSize, Pointer pUser) {
-            switch (dwDataType) {
-                case HCNetSDK.NET_DVR_SYSHEAD: //系统头
 
-                    break;
-                case HCNetSDK.NET_DVR_STREAMDATA:   //码流数据
-                    if (dwBufSize > 0) {
-                        try {
-
-                            Socket socket = new Socket();
-                            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-                            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-
-                            ByteBuffer byteBuffer = pBuffer.getPointer().getByteBuffer(0, dwBufSize);
-                            byte[] bytes = new byte[byteBuffer.remaining()];
-                            byteBuffer.get(bytes, 0, bytes.length);
-                            dataOutputStream.write(bytes);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-            }
-        }
-    }
     @Override
     public DeviceLoginDto login(String ip, short port, String user, String psw) {
         int lUserId = -1;//用户句柄
@@ -145,7 +126,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
             DeviceChannelEntity deviceChannel = new DeviceChannelEntity();
             String sChanName = StringUtils.getUTF8StringFromByte(picInfo.sChanName);
             deviceChannel.setChannelName(sChanName);
-            deviceChannel.setManufacture("hikvision");
+            deviceChannel.setManufacturer(MarkConstant.HIK_MANUFACTURER);
             deviceChannel.setPtzType(0);
             deviceChannel.setIsIpChannel(0);
             deviceChannel.setOnline(1);
@@ -248,7 +229,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                 String sChanName = StringUtils.getGbkStringFromByte(picInfo.sChanName);
                 String name = sChanName;
                 deviceChannel.setChannelName(name);
-                deviceChannel.setManufacture("hikvision");
+                deviceChannel.setManufacturer(MarkConstant.HIK_MANUFACTURER);
                 deviceChannel.setPtzType(0);
                 deviceChannel.setIsIpChannel(0);
                 deviceChannel.setChannelNum(channel);
@@ -266,7 +247,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     }
 
     @Override
-    public Boolean play(int lUserId,int channelNum, int dwStreamType, int dwLinkMode) {
+    public PlayInfoDto play(int lUserId, int channelNum, int dwStreamType, int dwLinkMode) {
 
         HCNetSDK.NET_DVR_PREVIEWINFO strClientInfo = new HCNetSDK.NET_DVR_PREVIEWINFO();
         strClientInfo.read();
@@ -278,12 +259,26 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         strClientInfo.dwLinkMode=dwLinkMode;
         strClientInfo.write();
         lPreviewHandle = hCNetSDK.NET_DVR_RealPlay_V40(lUserId, strClientInfo, fRealDataCallBack , null);
+        PlayInfoDto playInfoDto = new PlayInfoDto();
+        playInfoDto.setLPreviewHandle(lPreviewHandle);
         if(lPreviewHandle <= -1){
             //预览失败
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "点播失败", lUserId, hCNetSDK.NET_DVR_GetLastError());
-            return Boolean.FALSE;
+            playInfoDto.setErrorCode(hCNetSDK.NET_DVR_GetLastError());
+            return playInfoDto;
 
         }
-        return Boolean.TRUE;
+
+        return playInfoDto;
+    }
+
+    @Override
+    public PlayInfoDto stopPlay(int lPreviewHandle) {
+        boolean b = hCNetSDK.NET_DVR_StopRealPlay(lPreviewHandle);
+        PlayInfoDto playInfoDto = new PlayInfoDto();
+        playInfoDto.setLPreviewHandle(lPreviewHandle);
+        int errorCode = b?0: hCNetSDK.NET_DVR_GetLastError();
+        playInfoDto.setErrorCode(errorCode);
+        return playInfoDto;
     }
 }

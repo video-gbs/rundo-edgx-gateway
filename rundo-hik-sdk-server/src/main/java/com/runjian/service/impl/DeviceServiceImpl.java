@@ -3,6 +3,7 @@ package com.runjian.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.constant.MarkConstant;
 import com.runjian.conf.constant.DeviceTypeEnum;
 import com.runjian.domain.dto.commder.ChannelInfoDto;
 import com.runjian.domain.dto.commder.DeviceConfigDto;
@@ -54,7 +55,8 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
         deviceEntity.setPort(port);
         deviceEntity.setOnline(lUserId<0?0:1);
         deviceEntity.setPassword(psw);
-        deviceEntity.setUserName(user);
+        deviceEntity.setUsername(user);
+        deviceEntity.setManufacturer(MarkConstant.HIK_MANUFACTURER);
         HCNetSDK.NET_DVR_DEVICEINFO_V40 deviceinfoV40 = login.getDeviceinfoV40();
 
 

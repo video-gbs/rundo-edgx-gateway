@@ -52,7 +52,7 @@ public class DeviceChannelEntity {
 	/**
 	 * 生产厂商
 	 */
-	private String manufacture;
+	private String manufacturer;
 
 
 

@@ -28,7 +28,7 @@ public class DeviceEntity {
 	/**
 	 * 账户
 	 */
-	private String userName;
+	private String username;
 
 	/**
 	 * 序列号
@@ -56,6 +56,11 @@ public class DeviceEntity {
 
 	private Short port;
 
+
+	/**
+	 * 生产厂商
+	 */
+	private String manufacturer;
 
 	/**
 	 * 在线与否

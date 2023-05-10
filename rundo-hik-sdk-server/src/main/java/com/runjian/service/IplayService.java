@@ -5,6 +5,7 @@ import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.domain.req.PlaySdkReq;
 
 public interface IplayService {
 
@@ -12,7 +13,7 @@ public interface IplayService {
      * 点播接口处理
      * @param playReq
      */
-    public void play(PlayReq playReq);
+    public void play(PlaySdkReq playReq);
 
     /**
      * 点播接口处理
@@ -38,7 +39,7 @@ public interface IplayService {
      * @param streamId
      * @param msgId
      */
-    void streamBye(String streamId,String msgId);
+    Boolean streamBye(String streamId,String msgId);
 
     /**
      * 录像回放倍速
