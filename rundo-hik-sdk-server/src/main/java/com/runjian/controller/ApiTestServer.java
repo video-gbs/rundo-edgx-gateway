@@ -47,19 +47,16 @@ public class ApiTestServer {
      *  查看流是否存在
      */
     @PostMapping(value = "/test/login",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    public CommonResponse<DeviceOnlineDto> register(@RequestBody DeviceReq deviceReq){
-        DeviceOnlineDto online = deviceService.online(deviceReq.getIp(), deviceReq.getPort(), deviceReq.getUser(), deviceReq.getPsw());
-
-        return CommonResponse.success(online);
+    public CommonResponse<Long> register(@RequestBody DeviceReq deviceReq){
+        return deviceService.add(deviceReq.getIp(), deviceReq.getPort(), deviceReq.getUser(), deviceReq.getPsw());
 
     }
 
 
     @GetMapping(value = "/test/channelSync",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<List<DeviceChannelEntity>> channelSync(@RequestParam Long id){
-        List<DeviceChannelEntity> deviceChannelEntities = deviceChannelService.channelSync(id);
 
-        return CommonResponse.success(deviceChannelEntities);
+        return deviceChannelService.channelSync(id);
 
     }
 

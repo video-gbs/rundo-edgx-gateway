@@ -28,7 +28,7 @@ public class PlayServiceImpl implements IplayService {
     @Autowired
     PlayListLogMapper playListLogMapper;
     @Override
-    public void play(PlaySdkReq playReq) {
+    public Boolean play(PlaySdkReq playReq) {
 
         PlayInfoDto play = iSdkCommderService.play(playReq.getLUserId(), playReq.getChannelNum(), 1, 1);
         int errorCode = play.getErrorCode();
@@ -39,6 +39,7 @@ public class PlayServiceImpl implements IplayService {
         playListLogEntity.setPlayHandle(play.getLPreviewHandle());
         playListLogEntity.setPlayStatus(playStatus);
         playListLogMapper.insert(playListLogEntity);
+        return errorCode == 0;
 
     }
 

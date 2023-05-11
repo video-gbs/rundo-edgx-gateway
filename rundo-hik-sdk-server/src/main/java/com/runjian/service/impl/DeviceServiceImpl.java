@@ -2,6 +2,8 @@ package com.runjian.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.MarkConstant;
 import com.runjian.conf.constant.DeviceTypeEnum;
@@ -27,7 +29,7 @@ import java.util.List;
 @Service
 @Slf4j
 public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> implements IDeviceService {
-    private static HCNetSDK hCNetSDK = SdkInitService.hCNetSDK;
+    private static HCNetSDK hCNetSDK ;
     @Autowired
     ISdkCommderService iSdkCommderService;
     @Autowired
@@ -42,7 +44,7 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
     public DeviceOnlineDto online(String ip, short port, String user, String psw) {
 
         DeviceLoginDto login = iSdkCommderService.login(ip, port, user, psw);
-        if(login.getLUserId() == -1){
+        if(login.getErrorCode() != 0){
             //登陆失败
             return  null;
         }
@@ -76,6 +78,46 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
         deviceOnlineDto.setDeviceinfoV40(login.getDeviceinfoV40());
         deviceOnlineDto.setDeviceEntity(deviceEntity);
         return deviceOnlineDto;
+    }
+
+
+    @Override
+    public CommonResponse<Long> add(String ip, short port, String user, String psw) {
+        DeviceLoginDto login = iSdkCommderService.login(ip, port, user, psw);
+        if(login.getErrorCode() != 0){
+            //登陆失败
+            return  CommonResponse.failure(BusinessErrorEnums.SDK_OPERATION_FAILURE,BusinessErrorEnums.SDK_OPERATION_FAILURE.getErrMsg()+login.getErrorCode());
+        }
+        int lUserId = login.getLUserId();
+        LambdaQueryWrapper<DeviceEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(DeviceEntity::getIp,ip);
+        queryWrapper.eq(DeviceEntity::getPort,port);
+        DeviceEntity one = deviceMapper.selectOne(queryWrapper);
+        DeviceEntity deviceEntity = new DeviceEntity();
+        deviceEntity.setLUserId(lUserId);
+        deviceEntity.setIp(ip);
+        deviceEntity.setPort(port);
+        deviceEntity.setOnline(lUserId<0?0:1);
+        deviceEntity.setPassword(psw);
+        deviceEntity.setUsername(user);
+        deviceEntity.setManufacturer(MarkConstant.HIK_MANUFACTURER);
+        HCNetSDK.NET_DVR_DEVICEINFO_V40 deviceinfoV40 = login.getDeviceinfoV40();
+
+
+        deviceEntity.setCharset(DeviceUtils.getCharset(deviceinfoV40.byCharEncodeType));
+        if(ObjectUtils.isEmpty(one)){
+
+            deviceMapper.insert(deviceEntity);
+        }else {
+            deviceEntity.setId(one.getId());
+            deviceMapper.updateById(deviceEntity);
+        }
+
+        deviceInfo(deviceEntity,lUserId);
+        DeviceOnlineDto deviceOnlineDto = new DeviceOnlineDto();
+        deviceOnlineDto.setDeviceinfoV40(login.getDeviceinfoV40());
+        deviceOnlineDto.setDeviceEntity(deviceEntity);
+        return CommonResponse.success(deviceEntity.getId());
     }
 
     @Override
@@ -122,5 +164,8 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
 
     }
 
-
+    @Override
+    public CommonResponse<List<DeviceEntity>> deviceList() {
+        return CommonResponse.success(deviceMapper.selectList(null));
+    }
 }

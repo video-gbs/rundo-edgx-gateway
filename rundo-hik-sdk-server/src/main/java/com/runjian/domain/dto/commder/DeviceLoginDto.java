@@ -14,4 +14,8 @@ public class DeviceLoginDto {
     HCNetSDK.NET_DVR_DEVICEINFO_V40 deviceinfoV40;
 
     private int lUserId;
+
+    private int errorCode;
+
+
 }

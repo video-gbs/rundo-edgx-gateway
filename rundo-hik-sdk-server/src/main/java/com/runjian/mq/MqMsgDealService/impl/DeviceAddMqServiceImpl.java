@@ -1,10 +1,12 @@
 package com.runjian.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.mq.MqMsgDealService.IMsgProcessorService;
+import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
 import com.runjian.service.IDeviceService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +16,7 @@ import org.springframework.stereotype.Component;
  * @author chenjialing
  */
 @Component
-public class RegisterMqServiceImpl implements InitializingBean, IMsgProcessorService {
+public class DeviceAddMqServiceImpl implements InitializingBean, IMsgProcessorService {
 
     @Autowired
     IMqMsgDealServer iMqMsgDealServer;
@@ -22,9 +24,11 @@ public class RegisterMqServiceImpl implements InitializingBean, IMsgProcessorSer
     @Autowired
     IDeviceService deviceService;
 
+    @Autowired
+    GatewayBusinessAsyncSender gatewayBusinessAsyncSender;
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.REGISTER.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.DEVICE_ADD.getTypeName(),this);
     }
 
     @Override
@@ -39,7 +43,10 @@ public class RegisterMqServiceImpl implements InitializingBean, IMsgProcessorSer
         String user = dataJson.getString("user");
         String pwd = dataJson.getString("pwd");
 
-        deviceService.online(ip,port,user,pwd);
+        CommonResponse<Long> add = deviceService.add(ip, port, user, pwd);
+        //消息回复
+
+        gatewayBusinessAsyncSender.sendforAllScene(add, commonMqDto.getMsgId(), GatewayMsgType.DEVICE_ADD);
     }
 
 

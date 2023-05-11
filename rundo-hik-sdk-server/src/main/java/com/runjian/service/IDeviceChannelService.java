@@ -2,6 +2,7 @@ package com.runjian.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
+import com.runjian.common.config.response.CommonResponse;
 import com.runjian.domain.dto.DeviceChannel;
 import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.entity.DeviceEntity;
@@ -45,5 +46,5 @@ public interface IDeviceChannelService extends IService<DeviceChannelEntity> {
      * @param id
      * @return
      */
-    List<DeviceChannelEntity> channelSync(Long id);
+    CommonResponse<List<DeviceChannelEntity>> channelSync(Long id);
 }

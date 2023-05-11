@@ -31,13 +31,15 @@ public enum GatewayMsgType {
     DISPATCH_RE_SIGN_IN("DISPATCH_RE_SIGN_IN"),
     //调度服务的消息  end
     /********设备通道服务相关*************/
-//    设备注册
+    //    设备注册
     REGISTER("DEVICE_SIGN_IN"),
-//    设备信息
+    //设备添加
+    DEVICE_ADD("DEVICE_ADD"),
+    //    设备信息
     DEVICEINFO("DEVICE_SYNC"),
     //设备删除
     DEVICE_DELETE("DEVICE_DELETE"),
-//    设备通道
+    //    设备通道
     CATALOG("CHANNEL_SYNC"),
 
     //云台控制

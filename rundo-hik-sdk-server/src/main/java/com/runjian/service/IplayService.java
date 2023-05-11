@@ -13,7 +13,7 @@ public interface IplayService {
      * 点播接口处理
      * @param playReq
      */
-    public void play(PlaySdkReq playReq);
+    Boolean play(PlaySdkReq playReq);
 
     /**
      * 点播接口处理

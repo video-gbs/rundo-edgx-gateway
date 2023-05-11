@@ -2,6 +2,7 @@ package com.runjian.service;
 
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.runjian.common.config.response.CommonResponse;
 import com.runjian.domain.dto.commder.DeviceOnlineDto;
 import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.entity.DeviceEntity;
@@ -17,6 +18,16 @@ public interface IDeviceService extends IService<DeviceEntity> {
      * String ip, short port, String user, String psw
      */
     DeviceOnlineDto online(String ip, short port, String user, String psw);
+
+    /**
+     * 设备添加
+     * @param ip
+     * @param port
+     * @param user
+     * @param psw
+     * @return
+     */
+    CommonResponse<Long> add(String ip, short port, String user, String psw);
 
 
     void startOnline();
@@ -35,8 +46,11 @@ public interface IDeviceService extends IService<DeviceEntity> {
     void deviceInfo(DeviceEntity deviceEntity, int lUserId);
 
 
-
-
+    /**
+     * 全量设备信息
+     * @return
+     */
+    CommonResponse<List<DeviceEntity>> deviceList();
 
 
 }

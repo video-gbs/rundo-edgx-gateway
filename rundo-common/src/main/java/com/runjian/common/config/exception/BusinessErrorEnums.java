@@ -117,6 +117,9 @@ public enum BusinessErrorEnums {
 
     DB_CHANNEL_NOT_FOUND(500,232014,"通道数据查找失败"),
 
+    //sdk操作失败
+    SDK_OPERATION_FAILURE(500,232015,"网关操作失败,自定义errorCode--"),
+
 
     PTZ_OPERATION_TYPE_NOT_FOUND(500,232015,"ptz操作信息不存在"),
     /************************** media异常 CODE:233xx ****************************/

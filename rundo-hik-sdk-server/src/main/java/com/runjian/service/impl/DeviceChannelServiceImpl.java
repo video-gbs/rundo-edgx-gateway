@@ -3,6 +3,8 @@ package com.runjian.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
+import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.response.CommonResponse;
 import com.runjian.conf.constant.DeviceTypeEnum;
 import com.runjian.domain.dto.DeviceChannel;
 import com.runjian.domain.dto.commder.ChannelInfoDto;
@@ -57,7 +59,7 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
     }
 
     @Override
-    public List<DeviceChannelEntity> channelSync(Long id) {
+    public CommonResponse<List<DeviceChannelEntity>> channelSync(Long id) {
 
         //获取设备的信息重新登陆
         DeviceEntity deviceEntity = deviceMapper.selectById(id);
@@ -66,7 +68,7 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
         DeviceConfigDto deviceConfigDto = iSdkCommderService.deviceConfig(lUserId);
         if(deviceConfigDto.getErrorCode() != 0){
             //失败
-            return null;
+            return CommonResponse.failure(BusinessErrorEnums.SDK_OPERATION_FAILURE,BusinessErrorEnums.SDK_OPERATION_FAILURE.getErrMsg()+deviceConfigDto.getErrorCode());
         }
         HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40 = deviceConfigDto.getDevicecfgV40();
         //获取设备类型
@@ -88,7 +90,7 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
 
             default:
                 //暂不进行接入
-                break;
+                return CommonResponse.failure(BusinessErrorEnums.SDK_OPERATION_FAILURE,"暂不支持改设备类型的处理");
         }
 
 
@@ -149,9 +151,11 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
 
 
 
+        }else {
+            return CommonResponse.failure(BusinessErrorEnums.SDK_OPERATION_FAILURE,BusinessErrorEnums.SDK_OPERATION_FAILURE.getErrMsg()+channelInfoDto.getErrorCode());
         }
 
-        return channelList;
+        return CommonResponse.success(channelList);
 
     }
 }

@@ -20,8 +20,10 @@ import com.sun.jna.ptr.ByteByReference;
 import com.sun.jna.ptr.IntByReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.OutputStreamWriter;
@@ -34,14 +36,25 @@ import static com.runjian.hik.sdklib.HCNetSDK.NET_DVR_GET_PICCFG_V30;
 
 @Service
 @Slf4j
+@DependsOn("sdkInitService")
 public class SdkCommderServiceImpl implements ISdkCommderService {
-    private static HCNetSDK hCNetSDK = SdkInitService.hCNetSDK;
+
+    @Autowired
+    SdkInitService sdkInitService;
+
+    private static HCNetSDK hCNetSDK;
     //预览句柄
     int  lPreviewHandle;
 
     //预览回调函数实现
     @Autowired
     private FRealDataCallBack fRealDataCallBack;
+
+    @PostConstruct
+    public void init(){
+        hCNetSDK = sdkInitService.getHCNetSDK();
+    }
+
 
 
 
@@ -69,12 +82,16 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
 //        m_strLoginInfo.byLoginMode=0;  //ISAPI登录
         m_strLoginInfo.write();
 
-        lUserId = hCNetSDK.NET_DVR_Login_V40(m_strLoginInfo, m_strDeviceInfo);
-        if (lUserId== -1) {
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"sdk登陆失败",m_strLoginInfo,hCNetSDK.NET_DVR_GetLastError());
-        }
+        lUserId =  hCNetSDK.NET_DVR_Login_V40(m_strLoginInfo, m_strDeviceInfo);
         DeviceLoginDto deviceLoginDto = new DeviceLoginDto();
         deviceLoginDto.setLUserId(lUserId);
+
+        if (lUserId== -1) {
+            int errorCode = hCNetSDK.NET_DVR_GetLastError();
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"sdk登陆失败",m_strLoginInfo,hCNetSDK.NET_DVR_GetLastError());
+            deviceLoginDto.setErrorCode(errorCode);
+            return deviceLoginDto;
+        }
         deviceLoginDto.setDeviceinfoV40(m_strDeviceInfo);
         return  deviceLoginDto;
 
