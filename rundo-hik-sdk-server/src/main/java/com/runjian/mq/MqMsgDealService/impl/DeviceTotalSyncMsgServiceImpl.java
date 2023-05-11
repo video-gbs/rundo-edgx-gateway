@@ -33,7 +33,7 @@ public class DeviceTotalSyncMsgServiceImpl implements InitializingBean, IMsgProc
     public void process(CommonMqDto commonMqDto) {
         CommonResponse<List<DeviceEntity>> listCommonResponse = deviceService.deviceList();
         //mq消息发送
-        gatewayBusinessAsyncSender.sendforAllScene(listCommonResponse, commonMqDto.getMsgId(), GatewayMsgType.DEVICE_ADD);
+        gatewayBusinessAsyncSender.sendforAllScene(listCommonResponse, commonMqDto.getMsgId(), GatewayMsgType.DEVICE_TOTAL_SYNC);
 
     }
 

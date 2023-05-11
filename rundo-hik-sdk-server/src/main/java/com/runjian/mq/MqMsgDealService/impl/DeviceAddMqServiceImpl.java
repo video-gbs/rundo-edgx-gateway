@@ -40,8 +40,8 @@ public class DeviceAddMqServiceImpl implements InitializingBean, IMsgProcessorSe
         //设备通道信息同步
         String ip = dataJson.getString("ip");
         short port = dataJson.getShort("port");
-        String user = dataJson.getString("user");
-        String pwd = dataJson.getString("pwd");
+        String user = dataJson.getString("username");
+        String pwd = dataJson.getString("password");
 
         CommonResponse<Long> add = deviceService.add(ip, port, user, pwd);
         //消息回复
