@@ -30,7 +30,8 @@ public class StopPlayMsgServiceImpl implements InitializingBean, IMsgProcessorSe
         //实际的请求参数
         JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
         String streamId = dataJson.getString("streamId");
-        iplayService.streamBye(streamId, commonMqDto.getMsgId());
+        iplayService.streamBye(streamId);
+
     }
 
 

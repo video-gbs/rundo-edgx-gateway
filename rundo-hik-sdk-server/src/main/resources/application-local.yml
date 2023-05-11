@@ -168,3 +168,9 @@ gateway-info:
     serialNum: 28fc51254c0c4809a9f4851f994180ac
     #a网关过期时间 默认3分钟
     expire: 180
+
+mdeia-tool-uri-list:
+    server-ip: "192.168.0.132"
+    http-port: 18083
+    open-sdk-server: "http://192.168.0.132:18083/index/api/openSDKServer?ip={ip}&port={port}&tcpMode={tcpMode}&streamId={streamId}"
+    close-sdk-server: "http://192.168.0.132:18083/index/api/closeSDKServer?streamId={streamId}"

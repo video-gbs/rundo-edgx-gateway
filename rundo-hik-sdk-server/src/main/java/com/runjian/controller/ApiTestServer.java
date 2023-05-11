@@ -2,6 +2,7 @@ package com.runjian.controller;
 
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.validator.ValidatorService;
+import com.runjian.domain.dto.CatalogSyncDto;
 import com.runjian.domain.dto.commder.DeviceOnlineDto;
 import com.runjian.domain.req.DeviceReq;
 import com.runjian.domain.req.PlaySdkReq;
@@ -54,7 +55,7 @@ public class ApiTestServer {
 
 
     @GetMapping(value = "/test/channelSync",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    public CommonResponse<List<DeviceChannelEntity>> channelSync(@RequestParam Long id){
+    public CommonResponse<CatalogSyncDto> channelSync(@RequestParam Long id){
 
         return deviceChannelService.channelSync(id);
 
@@ -63,7 +64,7 @@ public class ApiTestServer {
 
     @PostMapping(value = "/test/play",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<List<DeviceChannelEntity>> play(@RequestBody PlaySdkReq playSdkReq){
-        iplayService.play(playSdkReq);
+        iplayService.play(null);
         return CommonResponse.success();
 
     }
@@ -71,7 +72,7 @@ public class ApiTestServer {
     @GetMapping(value = "/test/playStop")
     public CommonResponse<Boolean> play(@RequestParam String streamId){
 
-        return CommonResponse.success(iplayService.streamBye(streamId,null));
+        return CommonResponse.success(iplayService.streamBye(streamId));
 
     }
 }

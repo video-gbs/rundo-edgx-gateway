@@ -165,6 +165,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
         }
         ssrcInfo = new SsrcInfo(rtpServerPort,ssrc,streamId,mediaServerItem.getId());
         ssrcInfo.setSdpIp(mediaServerItem.getSdpIp());
+        ssrcInfo.setIp(mediaServerItem.getIp());
         return ssrcInfo;
 
     }

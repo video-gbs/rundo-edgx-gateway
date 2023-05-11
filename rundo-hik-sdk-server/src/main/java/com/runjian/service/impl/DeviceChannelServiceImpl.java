@@ -6,6 +6,7 @@ import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.conf.constant.DeviceTypeEnum;
+import com.runjian.domain.dto.CatalogSyncDto;
 import com.runjian.domain.dto.DeviceChannel;
 import com.runjian.domain.dto.commder.ChannelInfoDto;
 import com.runjian.domain.dto.commder.DeviceConfigDto;
@@ -59,7 +60,7 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
     }
 
     @Override
-    public CommonResponse<List<DeviceChannelEntity>> channelSync(Long id) {
+    public CommonResponse<CatalogSyncDto> channelSync(Long id) {
 
         //获取设备的信息重新登陆
         DeviceEntity deviceEntity = deviceMapper.selectById(id);
@@ -154,8 +155,11 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
         }else {
             return CommonResponse.failure(BusinessErrorEnums.SDK_OPERATION_FAILURE,BusinessErrorEnums.SDK_OPERATION_FAILURE.getErrMsg()+channelInfoDto.getErrorCode());
         }
-
-        return CommonResponse.success(channelList);
+        CatalogSyncDto catalogSyncDto = new CatalogSyncDto();
+        catalogSyncDto.setNum(channelList.size());
+        catalogSyncDto.setTotal(channelList.size());
+        catalogSyncDto.setChannelDetailList(channelList);
+        return CommonResponse.success(catalogSyncDto);
 
     }
 }

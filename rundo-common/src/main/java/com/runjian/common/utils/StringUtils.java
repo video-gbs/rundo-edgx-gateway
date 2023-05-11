@@ -45,7 +45,7 @@ public class StringUtils {
     public static String getGbkStringFromByte(byte[] strByte) {
 
         try {
-            return new String(strByte, "GB2312");
+            return new String(strByte, "GB2312").trim();
         } catch (UnsupportedEncodingException e) {
             throw new InternalError();
         }

@@ -33,6 +33,12 @@ public class DeviceChannelEntity {
 	 */
 	private Integer channelNum;
 
+
+
+	/**
+	 * 通道类型
+	 */
+	private Integer channelType;
 	/**
 	 * 原国标id--置空
 	 */

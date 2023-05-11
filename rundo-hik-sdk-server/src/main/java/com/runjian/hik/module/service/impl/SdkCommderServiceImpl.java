@@ -3,6 +3,7 @@ package com.runjian.hik.module.service.impl;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.MarkConstant;
 import com.runjian.common.utils.StringUtils;
+import com.runjian.conf.PlayHandleConf;
 import com.runjian.domain.dto.DeviceChannel;
 import com.runjian.domain.dto.commder.ChannelInfoDto;
 import com.runjian.domain.dto.commder.DeviceConfigDto;
@@ -22,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.BufferedWriter;
@@ -53,6 +55,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     @PostConstruct
     public void init(){
         hCNetSDK = sdkInitService.getHCNetSDK();
+//        fRealDataCallBack = new FRealDataCallBack();
     }
 
 
@@ -141,11 +144,12 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
             }
 
             DeviceChannelEntity deviceChannel = new DeviceChannelEntity();
-            String sChanName = StringUtils.getUTF8StringFromByte(picInfo.sChanName);
+            String sChanName = StringUtils.getGbkStringFromByte(picInfo.sChanName);
             deviceChannel.setChannelName(sChanName);
             deviceChannel.setManufacturer(MarkConstant.HIK_MANUFACTURER);
             deviceChannel.setPtzType(0);
             deviceChannel.setIsIpChannel(0);
+            deviceChannel.setChannelType(1);
             deviceChannel.setOnline(1);
             deviceChannel.setChannelNum(channel);
             deviceChannelList.add(deviceChannel);
@@ -248,7 +252,8 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                 deviceChannel.setChannelName(name);
                 deviceChannel.setManufacturer(MarkConstant.HIK_MANUFACTURER);
                 deviceChannel.setPtzType(0);
-                deviceChannel.setIsIpChannel(0);
+                deviceChannel.setIsIpChannel(1);
+                deviceChannel.setChannelType(1);
                 deviceChannel.setChannelNum(channel);
                 deviceChannel.setIp(new String(m_strIpparaCfgi.struIPDevInfo[ipcInfoIndex].struIP.sIpV4).trim());
                 deviceChannel.setPort(m_strIpparaCfgi.struIPDevInfo[ipcInfoIndex].wDVRPort);

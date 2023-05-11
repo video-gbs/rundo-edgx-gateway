@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
+import com.runjian.domain.dto.CatalogSyncDto;
 import com.runjian.domain.dto.Device;
 import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
@@ -44,7 +45,7 @@ public class CatalogServiceImpl implements InitializingBean, IMsgProcessorServic
 
         //encodeId转换
         Long encodeId = Long.parseLong(deviceId);
-        CommonResponse<List<DeviceChannelEntity>> listCommonResponse = deviceChannelService.channelSync(encodeId);
+        CommonResponse<CatalogSyncDto> listCommonResponse = deviceChannelService.channelSync(encodeId);
 
         //mq消息发送
         gatewayBusinessAsyncSender.sendforAllScene(listCommonResponse, commonMqDto.getMsgId(), GatewayMsgType.CATALOG);

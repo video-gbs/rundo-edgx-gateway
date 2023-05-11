@@ -23,7 +23,7 @@ public class DeviceEntity {
 	/**
 	 * 登陆句柄
 	 */
-	private int lUserId;
+	private Integer lUserId;
 
 	/**
 	 * 账户
