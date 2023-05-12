@@ -9,6 +9,7 @@ import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.service.IDeviceService;
 import com.runjian.service.IGatewayInfoService;
 import com.runjian.service.IRedisCatchStorageService;
+import com.runjian.service.IplayService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -53,13 +54,18 @@ public class GatewayRunner implements CommandLineRunner {
     IMqMsgDealServer mqMsgDealServer;
 
     @Autowired
-    private SdkInitService hksdkInitService;
+    IplayService iplayService;
+
+
 
     @Override
     public void run(String... args) throws Exception {
 //        hksdkInitService.initSdk();
         //发送注册
         gatewayInfoService.sendRegisterInfo();
+        //流状态全部停止成功
+        iplayService.restartStopAll();
+
         //设备全部重新注册
         deviceService.startOnline();
 

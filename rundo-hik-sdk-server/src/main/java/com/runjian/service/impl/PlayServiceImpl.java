@@ -185,6 +185,7 @@ public class PlayServiceImpl implements IplayService {
 
     @Override
     public Boolean streamBye(String streamId) {
+        log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流bye操作","bye进入",streamId);
         LambdaQueryWrapper<PlayListLogEntity> playListLogEntityLambdaQueryWrapper = new LambdaQueryWrapper<>();
         playListLogEntityLambdaQueryWrapper.eq(PlayListLogEntity::getPlayStatus,0);
         playListLogEntityLambdaQueryWrapper.eq(PlayListLogEntity::getStreamId,streamId).last("limit 1");
@@ -225,5 +226,15 @@ public class PlayServiceImpl implements IplayService {
     @Override
     public void playSeekControl(String streamId, long seekTime, String msgId) {
 
+    }
+
+    /**
+     * 重启修改全部流列表状态
+     */
+    @Override
+    public void restartStopAll() {
+        PlayListLogEntity playListLogEntity = new PlayListLogEntity();
+        playListLogEntity.setPlayStatus(2);
+        playListLogMapper.update(playListLogEntity,null);
     }
 }

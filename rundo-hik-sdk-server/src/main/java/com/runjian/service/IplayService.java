@@ -72,4 +72,9 @@ public interface IplayService {
      * @param msgId
      */
     void playSeekControl(String streamId,long seekTime,String msgId);
+
+    /**
+     * 重启修改全部流状态
+     */
+    void restartStopAll();
 }
