@@ -182,7 +182,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100, TimeUnit.MILLISECONDS);
         if(!b){
             //加锁失败，不继续执行
-            log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备服务,获取录像信息，合并全局的请求",businessSceneKey);
+            log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"点播请求，合并全局的请求",businessSceneKey);
             return null;
         }
         String streamId = playReq.getStreamId();
