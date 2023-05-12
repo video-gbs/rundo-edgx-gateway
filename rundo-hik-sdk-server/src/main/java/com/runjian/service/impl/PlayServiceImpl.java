@@ -100,7 +100,7 @@ public class PlayServiceImpl implements IplayService {
     private CommonResponse streamMediaDeal(PlayReq playReq,PlayInfoDto play){
         String ip = playReq.getSsrcInfo().getIp();
         int port = playReq.getSsrcInfo().getPort();
-        int streamMode = "TCP".equals(playReq.getStreamMode())?1:0;
+        int streamMode = 1;
         String streamId = playReq.getStreamId();
 
         String url = openSdkServerApi.replace("{ip}", ip).replace("{port}", String.valueOf(port)).replace("{tcpMode}", String.valueOf(streamMode)).replace("{streamId}", streamId);
