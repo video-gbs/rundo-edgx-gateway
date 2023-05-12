@@ -15,6 +15,7 @@ import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
+import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 import com.runjian.media.dispatcher.service.IMediaPlayService;
 import com.runjian.media.dispatcher.service.IOnlineStreamsService;
@@ -23,11 +24,15 @@ import com.runjian.media.dispatcher.zlm.ZLMRESTfulUtils;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author chenjialing
@@ -52,6 +57,12 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    RedissonClient redissonClient;
+
+    @Autowired
+    UserSetting userSetting;
 
     @Override
     public void play(MediaPlayReq playReq) {
@@ -164,7 +175,16 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
     }
 
     private SsrcInfo playCommonProcess(String businessSceneKey, GatewayMsgType gatewayMsgType, MediaPlayReq playReq, boolean isPlay) throws InterruptedException {
+
         redisCatchStorageService.addBusinessSceneKey(businessSceneKey,gatewayMsgType,playReq.getMsgId());
+        RLock lock = redissonClient.getLock(businessSceneKey);
+        //尝试获取锁
+        boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100, TimeUnit.MILLISECONDS);
+        if(!b){
+            //加锁失败，不继续执行
+            log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备服务,获取录像信息，合并全局的请求",businessSceneKey);
+            return null;
+        }
         String streamId = playReq.getStreamId();
         MediaServerItem oneMedia;
         // 复用流判断 针对直播场景
