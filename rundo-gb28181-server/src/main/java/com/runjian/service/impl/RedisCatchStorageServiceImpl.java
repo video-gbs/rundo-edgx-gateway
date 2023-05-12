@@ -141,7 +141,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
 
     @Override
     public void addBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, String msgId) {
-        String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey);
+        String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey);
         BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(gatewayMsgType, msgId, userSetting.getBusinessSceneTimeout(), null);
         List<BusinessSceneResp> businessSceneRespArrayList = new ArrayList<>();
 
@@ -153,7 +153,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
         }
 
 
-        RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey, businessSceneRespArrayList);
+        RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY, businessSceneKey, businessSceneRespArrayList);
     }
 
     @Override
