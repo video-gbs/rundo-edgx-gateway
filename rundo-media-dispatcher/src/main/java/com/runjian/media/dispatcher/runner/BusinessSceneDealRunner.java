@@ -19,8 +19,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,6 +47,8 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
     @Autowired
     IMediaPlayService mediaPlayService;
 
+
+
     @Async
     @Override
     public void run(String... args) throws Exception {
@@ -52,55 +56,74 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
         //获取hashmap中的
 
         while (true){
-
             try{
                 Map<String, Object> allBusinessMap = RedisCommonUtil.hmget(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY);
                 if(CollectionUtils.isEmpty(allBusinessMap)){
 
                     Thread.sleep(50);
                     continue;
+
                 }
                 Set<Map.Entry<String, Object>> entries = allBusinessMap.entrySet();
                 for(Map.Entry entry:  entries){
                     //获取key与value  value为BusinessSceneResp
-                    BusinessSceneResp businessSceneResp = JSONObject.parseObject((String) entry.getValue(), BusinessSceneResp.class);
-                    GatewayMsgType gatewayMsgType = businessSceneResp.getGatewayMsgType();
-                    //判断状态是否结束，以及是否信令跟踪超时
-                    LocalDateTime time = businessSceneResp.getTime();
-                    BusinessSceneStatusEnum statusEnum =businessSceneResp.getStatus();
-
-                    LocalDateTime now = LocalDateTime.now();
+                    List<BusinessSceneResp> businessSceneRespList = JSONObject.parseArray((String) entry.getValue(), BusinessSceneResp.class);
                     String entrykey = (String)entry.getKey();
-                    if(time.isBefore(now)){
-                        //消息跟踪完毕 删除指定的键值 异步处理对应的mq消息发送,并释放相应的redisson锁
+                    Boolean deleteKeyFlag = false;
+                    for (BusinessSceneResp businessSceneResp : businessSceneRespList) {
+                        //同一组的消息状态均为一致，一个成功，最后一个发送完毕进行缓存删除
+                        //判断状态是否结束，以及是否信令跟踪超时
+                        LocalDateTime time = businessSceneResp.getTime();
+                        BusinessSceneStatusEnum statusEnum =businessSceneResp.getStatus();
+                        LocalDateTime now = LocalDateTime.now();
+                        if(time.isBefore(now)){
+                            //消息跟踪完毕 删除指定的键值 异步处理对应的mq消息发送,并释放相应的redisson锁
 
-                        commonBusinessDeal(businessSceneResp,entrykey);
-                        if(statusEnum.equals(BusinessSceneStatusEnum.running)){
-                            //推流是失败的信令 进行bye指令发送给网关
-                            mediaPlayService.playBusinessErrorScene(entrykey,businessSceneResp);
+                            commonBusinessDeal(businessSceneResp,entrykey,deleteKeyFlag);
+                            if(statusEnum.equals(BusinessSceneStatusEnum.running)){
+                                //推流是失败的信令 进行bye指令发送给网关
+                                mediaPlayService.playBusinessErrorScene(entrykey,businessSceneResp);
+                            }
+                            deleteKeyFlag = true;
+
+                        }else if(statusEnum.equals(BusinessSceneStatusEnum.end)){
+                            commonBusinessDeal(businessSceneResp,entrykey,deleteKeyFlag);
+                            deleteKeyFlag = true;
+
                         }
 
 
-                    }else if(statusEnum.equals(BusinessSceneStatusEnum.end)){
-                        commonBusinessDeal(businessSceneResp,entrykey);
+
                     }
+                    //处理完毕，进行缓存删除
                 }
                 Thread.yield();
             }catch (Exception e){
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景常驻线程处理","异常处理失败",e);
             }
-
-
-
         }
 
     }
 
-    private void commonBusinessDeal(BusinessSceneResp businessSceneResp,String entrykey){
+    private void commonBusinessDeal(BusinessSceneResp businessSceneResp,String entrykey,Boolean deleteKeyFlag){
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景常驻线程处理", "预处理可进行消费的场景信令", businessSceneResp);
-        RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY,entrykey);
+        long threadId = businessSceneResp.getThreadId();
+        RLock lock = redissonClient.getLock(entrykey);
+        if(!ObjectUtils.isEmpty(lock)){
+            try {
+                lock.unlockAsync(threadId);
+
+            }catch (Exception e){
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景常驻线程处理","redis解锁异常处理失败",e);
+            }
+        }
+        //区分mq与restful接口
         //异步处理消息的mq发送
         businessAsyncSender.sendforAllScene(businessSceneResp);
+        //同类key消息请求就删除一次
+        if(!deleteKeyFlag){
+            RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY,entrykey);
 
+        }
     }
 }

@@ -117,12 +117,7 @@ public interface ImediaServerService {
      * @param msgId
      */
     void streamStop(String streamId,String msgId);
-    /**
-     * 推流结果通知
-     * @param streamId
-     * @return
-     */
-    Boolean streamNotify(String streamId);
+
 
     /**
      * 获取流列表

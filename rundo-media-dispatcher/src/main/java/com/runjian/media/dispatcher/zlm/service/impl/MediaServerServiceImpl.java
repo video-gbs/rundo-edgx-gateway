@@ -713,16 +713,6 @@ public class MediaServerServiceImpl implements ImediaServerService {
     }
 
     @Override
-    public Boolean streamNotify(String streamId) {
-        logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "点播流通知", streamId);
-        StreamPlayDto streamPlayResult = new StreamPlayDto();
-        streamPlayResult.setStreamId(streamId);
-        String businessSceneKey = GatewayMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
-        redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_PLAY_RESULT,null);
-
-        return Boolean.TRUE;
-    }
-    @Override
     public List<OnlineStreamsEntity> streamListByStreamIds(StreamCheckListResp streamCheckListResp, String msgId) {
         List<String> streamLists = streamCheckListResp.getStreamIdList();
         if(CollectionUtils.isEmpty(streamLists)){
