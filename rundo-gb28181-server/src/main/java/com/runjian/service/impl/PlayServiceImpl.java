@@ -1,28 +1,15 @@
 package com.runjian.service.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.runjian.common.commonDto.Gateway.dto.GatewayBindMedia;
 import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
 import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
-import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
-import com.runjian.common.commonDto.Gb28181Media.CloseRtpServerDto;
-import com.runjian.common.commonDto.Gb28181Media.RtpInfoDto;
-import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
 import com.runjian.common.commonDto.PlayCommonSsrcInfo;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
-import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.BusinessSceneConstants;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.constant.VideoManagerConstants;
-import com.runjian.common.utils.BeanUtil;
-import com.runjian.common.utils.RestTemplateUtil;
-import com.runjian.common.utils.redis.RedisCommonUtil;
-import com.runjian.conf.SsrcConfig;
 import com.runjian.conf.UserSetting;
 import com.runjian.conf.mq.GatewaySignInConf;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
@@ -52,8 +39,8 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 点播相关流程
@@ -409,6 +396,45 @@ public class PlayServiceImpl implements IplayService {
         }
 
 
+    }
+
+    @Override
+    public Boolean testStreamBye(String streamId, String callId) {
+        log.info(LogTemplate.ERROR_LOG_TEMPLATE, "test停止点播", "流停止请求进入， 发送BYE", streamId);
+         AtomicReference<Boolean> flag = new AtomicReference<>(false);
+        SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, callId, streamId);
+        if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
+            //todo 重要，缓存异常，点播失败需要人工介入
+            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,点播缓存异常", streamId);
+            return false;
+        }
+
+        //设备指令 bye
+        try {
+            Device device = deviceService.getDevice(streamSessionSsrcTransaction.getDeviceId());
+            if(ObjectUtils.isEmpty(device)){
+                //todo 重要，缓存异常，点播失败需要人工介入
+                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,设备信息未找到", streamId);
+                return false;
+
+            }
+            sipCommander.streamByeCmd(streamSessionSsrcTransaction,device,streamSessionSsrcTransaction.getChannelId(),error->{
+                //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
+                ResponseEvent responseEvent = (ResponseEvent) error.event;
+                SIPResponse response = (SIPResponse) responseEvent.getResponse();
+                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令点播失败", response);
+                flag.set(false);
+            },ok->{
+                flag.set(true);
+            });
+
+            //剔除缓存
+            streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
+
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "[命令发送失败] 停止点播， 发送BYE", e);
+        }
+        return flag.get();
     }
 
     @Override

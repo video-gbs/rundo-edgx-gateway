@@ -43,6 +43,13 @@ public interface IplayService {
      */
     void streamBye(String streamId,String msgId);
 
+
+    /**
+     * 网关的bye指令场景
+     * @param streamId
+     * @param callId
+     */
+    Boolean testStreamBye(String streamId,String callId);
     /**
      * 录像回放倍速
      * @param streamId
