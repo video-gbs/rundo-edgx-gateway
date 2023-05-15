@@ -17,23 +17,10 @@ public interface IplayService {
     CommonResponse<Integer> play(PlayReq playReq);
 
     /**
-     * 点播接口处理
+     *回放
      * @param playBackReq
      */
-    public void playBack(PlayBackReq playBackReq);
-    /**
-     * 流注册事件
-     * @param streamInfo
-     */
-    public void onStreamChanges(StreamInfo streamInfo);
-
-    /**
-     * 无人观看处理
-     * @param noneStreamReaderReq
-     */
-    public void onStreamNoneReader(NoneStreamReaderReq noneStreamReaderReq);
-
-    public void playBusinessErrorScene(String businessKey, BusinessSceneResp businessSceneResp);
+    void playBack(PlayBackReq playBackReq);
 
     /**
      * 网关的bye指令场景

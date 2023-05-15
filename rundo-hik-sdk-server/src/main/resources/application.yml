@@ -1,5 +1,5 @@
 spring:
   application:
-    name: "@project.artifactId@"
+    name: "hik-sdk-serve"
   profiles:
     active: ${PROFILES_ACTIVE:local}

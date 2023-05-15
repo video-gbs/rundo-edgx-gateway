@@ -57,7 +57,12 @@ public interface ISdkCommderService {
      */
     PlayInfoDto play(int lUserId, int channelNum, int dwStreamType, int dwLinkMode);
 
-
+    /**
+     * 预览回调码流信息
+     * @param lPreviewHandle
+     * @return
+     */
+    int playStandardCallBack(int lPreviewHandle);
     /**
      * 点播停止
      * @return

@@ -86,6 +86,13 @@ public class PlayServiceImpl implements IplayService {
                 return CommonResponse.failure(BusinessErrorEnums.getOneBusinessNum(commonResponse1.getCode()));
             }
         }
+        //进行回调
+        int i = iSdkCommderService.playStandardCallBack(play.getLPreviewHandle());
+        if(i!=0){
+            //码流回调失败
+            streamBye(playReq.getStreamId());
+            return CommonResponse.failure(BusinessErrorEnums.getOneBusinessNum(i));
+        }
         int playStatus = errorCode==0?0:-1;
         PlayListLogEntity playListLogEntity = new PlayListLogEntity();
         playListLogEntity.setStreamId(playReq.getStreamId());
@@ -121,7 +128,7 @@ public class PlayServiceImpl implements IplayService {
             ConcurrentHashMap<Integer, Object> socketHanderMap = playHandleConf.getSocketHanderMap();
             socketHanderMap.put(play.getLPreviewHandle(),socket);
         }catch (Exception e){
-            String closeUrl = closeSdkServerApi.replace("{streamId}", streamId);
+            String closeUrl = closeSdkServerApi.replace("{streamId}", playReq.getStreamId());
             String closeResult = RestTemplateUtil.get(closeUrl, null, restTemplate);
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接-socket-连接业务异常",closeResult,e);
             return CommonResponse.failure(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
@@ -168,20 +175,8 @@ public class PlayServiceImpl implements IplayService {
 
     }
 
-    @Override
-    public void onStreamChanges(StreamInfo streamInfo) {
 
-    }
 
-    @Override
-    public void onStreamNoneReader(NoneStreamReaderReq noneStreamReaderReq) {
-
-    }
-
-    @Override
-    public void playBusinessErrorScene(String businessKey, BusinessSceneResp businessSceneResp) {
-
-    }
 
     @Override
     public Boolean streamBye(String streamId) {

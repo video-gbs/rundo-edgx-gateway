@@ -49,7 +49,9 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     int  lPreviewHandle;
 
     //预览回调函数实现
-    private FRealDataCallBack fRealDataCallBack;
+    private StandardRealDataCallBack standardRealDataCallBack;
+
+
 
     @Autowired
     private PlayHandleConf playHandleConf;
@@ -57,16 +59,17 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     @PostConstruct
     public void init(){
         hCNetSDK = sdkInitService.getHCNetSDK();
-        fRealDataCallBack = new FRealDataCallBack();
+        standardRealDataCallBack = new StandardRealDataCallBack();
     }
-    public class FRealDataCallBack implements HCNetSDK.FRealDataCallBack_V30{
 
+
+    public class StandardRealDataCallBack implements HCNetSDK.FStdDataCallBack{
         /**
          * 点播回调
          */
         //预览回调
         @Override
-        public void invoke(int lRealHandle, int dwDataType, ByteByReference pBuffer, int dwBufSize, Pointer pUser) {
+        public void invoke(int lRealHandle, int dwDataType, ByteByReference pBuffer, int dwBufSize, int dwUser) {
             switch (dwDataType) {
                 case HCNetSDK.NET_DVR_SYSHEAD: //系统头
 
@@ -74,10 +77,6 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                 case HCNetSDK.NET_DVR_STREAMDATA:   //码流数据
                     if (dwBufSize > 0) {
                         try {
-
-
-
-
                             Socket socket = (Socket) playHandleConf.getSocketHanderMap().get(lRealHandle);
                             if(ObjectUtils.isEmpty(socket)){
                                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"码流回调","连接暂时超时");
@@ -91,12 +90,17 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                             dataOutputStream.write(bytes);
                         } catch (Exception e) {
                             //socket连接失败 进行流关闭
-                        PlayInfoDto playInfoDto = stopPlay(lRealHandle);
-                        log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接","socket发送异常",playInfoDto);
+                            PlayInfoDto playInfoDto = stopPlay(lRealHandle);
+                            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接--socket发送异常",e,playInfoDto);
                         }
                     }
+                    break;
+                case HCNetSDK.NET_DVR_STD_VIDEODATA:
+                    System.out.println(dwBufSize);
+                    break;
             }
         }
+
     }
 
 
@@ -316,12 +320,14 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         strClientInfo.read();
         //通道号
         strClientInfo.lChannel = channelNum;
+        strClientInfo.hPlayWnd = null;
         //0-主码流，1-子码流，2-三码流，3-虚拟码流，以此类推
-        strClientInfo.dwStreamType=dwStreamType;
+        strClientInfo.dwStreamType= 0;
         //连接方式：0- TCP方式，1- UDP方式，2- 多播方式，3- RTP方式，4- RTP/RTSP，5- RTP/HTTP，6- HRUDP（可靠传输） ，7- RTSP/HTTPS，8- NPQ
-        strClientInfo.dwLinkMode=dwLinkMode;
+        strClientInfo.dwLinkMode=4;
+        strClientInfo.bBlocked=1;
         strClientInfo.write();
-        lPreviewHandle = hCNetSDK.NET_DVR_RealPlay_V40(lUserId, strClientInfo, fRealDataCallBack , null);
+        lPreviewHandle = hCNetSDK.NET_DVR_RealPlay_V40(lUserId, strClientInfo, null , null);
         PlayInfoDto playInfoDto = new PlayInfoDto();
         playInfoDto.setLPreviewHandle(lPreviewHandle);
         if(lPreviewHandle <= -1){
@@ -329,10 +335,21 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "点播失败", lUserId, hCNetSDK.NET_DVR_GetLastError());
             playInfoDto.setErrorCode(hCNetSDK.NET_DVR_GetLastError());
             return playInfoDto;
+        }
+        return playInfoDto;
+    }
 
+    @Override
+    public int playStandardCallBack(int lPreviewHandle) {
+        int errorCode = 0;
+
+        if(!hCNetSDK.NET_DVR_SetStandardDataCallBack(lPreviewHandle, standardRealDataCallBack, 0)){
+            //回调数据失败
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "点播失败", "点播回调失败", hCNetSDK.NET_DVR_GetLastError());
+            errorCode = hCNetSDK.NET_DVR_GetLastError();
         }
 
-        return playInfoDto;
+        return errorCode;
     }
 
     @Override
