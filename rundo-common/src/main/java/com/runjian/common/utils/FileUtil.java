@@ -2,6 +2,9 @@ package com.runjian.common.utils;
 
 import java.io.*;
 
+/**
+ * @author chenjialing
+ */
 public class FileUtil {
     /**
      * 方法功能：将字节数组写入到新建文件中。

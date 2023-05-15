@@ -2,6 +2,7 @@ package com.runjian.hik.module.service.impl;
 
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.MarkConstant;
+import com.runjian.common.utils.FileUtil;
 import com.runjian.common.utils.StringUtils;
 import com.runjian.conf.PlayHandleConf;
 import com.runjian.domain.dto.DeviceChannel;
@@ -88,6 +89,8 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
 
                             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                             dataOutputStream.write(bytes);
+                            FileUtil.save2File("./test.es",bytes);
+
                         } catch (Exception e) {
                             //socket连接失败 进行流关闭
                             PlayInfoDto playInfoDto = stopPlay(lRealHandle);
