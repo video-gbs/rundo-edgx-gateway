@@ -15,6 +15,7 @@ import com.runjian.hik.module.service.ISdkCommderService;
 import com.runjian.hik.module.service.SdkInitService;
 //import com.runjian.hik.module.service.impl.callBack.FRealDataCallBack;
 import com.runjian.hik.sdklib.HCNetSDK;
+import com.runjian.hik.sdklib.SocketPointer;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.examples.win32.W32API;
@@ -52,6 +53,8 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     //预览回调函数实现
     private StandardRealDataCallBack standardRealDataCallBack;
 
+    private FRealDataCallBack fRealDataCallBack;
+
 
 
     @Autowired
@@ -60,9 +63,56 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     @PostConstruct
     public void init(){
         hCNetSDK = sdkInitService.getHCNetSDK();
-        standardRealDataCallBack = new StandardRealDataCallBack();
+        fRealDataCallBack = new FRealDataCallBack();
     }
+    public class FRealDataCallBack implements HCNetSDK.FRealDataCallBack_V30{
 
+        /**
+         * 点播回调
+         */
+        //预览回调
+        @Override
+        public void invoke(int lRealHandle, int dwDataType, ByteByReference pBuffer, int dwBufSize, Pointer pUser) {
+            switch (dwDataType) {
+                case HCNetSDK.NET_DVR_SYSHEAD: //系统头
+
+                    break;
+                case HCNetSDK.NET_DVR_STREAMDATA:   //码流数据
+                    if (dwBufSize > 0) {
+                        try {
+
+
+
+                            SocketPointer socketPointer = new SocketPointer();
+                            Pointer pointer = socketPointer.getPointer();
+                            socketPointer.read();
+                            socketPointer.write();
+                            pUser.write(0, pointer.getByteArray(0, socketPointer.size()), 0, socketPointer.size());
+                            if(ObjectUtils.isEmpty(socketPointer)){
+                                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"码流回调","连接错误，初始化失败");
+                                return;
+                            }
+
+                            Socket socket = (Socket) playHandleConf.getSocketHanderMap().get(socketPointer);
+                            if(ObjectUtils.isEmpty(socket)){
+                                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"码流回调","连接暂时超时");
+                                return;
+                            }
+                            ByteBuffer byteBuffer = pBuffer.getPointer().getByteBuffer(0, dwBufSize);
+                            byte[] bytes = new byte[byteBuffer.remaining()];
+                            byteBuffer.get(bytes, 0, bytes.length);
+
+                            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+                            dataOutputStream.write(bytes);
+                        } catch (Exception e) {
+                            //socket连接失败 进行流关闭
+                            PlayInfoDto playInfoDto = stopPlay(lRealHandle);
+                            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接","socket发送异常",playInfoDto);
+                        }
+                    }
+            }
+        }
+    }
 
     public class StandardRealDataCallBack implements HCNetSDK.FStdDataCallBack{
         /**
@@ -105,6 +155,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         }
 
     }
+
 
 
 
@@ -330,7 +381,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         strClientInfo.dwLinkMode=4;
         strClientInfo.bBlocked=1;
         strClientInfo.write();
-        lPreviewHandle = hCNetSDK.NET_DVR_RealPlay_V40(lUserId, strClientInfo, null , null);
+        lPreviewHandle = hCNetSDK.NET_DVR_RealPlay_V40(lUserId, strClientInfo, fRealDataCallBack , null);
         PlayInfoDto playInfoDto = new PlayInfoDto();
         playInfoDto.setLPreviewHandle(lPreviewHandle);
         if(lPreviewHandle <= -1){

@@ -11,6 +11,7 @@ import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.RestTemplateUtil;
+import com.runjian.common.utils.UuidUtil;
 import com.runjian.conf.PlayHandleConf;
 import com.runjian.domain.dto.PlayCommonDto;
 import com.runjian.domain.dto.commder.PlayInfoDto;
@@ -19,10 +20,13 @@ import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.entity.DeviceEntity;
 import com.runjian.entity.PlayListLogEntity;
 import com.runjian.hik.module.service.ISdkCommderService;
+import com.runjian.hik.sdklib.SocketPointer;
 import com.runjian.mapper.PlayListLogMapper;
 import com.runjian.service.IDeviceChannelService;
 import com.runjian.service.IDeviceService;
 import com.runjian.service.IplayService;
+import com.sun.jna.Memory;
+import com.sun.jna.Pointer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,25 +78,20 @@ public class PlayServiceImpl implements IplayService {
             return CommonResponse.failure(BusinessErrorEnums.getOneBusinessNum(commonResponse.getCode()));
         }
 
+        CommonResponse commonResponse1 = streamMediaDeal(playReq);
+        if(commonResponse1.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
+            //关闭sdk的流
+            streamBye(playReq.getStreamId());
+            return CommonResponse.failure(BusinessErrorEnums.getOneBusinessNum(commonResponse1.getCode()));
+        }
         PlayCommonDto data = commonResponse.getData();
         int streamMode = "TCP".equals(playReq.getStreamMode())?0:1;
         PlayInfoDto play = iSdkCommderService.play(data.getLUserId(), data.getChannelNum(), 1, streamMode);
         int errorCode = play.getErrorCode();
-        if(errorCode == 0){
-            CommonResponse commonResponse1 = streamMediaDeal(playReq, play);
-            if(commonResponse1.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
-                //关闭sdk的流
-                streamBye(playReq.getStreamId());
-                return CommonResponse.failure(BusinessErrorEnums.getOneBusinessNum(commonResponse1.getCode()));
-            }
+        if(errorCode != 0){
+            //关闭
         }
-        //进行回调
-        int i = iSdkCommderService.playStandardCallBack(play.getLPreviewHandle());
-        if(i!=0){
-            //码流回调失败
-            streamBye(playReq.getStreamId());
-            return CommonResponse.failure(BusinessErrorEnums.getOneBusinessNum(i));
-        }
+
         int playStatus = errorCode==0?0:-1;
         PlayListLogEntity playListLogEntity = new PlayListLogEntity();
         playListLogEntity.setStreamId(playReq.getStreamId());
@@ -104,7 +103,7 @@ public class PlayServiceImpl implements IplayService {
 
     }
 
-    private CommonResponse streamMediaDeal(PlayReq playReq,PlayInfoDto play){
+    private CommonResponse streamMediaDeal(PlayReq playReq){
         String ip = playReq.getSsrcInfo().getIp();
         int port = playReq.getSsrcInfo().getPort();
         int streamMode = 1;
@@ -123,10 +122,13 @@ public class PlayServiceImpl implements IplayService {
             return CommonResponse.failure(BusinessErrorEnums.MEDIA_SERVER_COLLECT_ERROR);
         }
         Integer mediaPort = (Integer)commonResponse.getData();
+
         try{
             Socket socket = new Socket(serverIp, mediaPort);
-            ConcurrentHashMap<Integer, Object> socketHanderMap = playHandleConf.getSocketHanderMap();
-            socketHanderMap.put(play.getLPreviewHandle(),socket);
+            ConcurrentHashMap<String, Object> socketHanderMap = playHandleConf.getSocketHanderMap();
+            SocketPointer socketPointer = new SocketPointer();
+            socketPointer.socketHandle = UuidUtil.toUuid();
+            socketHanderMap.put(socketPointer.socketHandle,socket);
         }catch (Exception e){
             String closeUrl = closeSdkServerApi.replace("{streamId}", playReq.getStreamId());
             String closeResult = RestTemplateUtil.get(closeUrl, null, restTemplate);

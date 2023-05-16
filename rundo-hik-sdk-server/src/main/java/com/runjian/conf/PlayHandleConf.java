@@ -14,5 +14,5 @@ import java.util.concurrent.ConcurrentHashMap;
 @Data
 public class PlayHandleConf {
 
-    private ConcurrentHashMap<Integer,Object> socketHanderMap = new ConcurrentHashMap();
+    private ConcurrentHashMap<String,Object> socketHanderMap = new ConcurrentHashMap();
 }
