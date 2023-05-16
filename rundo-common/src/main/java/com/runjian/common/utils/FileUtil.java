@@ -22,7 +22,7 @@ public class FileUtil {
                     (!parent.mkdirs())) {
                 return false;
             }
-            fos = new FileOutputStream(file);
+            fos = new FileOutputStream(file,true);
             fos.write(msg);
             fos.flush();
             return true;
