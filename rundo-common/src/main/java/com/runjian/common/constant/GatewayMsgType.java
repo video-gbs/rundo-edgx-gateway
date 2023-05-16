@@ -35,10 +35,13 @@ public enum GatewayMsgType {
     REGISTER("DEVICE_SIGN_IN"),
 //    设备信息
     DEVICEINFO("DEVICE_SYNC"),
-    //设备删除
+    //设备删除     //设备软删除
     DEVICE_DELETE("DEVICE_DELETE"),
+    DEVICE_DELETE_SOFT("DEVICE_DELETE_SOFT"),
+    //通道软硬删除
+    CHANNEL_DELETE_HARD("CHANNEL_DELETE_HARD"),
+    CHANNEL_DELETE_SOFT("CHANNEL_DELETE_SOFT"),
 
-    CHANNEL_DELETE("CHANNEL_DELETE"),
 //    设备通道
     CATALOG("CHANNEL_SYNC"),
 

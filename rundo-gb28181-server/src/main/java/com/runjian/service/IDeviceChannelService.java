@@ -43,5 +43,13 @@ public interface IDeviceChannelService {
      * @param channelId
      * @param msgId
      */
-    void channelDelete(String channelId, String msgId);
+    void channelHardDelete(String deviceId, String channelId, String msgId);
+
+    /**
+     * 软删除通道
+     * @param deviceId
+     * @param channelId
+     * @param msgId
+     */
+    void channelSoftDelete(String deviceId, String channelId, String msgId);
 }

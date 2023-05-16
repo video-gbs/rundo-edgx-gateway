@@ -296,6 +296,39 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
+    public void deviceSoftDelete(String deviceId, String msgId) {
+        //同设备同类型业务消息，加上全局锁
+        String businessSceneKey = GatewayMsgType.DEVICE_DELETE_SOFT.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+deviceId;
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息删除请求",deviceId+"|"+msgId);
+        RLock lock = redissonClient.getLock(businessSceneKey);
+        try {
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_DELETE_SOFT,msgId);
+            //尝试获取锁
+            boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100,TimeUnit.MILLISECONDS);
+            if(!b){
+                //加锁失败，不继续执行
+                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息删除请求,加锁失败，合并全局的请求",msgId);
+                return;
+            }
+            Device deviceDto = deviceMapper.getDeviceByDeviceId(deviceId);
+            if(ObjectUtils.isEmpty(deviceDto)){
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_DELETE_SOFT,BusinessErrorEnums.SUCCESS,true);
+                return ;
+            }
+            //可以删除
+            deviceMapper.softRemove(deviceId);
+            deviceChannelMapper.softDeleteByDeviceId(deviceId);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_DELETE_SOFT,BusinessErrorEnums.SUCCESS,true);
+
+
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.DEVICE_DELETE_SOFT,BusinessErrorEnums.UNKNOWN_ERROR,null);
+
+        }
+    }
+
+    @Override
     public void deviceList(String msgId) {
         String businessSceneKey = GatewayMsgType.DEVICE_TOTAL_SYNC.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY;
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备全量数据同步",msgId);

@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ChannelDeleteMsgServiceImpl implements InitializingBean, IMsgProcessorService {
+public class ChannelHardDeleteMsgServiceImpl implements InitializingBean, IMsgProcessorService {
 
     @Autowired
     IMqMsgDealServer iMqMsgDealServer;
@@ -22,7 +22,7 @@ public class ChannelDeleteMsgServiceImpl implements InitializingBean, IMsgProces
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.CHANNEL_DELETE.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.CHANNEL_DELETE_HARD.getTypeName(),this);
     }
 
     @Override
@@ -32,7 +32,8 @@ public class ChannelDeleteMsgServiceImpl implements InitializingBean, IMsgProces
         JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
         //设备信息同步  获取设备信息
         String channelId = dataJson.getString("channelId");
-        deviceChannelService.channelDelete(channelId, commonMqDto.getMsgId());
+        String deviceId = dataJson.getString("deviceId");
+        deviceChannelService.channelHardDelete(deviceId,channelId, commonMqDto.getMsgId());
     }
 
 
