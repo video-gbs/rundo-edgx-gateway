@@ -173,4 +173,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
         //在异步线程进行解锁
     }
+
+    @Override
+    public void channelDelete(String channelId, String msgId) {
+        return;
+    }
 }

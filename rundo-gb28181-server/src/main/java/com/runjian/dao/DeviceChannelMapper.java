@@ -40,7 +40,7 @@ public interface DeviceChannelMapper {
      * @param idList
      * @return
      */
-    @Delete(" <script>" +
+    @Update(" <script>" +
             "update  "+DEVICE_CHANNEL_TABLE_NAME+" SET status = 0  WHERE id in "+
             " <foreach collection='idList' item='item' open='(' separator=',' close=')'>#{item}</foreach>" +
             " </script>"

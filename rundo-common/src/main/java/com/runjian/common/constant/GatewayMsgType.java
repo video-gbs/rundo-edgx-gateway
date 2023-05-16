@@ -37,6 +37,8 @@ public enum GatewayMsgType {
     DEVICEINFO("DEVICE_SYNC"),
     //设备删除
     DEVICE_DELETE("DEVICE_DELETE"),
+
+    CHANNEL_DELETE("CHANNEL_DELETE"),
 //    设备通道
     CATALOG("CHANNEL_SYNC"),
 
