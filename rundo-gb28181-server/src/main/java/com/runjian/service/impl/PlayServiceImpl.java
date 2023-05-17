@@ -1,5 +1,6 @@
 package com.runjian.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
 import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.PlayCommonSsrcInfo;
@@ -127,10 +128,10 @@ public class PlayServiceImpl implements IplayService {
 
                 String contentString = new String(responseEvent.getResponse().getRawContent());
                 //todo 判断ssrc是否匹配
-                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务--点播成功", new SipTransactionInfo(response), playReq);
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务--点播成功",JSON.toJSONString(new SipTransactionInfo(response)), playReq);
                 //传递ssrc进去，出现推流不成功的异常，进行相关逻辑处理
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.SIP_SEND_SUCESS,playReq);
-                streamSession.putSsrcTransaction(device.getDeviceId(), playReq.getChannelId(), "play", playReq.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.play,playReq.getDispatchUrl());
+                streamSession.putSsrcTransaction(device.getDeviceId(), playReq.getChannelId(), sipSender.getNewCallIdHeader(device.getTransport()).getCallId(), playReq.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.play,playReq.getDispatchUrl());
             },error->{
                 //失败业务处理
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播失败", playReq);
@@ -169,7 +170,7 @@ public class PlayServiceImpl implements IplayService {
                 ResponseEvent responseEvent = (ResponseEvent) ok.event;
                 SIPResponse response = (SIPResponse) responseEvent.getResponse();
 
-                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务--点播成功", new SipTransactionInfo(response), playBackReq);
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务--点播成功", JSON.toJSONString(new SipTransactionInfo(response)), playBackReq);
 
 
                 String contentString = new String(responseEvent.getResponse().getRawContent());
@@ -364,14 +365,14 @@ public class PlayServiceImpl implements IplayService {
 
     @Override
     public void streamBye(String streamId,String msgId) {
-        log.info(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "流停止请求进入， 发送BYE", streamId);
+        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "流停止请求进入， 发送BYE", streamId);
         SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamId);
         if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
             //todo 重要，缓存异常，点播失败需要人工介入
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,点播缓存异常", streamId);
             return;
         }
-        log.info(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "对话缓存信息", streamSessionSsrcTransaction);
+        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "对话缓存信息", JSON.toJSONString(streamSessionSsrcTransaction));
             //设备指令 bye
         try {
             Device device = deviceService.getDevice(streamSessionSsrcTransaction.getDeviceId());
@@ -385,12 +386,12 @@ public class PlayServiceImpl implements IplayService {
                 //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
                 ResponseEvent responseEvent = (ResponseEvent) error.event;
                 SIPResponse response = (SIPResponse) responseEvent.getResponse();
-                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令点播失败", response);
+                log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "停止点播", "bye指令点播失败", JSON.toJSONString(response),streamId);
 
             },ok->{
                 ResponseEvent responseEvent = (ResponseEvent) ok.event;
                 SIPResponse response = (SIPResponse) responseEvent.getResponse();
-                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令发送", response);
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令发送", JSON.toJSONString(response));
                 //剔除缓存
                 streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
             });
