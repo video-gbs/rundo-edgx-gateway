@@ -386,12 +386,12 @@ public class PlayServiceImpl implements IplayService {
                 //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
                 ResponseEvent responseEvent = (ResponseEvent) error.event;
                 SIPResponse response = (SIPResponse) responseEvent.getResponse();
-                log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "停止点播", "bye指令点播失败", JSON.toJSONString(response),streamId);
+                log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "停止点播", "bye指令点播失败", JSON.toJSONString(response.getCallId()),streamId);
 
             },ok->{
                 ResponseEvent responseEvent = (ResponseEvent) ok.event;
                 SIPResponse response = (SIPResponse) responseEvent.getResponse();
-                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令发送", JSON.toJSONString(response));
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令发送", JSON.toJSONString(response.getCallId()));
                 //剔除缓存
                 streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
             });
