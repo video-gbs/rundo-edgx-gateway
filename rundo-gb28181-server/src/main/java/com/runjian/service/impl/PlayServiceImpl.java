@@ -15,6 +15,7 @@ import com.runjian.conf.mq.GatewaySignInConf;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceChannel;
+import com.runjian.gb28181.bean.SipTransactionInfo;
 import com.runjian.gb28181.bean.SsrcTransaction;
 import com.runjian.gb28181.session.VideoStreamSessionManager;
 import com.runjian.gb28181.transmit.SIPSender;
@@ -126,7 +127,7 @@ public class PlayServiceImpl implements IplayService {
 
                 String contentString = new String(responseEvent.getResponse().getRawContent());
                 //todo 判断ssrc是否匹配
-
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务--点播成功", new SipTransactionInfo(response), playReq);
                 //传递ssrc进去，出现推流不成功的异常，进行相关逻辑处理
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.SIP_SEND_SUCESS,playReq);
                 streamSession.putSsrcTransaction(device.getDeviceId(), playReq.getChannelId(), "play", playReq.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.play,playReq.getDispatchUrl());
@@ -164,10 +165,12 @@ public class PlayServiceImpl implements IplayService {
             device.setDeviceId(playCommonSsrcInfo.getDeviceId());
             sipCommander.playbackStreamCmd(playBackReq.getStreamMode(),ssrcInfo,device, playBackReq.getChannelId(),playBackReq.getStartTime(),playBackReq.getEndTime(), ok->{
                 //成功业务处理
-                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播成功", playBackReq);
                 //缓存当前的sip推拉流信息
                 ResponseEvent responseEvent = (ResponseEvent) ok.event;
                 SIPResponse response = (SIPResponse) responseEvent.getResponse();
+
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务--点播成功", new SipTransactionInfo(response), playBackReq);
+
 
                 String contentString = new String(responseEvent.getResponse().getRawContent());
                 //todo 判断ssrc是否匹配
@@ -368,7 +371,7 @@ public class PlayServiceImpl implements IplayService {
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,点播缓存异常", streamId);
             return;
         }
-
+        log.info(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "对话缓存信息", streamSessionSsrcTransaction);
             //设备指令 bye
         try {
             Device device = deviceService.getDevice(streamSessionSsrcTransaction.getDeviceId());
@@ -385,11 +388,14 @@ public class PlayServiceImpl implements IplayService {
                 log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令点播失败", response);
 
             },ok->{
-
+                ResponseEvent responseEvent = (ResponseEvent) ok.event;
+                SIPResponse response = (SIPResponse) responseEvent.getResponse();
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令发送", response);
+                //剔除缓存
+                streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
             });
 
-            //剔除缓存
-            streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
+
 
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "[命令发送失败] 停止点播， 发送BYE", e);
@@ -426,10 +432,11 @@ public class PlayServiceImpl implements IplayService {
                 flag.set(false);
             },ok->{
                 flag.set(true);
+                //剔除缓存
+                streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
             });
 
-            //剔除缓存
-            streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
+
 
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "[命令发送失败] 停止点播， 发送BYE", e);
