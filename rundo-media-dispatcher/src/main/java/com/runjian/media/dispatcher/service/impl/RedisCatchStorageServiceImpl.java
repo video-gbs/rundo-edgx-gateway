@@ -121,7 +121,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     }
 
     @Override
-    public void editBusinessSceneKey(String businessSceneKey,GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums,Object data) {
+    public synchronized void editBusinessSceneKey(String businessSceneKey,GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums,Object data) {
 
         String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey);
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"业务消息修改修改",businessSceneKey);
@@ -141,7 +141,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     }
 
     @Override
-    public void editRunningBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums, Object data) {
+    public synchronized void editRunningBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums, Object data) {
         String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey);
         if(ObjectUtils.isEmpty(businessSceneString)){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"处理调度服务业务状态","处理失败,对应的业务缓存不存在",businessSceneKey);
@@ -173,7 +173,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     }
 
     @Override
-    public void addBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, String msgId) {
+    public synchronized void addBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, String msgId) {
         String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey);
         BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(gatewayMsgType, msgId, userSetting.getBusinessSceneTimeout(), null);
         List<BusinessSceneResp> businessSceneRespArrayList = new ArrayList<>();
