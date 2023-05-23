@@ -3,6 +3,7 @@ package com.runjian.mq.MqMsgDealService.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
@@ -23,7 +24,7 @@ public class PlayBackMsgServiceImpl implements InitializingBean, IMsgProcessorSe
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.PLAY_BACK.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.PLAY_BACK.getTypeName(),this);
     }
 
     @Override

@@ -1,12 +1,10 @@
 package com.runjian.gb28181.transmit.event.request.impl.message.response.cmd;
 
-import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.BusinessSceneConstants;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.UserSetting;
 import com.runjian.domain.dto.CatalogMqSyncDto;
 import com.runjian.gb28181.bean.*;
@@ -28,7 +26,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.sip.InvalidArgumentException;
@@ -39,11 +36,11 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 目录查询的回复
@@ -102,9 +99,8 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                 return;
             }
 
-            String businessSceneKey = GatewayMsgType.CATALOG.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+take.getDevice().getDeviceId();
+            String businessSceneKey = GatewayBusinessMsgType.CATALOG.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+take.getDevice().getDeviceId();
 
-            BusinessSceneResp businessSceneRedis = redisCatchStorageService.getOneBusinessSceneKey(businessSceneKey);
 
             Element rootElement = null;
             try {
@@ -126,7 +122,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                 storager.cleanChannelsForDevice(take.getDevice().getDeviceId());
                 catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
 
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS,new CatalogMqSyncDto());
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CATALOG,BusinessErrorEnums.SUCCESS,new CatalogMqSyncDto());
             } else {
                 Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
                 if (deviceListIterator != null) {
@@ -150,8 +146,9 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         if(catalogData.getSn() == sn){
                             //仅仅处理本次请求的相关数据,至于上一次的请求数据先不处理
                             //预留10毫秒的过期时间
-                            LocalDateTime expireTime = businessSceneRedis.getTime().minus(10, ChronoUnit.MILLIS);
-                            if(expireTime.isBefore(LocalDateTime.now())){
+                            Instant lastTime = catalogData.getLastTime();
+                            Instant expireTime = lastTime.plusMillis(TimeUnit.MILLISECONDS.toMillis(userSetting.getBusinessSceneTimeout()));
+                            if(expireTime.isBefore(Instant.now())){
                                 //同步已经超时
                                 logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "目录查询回复", "查询过程超时,放弃后续的数据库同步", take.getDevice().getDeviceId());
 //                                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
@@ -166,7 +163,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     catalogMqSyncDto.setChannelDetailList(catalogData.getChannelList());
                                     //更新redis
 
-                                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
+                                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CATALOG,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
                                     catalogDataCatch.setChannelSyncEnd(catalogData.getDevice().getDeviceId(), null,0);
                                     return;
                                 }
@@ -191,7 +188,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         catalogMqSyncDto.setTotal(sumNum);
                         catalogMqSyncDto.setNum(sumNum);
                         catalogMqSyncDto.setChannelDetailList(deviceChannels);
-                        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CATALOG,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
+                        redisCatchStorageService.editBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CATALOG,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
                         //该结束状态用于删除之前的本地缓存数据
                         catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
                     }

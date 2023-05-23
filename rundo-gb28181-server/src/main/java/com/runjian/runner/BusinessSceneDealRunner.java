@@ -4,12 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
-import com.runjian.common.constant.BusinessSceneConstants;
-import com.runjian.common.constant.BusinessSceneStatusEnum;
-import com.runjian.common.constant.GatewayMsgType;
-import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.config.response.GatewayBusinessSceneResp;
+import com.runjian.common.constant.*;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
+import com.runjian.service.IRedisCatchStorageService;
 import com.runjian.service.IplayService;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.Redisson;
@@ -20,15 +19,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author chenjialing
@@ -50,6 +52,8 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
     @Autowired
     IplayService iplayService;
 
+    @Autowired
+    IRedisCatchStorageService redisCatchStorageService;
     @Async
     @Override
     public void run(String... args) throws Exception {
@@ -58,63 +62,67 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
 
         while (true){
             try{
-                Map<String, Object> allBusinessMap = RedisCommonUtil.hmget(redisTemplate, BusinessSceneConstants.ALL_SCENE_HASH_KEY);
-                if(CollectionUtils.isEmpty(allBusinessMap)){
+                //获取全部的待处理缓存业务值
+                for (GatewayBusinessMsgType value : GatewayBusinessMsgType.values()){
+                    String typeName = value.getTypeName();
+                    String businessSceneKey =  BusinessSceneConstants.GATEWAY_BUSINESS_KEY + typeName + "*";
+                    Set<String> keys = RedisCommonUtil.keys(redisTemplate, businessSceneKey);
+                    if(!ObjectUtils.isEmpty(keys)){
+                        //该场景有信令场景需要处理
+                        for (String key : keys){
+                            GatewayBusinessSceneResp gatewayBusinessSceneResp = (GatewayBusinessSceneResp)RedisCommonUtil.get(redisTemplate, key);
+                            if(ObjectUtils.isEmpty(gatewayBusinessSceneResp)){
+                                log.error(LogTemplate.ERROR_LOG_TEMPLATE,"常驻线程执行","缓存异常",gatewayBusinessSceneResp);
+                            }
+                            LocalDateTime time = gatewayBusinessSceneResp.getTime();
+                            BusinessSceneStatusEnum statusEnum =gatewayBusinessSceneResp.getStatus();
+                            LocalDateTime now = LocalDateTime.now();
+                            if(time.isBefore(now) || statusEnum.equals(BusinessSceneStatusEnum.end)){
+                                //消息跟踪完毕 删除指定的键值 异步处理对应的mq消息发送,并释放相应的redisson锁
+                                commonBusinessDeal(gatewayBusinessSceneResp,key);
 
-                    Thread.sleep(50);
-                    continue;
-
-                }
-                Set<Map.Entry<String, Object>> entries = allBusinessMap.entrySet();
-                for(Map.Entry entry:  entries){
-                    //获取key与value  value为BusinessSceneResp
-                    List<BusinessSceneResp> businessSceneRespList = JSONObject.parseArray((String) entry.getValue(), BusinessSceneResp.class);
-                    String entrykey = (String)entry.getKey();
-                    Boolean deleteKeyFlag = false;
-                    for (BusinessSceneResp businessSceneResp : businessSceneRespList) {
-                        //同一组的消息状态均为一致，一个成功，最后一个发送完毕进行缓存删除
-
-                        //判断状态是否结束，以及是否信令跟踪超时
-                        LocalDateTime time = businessSceneResp.getTime();
-                        BusinessSceneStatusEnum statusEnum =businessSceneResp.getStatus();
-
-                        LocalDateTime now = LocalDateTime.now();
-
-                        if(time.isBefore(now) || statusEnum.equals(BusinessSceneStatusEnum.end)){
-                            //消息跟踪完毕 删除指定的键值 异步处理对应的mq消息发送,并释放相应的redisson锁
-                            commonBusinessDeal(businessSceneResp,entrykey);
-
+                            }
                         }
                     }
-                    //处理完毕，进行缓存删除
+
                 }
-                Thread.yield();
             }catch (Exception e){
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景常驻线程处理","异常处理失败",e);
+            }finally {
+
             }
         }
 
     }
 
-    private void commonBusinessDeal(BusinessSceneResp businessSceneResp,String entrykey){
-        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景常驻线程处理", "预处理可进行消费的场景信令", businessSceneResp);
-        long threadId = businessSceneResp.getThreadId();
-        RLock lock = redissonClient.getLock(entrykey);
-        if(!ObjectUtils.isEmpty(lock)){
-            try {
-                lock.unlockAsync(threadId);
+    private void commonBusinessDeal(GatewayBusinessSceneResp businessSceneResp,String redisKey){
+        //删除状态值的key,修改数据库
+        RedisCommonUtil.del(redisTemplate,redisKey);
+        String redisLockKey = BusinessSceneConstants.BUSINESS_LOCK_KEY+redisKey ;
+        RLock lock = redissonClient.getLock(redisLockKey);
+        try {
+            //分布式锁 进行
+            lock.lock(3,  TimeUnit.SECONDS);
+            //进行list数据的处理
+            String businessSceneKey = redisKey.substring(BusinessSceneConstants.GATEWAY_BUSINESS_KEY.length());
+            //list集合的key值
+            String  redisListKey = BusinessSceneConstants.GATEWAY_BUSINESS_LISTS+ businessSceneKey;
+            ArrayList<String> keyStrings = new ArrayList<>();
 
-            }catch (Exception e){
-                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景常驻线程处理","redis解锁异常处理失败",e);
-            }
-        }
-        //区分mq与restful接口
-        //异步处理消息的mq发送
-        gatewayBusinessAsyncSender.sendforAllScene(businessSceneResp,entrykey);
-            //同类key消息请求就删除一次
-        if(!ObjectUtils.isEmpty(RedisCommonUtil.hget(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey))){
-            RedisCommonUtil.hdel(redisTemplate,BusinessSceneConstants.ALL_SCENE_HASH_KEY,entrykey);
+            while (!ObjectUtils.isEmpty(RedisCommonUtil.rangListAll(redisTemplate,redisListKey))){
+                GatewayBusinessSceneResp oneResp = (GatewayBusinessSceneResp)RedisCommonUtil.leftPop(redisTemplate, redisListKey);
+                //消息汇聚聚合
+                keyStrings.add(oneResp.getMsgId());
+                gatewayBusinessAsyncSender.sendforAllScene(businessSceneResp,redisKey);
+            };
+            //消息日志记录 根据消息id进行消息修改
+            redisCatchStorageService.businessSceneLogDb(businessSceneResp,keyStrings);
 
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE,"处理网关业务状态","缓存编辑执行失败",redisKey,e);
+        }finally {
+            lock.unlock();
         }
+
     }
 }

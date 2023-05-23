@@ -1,13 +1,7 @@
 package com.runjian.gb28181.transmit.event.request.impl.message.response.cmd;
 
-import com.alibaba.fastjson.JSONObject;
-import com.runjian.common.commonDto.Gateway.dto.ChannelRecordInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
-import com.runjian.common.config.response.BusinessSceneResp;
-import com.runjian.common.constant.BusinessSceneConstants;
-import com.runjian.common.constant.GatewayMsgType;
-import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.constant.VideoManagerConstants;
+import com.runjian.common.constant.*;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.DateUtils;
 import com.runjian.common.utils.redis.RedisCommonUtil;
@@ -15,8 +9,6 @@ import com.runjian.conf.UserSetting;
 import com.runjian.gb28181.bean.*;
 import com.runjian.gb28181.event.EventPublisher;
 import com.runjian.gb28181.session.RecordDataCatch;
-import com.runjian.gb28181.transmit.callback.DeferredResultHolder;
-import com.runjian.gb28181.transmit.callback.RequestMessage;
 import com.runjian.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.runjian.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.runjian.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
@@ -24,7 +16,6 @@ import com.runjian.service.IRedisCatchStorageService;
 import com.runjian.utils.DateUtil;
 import com.runjian.utils.UJson;
 import gov.nist.javax.sip.message.SIPRequest;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +34,6 @@ import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 import static com.runjian.gb28181.utils.XmlUtil.getText;
@@ -104,7 +94,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
             try {
                 String sn = getText(rootElement, "SN");
                 String channelId = getText(rootElement, "DeviceID");
-                String businessSceneKey = GatewayMsgType.RECORD_INFO.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId()+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
+                String businessSceneKey = GatewayBusinessMsgType.RECORD_INFO.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId()+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
 
                 RecordInfo recordInfo = new RecordInfo();
                 recordInfo.setChannelId(channelId);
@@ -198,7 +188,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
             recordItems = packingRecordTime(recordList);
         }
         recordInfo.setRecordList(recordItems);
-        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.RECORD_INFO, BusinessErrorEnums.SUCCESS,recordInfo);
+        redisCatchStorageService.editBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.RECORD_INFO, BusinessErrorEnums.SUCCESS,recordInfo);
 
     }
 
