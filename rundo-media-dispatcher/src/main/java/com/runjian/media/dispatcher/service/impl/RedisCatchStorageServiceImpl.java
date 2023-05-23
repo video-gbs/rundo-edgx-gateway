@@ -2,16 +2,24 @@ package com.runjian.media.dispatcher.service.impl;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.Gateway.dto.GatewayTask;
 import com.runjian.common.commonDto.Gateway.dto.SsrcConfig;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.common.config.response.GatewayBusinessSceneResp;
+import com.runjian.common.config.response.StreamBusinessSceneResp;
+import com.runjian.common.config.response.StreamBusinessSceneResp;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.redis.RedisCommonUtil;
+import com.runjian.media.dispatcher.conf.StreamInfoConf;
 import com.runjian.media.dispatcher.conf.UserSetting;
+import com.runjian.media.dispatcher.mapper.GatewayTaskMapper;
 import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.internal.engine.messageinterpolation.parser.ELState;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,6 +29,9 @@ import org.springframework.util.ObjectUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author chenjialing
@@ -41,7 +52,34 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
 
     @Autowired
     private UserSetting userSetting;
+    @Autowired
+    GatewayTaskMapper gatewayTaskMapper;
 
+    @Autowired
+    StreamInfoConf InfoConf;
+
+
+    @Autowired
+    RedissonClient redissonClient;
+    @Override
+    public void msgExpireRoutine() {
+        Set<String> businessKeys = msgIdArray.pullAndNext();
+        //过期数据处理
+        if(!ObjectUtils.isEmpty(businessKeys)){
+            List<GatewayTask> listByBusinessKey = gatewayTaskMapper.getListByBusinessKey(businessKeys);
+            if(!ObjectUtils.isEmpty(listByBusinessKey)){
+                ConcurrentLinkedQueue<StreamBusinessSceneResp> taskQueue = InfoConf.getTaskQueue();
+                for (GatewayTask gatewayTask : listByBusinessKey) {
+                    StreamBusinessMsgType typeName = StreamBusinessMsgType.getTypeName(gatewayTask.getMsgType());
+                    StreamBusinessSceneResp<Object> objectGatewayBusinessSceneResp = StreamBusinessSceneResp.addSceneTimeout(typeName, BusinessErrorEnums.MSG_OPERATION_TIMEOUT, gatewayTask.getBusinessKey(), null);
+
+                    taskQueue.offer(objectGatewayBusinessSceneResp);
+                }
+            }else {
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE,"过期消息数据异常","内存与db数据不一致",businessKeys);
+            }
+        }
+    }
 
     @Override
     public Long getCSEQ() {
@@ -121,71 +159,74 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     }
 
     @Override
-    public synchronized void editBusinessSceneKey(String businessSceneKey,GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums,Object data) {
-
-        String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey);
-        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"业务消息修改修改",businessSceneKey);
-        if(ObjectUtils.isEmpty(businessSceneString)){
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"处理网关业务状态","处理失败,对应的业务缓存不存在",businessSceneKey);
-            return;
+    public  void editBusinessSceneKey(String businessSceneKey,StreamBusinessMsgType msgType, BusinessErrorEnums businessErrorEnums,Object data) {
+        try {
+            //待过期数据剔除
+            msgIdArray.deleteTime(businessSceneKey);
+            StreamBusinessSceneResp<Object> objectStreamBusinessSceneResp = StreamBusinessSceneResp.addSceneEnd(msgType, businessErrorEnums,businessSceneKey, data);
+            ConcurrentLinkedQueue<StreamBusinessSceneResp> taskQueue = InfoConf.getTaskQueue();
+            taskQueue.offer(objectStreamBusinessSceneResp);
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE,"处理网关业务状态","数据执行失败",businessSceneKey,e);
         }
-        //其中data的数据格式为arraylist
-        List<BusinessSceneResp> businessSceneRespList = JSONObject.parseArray(businessSceneString, BusinessSceneResp.class);
-        ArrayList<BusinessSceneResp> businessSceneRespArrayListNew = new ArrayList<>();
-        for (BusinessSceneResp businessSceneResp : businessSceneRespList) {
-            //把其中全部的请求状态修改成一致
-            BusinessSceneResp objectBusinessSceneResp = businessSceneResp.addThisSceneEnd(gatewayMsgType,businessErrorEnums, businessSceneResp,data);
-            businessSceneRespArrayListNew.add(objectBusinessSceneResp);
-        }
-        RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY,businessSceneKey,businessSceneRespArrayListNew);
-    }
-
-    @Override
-    public synchronized void editRunningBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums, Object data) {
-        String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey);
-        if(ObjectUtils.isEmpty(businessSceneString)){
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"处理调度服务业务状态","处理失败,对应的业务缓存不存在",businessSceneKey);
-            return;
-        }
-        //其中data的数据格式为arraylist
-        List<BusinessSceneResp> businessSceneRespList = JSONObject.parseArray(businessSceneString, BusinessSceneResp.class);
-        ArrayList<BusinessSceneResp> businessSceneRespArrayListNew = new ArrayList<>();
-        for (BusinessSceneResp businessSceneResp : businessSceneRespList) {
-            //把其中全部的请求状态修改成一致
-            if(businessSceneResp.getStatus().equals(BusinessSceneStatusEnum.end)){
-                //消息不允许再次修改了
-                log.error(LogTemplate.ERROR_LOG_TEMPLATE,"业务消息已经结束","不允许再次修改",businessSceneResp);
-                return;
-            }
-
-            BusinessSceneResp<Object> objectBusinessSceneResp;
-            if(businessErrorEnums.equals(BusinessErrorEnums.SIP_SEND_SUCESS)){
-                objectBusinessSceneResp = BusinessSceneResp.addSceneRunning(gatewayMsgType, businessErrorEnums, businessSceneResp,data);
-
-            }else {
-                objectBusinessSceneResp = BusinessSceneResp.addSceneEnd(gatewayMsgType, businessErrorEnums, businessSceneResp,data);
-
-            }
-            businessSceneRespArrayListNew.add(objectBusinessSceneResp);
-        }
-        RedisCommonUtil.hset(redisTemplate,BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY,businessSceneKey,businessSceneRespArrayListNew);
 
     }
 
     @Override
-    public synchronized void addBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, String msgId) {
-        String businessSceneString = (String) RedisCommonUtil.hget(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey);
-        BusinessSceneResp<Object> objectBusinessSceneResp = BusinessSceneResp.addSceneReady(gatewayMsgType, msgId, userSetting.getBusinessSceneTimeout(), null);
-        List<BusinessSceneResp> businessSceneRespArrayList = new ArrayList<>();
+    public  Boolean addBusinessSceneKey(String businessSceneKey, StreamBusinessMsgType msgType, String msgId) {
+        String redisLockKey = BusinessSceneConstants.BUSINESS_LOCK_KEY+businessSceneKey;
+        RLock lock = redissonClient.getLock(redisLockKey);
+        Boolean  aBoolean = false;
+        try {
+            //分布式锁 进行
+            aBoolean = lock.tryLock(10, userSetting.getBusinessSceneTimeout(), TimeUnit.MILLISECONDS);
+            if(ObjectUtils.isEmpty(msgId)){
+                String sn = getSn(GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR);
+                msgId = GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix + sn;
+            }
+            StreamBusinessSceneResp<Object> objectStreamBusinessSceneResp = StreamBusinessSceneResp.addSceneReady(msgType, msgId, businessSceneKey,null);
+            RedisCommonUtil.leftPush(redisTemplate,BusinessSceneConstants.STREAM_BUSINESS_LISTS+businessSceneKey,objectStreamBusinessSceneResp);
+            if(aBoolean){
+                //待过期数据整理
+                msgIdArray.addOrUpdateTime(businessSceneKey,userSetting.getBusinessSceneTimeout().longValue());
 
-        if(ObjectUtils.isEmpty(businessSceneString)){
-            businessSceneRespArrayList.add(objectBusinessSceneResp);
-        }else {
-            businessSceneRespArrayList = JSONObject.parseArray(businessSceneString, BusinessSceneResp.class);
-            businessSceneRespArrayList.add(objectBusinessSceneResp);
+                //消息链路的数据库记录
+                GatewayTask gatewayTask = new GatewayTask();
+                gatewayTask.setMsgId(msgId);
+                gatewayTask.setBusinessKey(businessSceneKey);
+                gatewayTask.setCode(objectStreamBusinessSceneResp.getCode());
+
+                gatewayTask.setMsg(objectStreamBusinessSceneResp.getMsg());
+                gatewayTask.setMsgType(msgType.getTypeName());
+                gatewayTask.setStatus(0);
+                gatewayTaskMapper.add(gatewayTask);
+            }
+            return aBoolean;
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE,"处理网关业务状态","缓存添加执行失败",businessSceneKey,e);
+        }finally {
+            lock.unlock();
         }
+        return aBoolean;
 
+    }
 
-        RedisCommonUtil.hset(redisTemplate, BusinessSceneConstants.DISPATCHER_ALL_SCENE_HASH_KEY, businessSceneKey, businessSceneRespArrayList);
+    @Override
+    public Boolean businessSceneLogDb(StreamBusinessSceneResp businessSceneResp, List<String> msgStrings) {
+
+        GatewayTask gatewayTask = gatewayTaskMapper.getOneByBusinessKey(businessSceneResp.getBusinessSceneKey());
+        if(ObjectUtils.isEmpty(gatewayTask)){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"处理网关业务状态","数据库信息查询失败",businessSceneResp);
+            return null;
+        }
+        gatewayTask.setCode(businessSceneResp.getCode());
+        gatewayTask.setMsg(businessSceneResp.getMsg());
+        gatewayTask.setStatus(businessSceneResp.getStatus().getCode());
+        if(!ObjectUtils.isEmpty(msgStrings)){
+            gatewayTask.setMsgIdList(String.join(",", msgStrings));
+        }
+        gatewayTaskMapper.updateById(gatewayTask);
+
+        return null;
     }
 }

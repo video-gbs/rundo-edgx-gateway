@@ -51,7 +51,7 @@ public class StreamRecordPauseMsgServiceImpl implements InitializingBean, IMsgPr
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.STREAM_RECORD_PAUSE.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(StreamBusinessMsgType.STREAM_RECORD_PAUSE.getTypeName(),this);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class StreamRecordPauseMsgServiceImpl implements InitializingBean, IMsgPr
         String streamId = dataJson.getString("streamId");
         //通知网关操作
         BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto) RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
-        CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_RECORD_PAUSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,commonMqDto.getMsgId());
+        CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(StreamBusinessMsgType.STREAM_RECORD_PAUSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,commonMqDto.getMsgId());
         String mqGetQueue = dispatcherSignInConf.getMqSetQueue();
 
         if(ObjectUtils.isEmpty(baseRtpServerDto)){
@@ -90,7 +90,7 @@ public class StreamRecordPauseMsgServiceImpl implements InitializingBean, IMsgPr
         }
 
         //通知网关进行设备操作  todo 暂时不考虑网关操作结果的返回
-        CommonMqDto gatewayMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.DEVICE_RECORD_PAUSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
+        CommonMqDto gatewayMqInfo = redisCatchStorageService.getMqInfo(GatewayBusinessMsgType.DEVICE_RECORD_PAUSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
 
         gatewayMqInfo.setData(dataJson);
         GatewayBindReq gatewayBindReq = baseRtpServerDto.getGatewayBindReq();

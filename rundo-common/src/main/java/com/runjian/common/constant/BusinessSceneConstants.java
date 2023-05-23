@@ -14,8 +14,8 @@ public class BusinessSceneConstants {
     /**
      * 调度服务 缓存key的全部场景值
      */
-    public static final String  STREAM_BUSINESS_KEY= "gateway_business_keys:";
-    public static final String  STREAM_BUSINESS_LISTS= "gateway_business_lists:";
+    public static final String  STREAM_BUSINESS_KEY= "stream_business_keys:";
+    public static final String  STREAM_BUSINESS_LISTS= "stream_business_lists:";
 //    public static final String  DISPATCHER_ALL_SCENE_HASH_KEY= "stream_business_keys:";
 
     //redisson的lock前缀

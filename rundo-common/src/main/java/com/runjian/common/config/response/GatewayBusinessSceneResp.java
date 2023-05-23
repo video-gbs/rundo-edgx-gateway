@@ -80,14 +80,6 @@ public class GatewayBusinessSceneResp<T> {
         return create(businessErrorEnums.getErrCode(), businessErrorEnums.getErrMsg(), BusinessSceneStatusEnum.TimeOut,gatewayMsgType,null,businessSceneKey,data);
     }
 
-    /**
-     * 创建初始数据
-     * @param <T>
-     * @return
-     */
-    public static<T> GatewayBusinessSceneResp<T> addSceneEnd(GatewayBusinessMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums, String msgId,String businessSceneKey, T data){
-        return create(businessErrorEnums.getErrCode(), businessErrorEnums.getErrMsg(), BusinessSceneStatusEnum.end,gatewayMsgType,msgId,businessSceneKey,data);
-    }
 
 
 

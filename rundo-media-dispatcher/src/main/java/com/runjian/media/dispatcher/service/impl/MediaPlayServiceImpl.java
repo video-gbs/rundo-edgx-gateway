@@ -67,10 +67,10 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
     @Override
     public void play(MediaPlayReq playReq) {
         //不做redisson并发请求控制
-        String businessSceneKey = GatewayMsgType.STREAM_LIVE_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+playReq.getStreamId();
+        String businessSceneKey = StreamBusinessMsgType.STREAM_LIVE_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+playReq.getStreamId();
         try {
             //阻塞型,默认是30s无返回参数
-            SsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayMsgType.STREAM_LIVE_PLAY_START, playReq,true);
+            SsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, StreamBusinessMsgType.STREAM_LIVE_PLAY_START, playReq,true);
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "端口创建结果", playCommonSsrcInfo);
             //直播
             if(ObjectUtils.isEmpty(playCommonSsrcInfo)){
@@ -85,23 +85,23 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             gatewayPlayReq.setDispatchUrl(playReq.getDispatchUrl());
             gatewayPlayReq.setStreamId(playReq.getStreamId());
             //将ssrcinfo通知网关
-            CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,playReq.getMsgId());
+            CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayBusinessMsgType.PLAY.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,playReq.getMsgId());
             businessMqInfo.setData(gatewayPlayReq);
             rabbitMqSender.sendMsgByExchange(playReq.getGatewayMqExchange(), playReq.getGatewayMqRouteKey(), UuidUtil.toUuid(),businessMqInfo,true);
 
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "点播服务", "点播失败", playReq,e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_LIVE_PLAY_START,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_LIVE_PLAY_START,BusinessErrorEnums.UNKNOWN_ERROR,null);
         }
     }
 
     @Override
     public void playBack(MediaPlayBackReq mediaPlayBackReq) {
-        String businessSceneKey = GatewayMsgType.STREAM_RECORD_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+mediaPlayBackReq.getStreamId();
+        String businessSceneKey = StreamBusinessMsgType.STREAM_RECORD_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+mediaPlayBackReq.getStreamId();
         try {
             //阻塞型,默认是30s无返回参数
-            SsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayMsgType.STREAM_RECORD_PLAY_START, mediaPlayBackReq,false);
+            SsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, StreamBusinessMsgType.STREAM_RECORD_PLAY_START, mediaPlayBackReq,false);
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播回放服务", "端口创建结果", playCommonSsrcInfo);
             if(ObjectUtils.isEmpty(playCommonSsrcInfo)){
                 //流复用，不用通知网关
@@ -116,7 +116,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             gatewayPlayReq.setDispatchUrl(mediaPlayBackReq.getDispatchUrl());
             gatewayPlayReq.setStreamId(mediaPlayBackReq.getStreamId());
             //将ssrcinfo通知网关
-            CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.PLAY_BACK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,mediaPlayBackReq.getMsgId());
+            CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayBusinessMsgType.PLAY_BACK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,mediaPlayBackReq.getMsgId());
             PlayBackReq gatewayPlayBackReq = new PlayBackReq();
             gatewayPlayBackReq.setSsrcInfo(playCommonSsrcInfo);
             gatewayPlayBackReq.setDeviceId(mediaPlayBackReq.getDeviceId());
@@ -135,7 +135,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "点播回放服务", "回放失败", mediaPlayBackReq,e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_LIVE_PLAY_START,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_LIVE_PLAY_START,BusinessErrorEnums.UNKNOWN_ERROR,null);
         }
 
     }
@@ -174,9 +174,9 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
     }
 
-    private SsrcInfo playCommonProcess(String businessSceneKey, GatewayMsgType gatewayMsgType, MediaPlayReq playReq, boolean isPlay) throws InterruptedException {
+    private SsrcInfo playCommonProcess(String businessSceneKey, StreamBusinessMsgType StreamBusinessMsgType, MediaPlayReq playReq, boolean isPlay) throws InterruptedException {
 
-        redisCatchStorageService.addBusinessSceneKey(businessSceneKey,gatewayMsgType,playReq.getMsgId());
+        redisCatchStorageService.addBusinessSceneKey(businessSceneKey,StreamBusinessMsgType,playReq.getMsgId());
         RLock lock = redissonClient.getLock(businessSceneKey);
         //尝试获取锁
         boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100, TimeUnit.MILLISECONDS);
@@ -201,7 +201,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 }else{
                     //留存在 直接返回
                     StreamInfo streamInfoByAppAndStream = mediaServerService.getStreamInfoByAppAndStream(oneMedia, oneBystreamId.getApp(), streamId);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.SUCCESS,streamInfoByAppAndStream);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType,BusinessErrorEnums.SUCCESS,streamInfoByAppAndStream);
                     return null;
                 }
 
@@ -238,7 +238,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         }
         //缓存相关的请求参数  用于on_publish的回调 以及停止点播
         RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_RTP_SERVER_REQ+ BusinessSceneConstants.SCENE_SEM_KEY+baseRtpServerDto.getStreamId(),baseRtpServerDto);
-        return mediaServerService.openRTPServer(oneMedia, baseRtpServerDto,gatewayMsgType,businessSceneKey);
+        return mediaServerService.openRTPServer(oneMedia, baseRtpServerDto,StreamBusinessMsgType,businessSceneKey);
 
     }
 
@@ -246,21 +246,21 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
     public void streamNotifyServer(GatewayStreamNotify gatewayStreamNotify) {
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"点播通知", JSON.toJSONString(gatewayStreamNotify));
         String streamId = gatewayStreamNotify.getStreamId();
-        BusinessSceneResp businessSceneResp = gatewayStreamNotify.getBusinessSceneResp();
-        //判断点播回放
-        GatewayMsgType gatewayMsgType = businessSceneResp.getGatewayMsgType();
-        String businessKey;
-        GatewayMsgType gatewayType = GatewayMsgType.STREAM_LIVE_PLAY_START;
-        if(gatewayMsgType.equals(GatewayMsgType.PLAY)){
-            //直播
-            businessKey = GatewayMsgType.STREAM_LIVE_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
-        }else {
-            businessKey = GatewayMsgType.STREAM_RECORD_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
-            gatewayType = GatewayMsgType.STREAM_RECORD_PLAY_START;
-        }
-        BusinessErrorEnums oneBusinessNum = BusinessErrorEnums.getOneBusinessNum(businessSceneResp.getCode());
+//        BusinessSceneResp businessSceneResp = gatewayStreamNotify.getBusinessSceneResp();
+//        //判断点播回放
+//        GatewayMsgType StreamBusinessMsgType = businessSceneResp.getGatewayMsgType();
+//        String businessKey;
+//        StreamBusinessMsgType gatewayType = StreamBusinessMsgType.STREAM_LIVE_PLAY_START;
+//        if(StreamBusinessMsgType.equals(GatewayBusinessMsgType.PLAY)){
+//            //直播
+//            businessKey = StreamBusinessMsgType.STREAM_LIVE_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
+//        }else {
+//            businessKey = StreamBusinessMsgType.STREAM_RECORD_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
+//            gatewayType = StreamBusinessMsgType.STREAM_RECORD_PLAY_START;
+//        }
+//        BusinessErrorEnums oneBusinessNum = BusinessErrorEnums.getOneBusinessNum(businessSceneResp.getCode());
         //设备交互成功，状态为进行状态
-        redisCatchStorageService.editRunningBusinessSceneKey(businessKey,gatewayType,oneBusinessNum,null);
+//        redisCatchStorageService.editRunningBusinessSceneKey(businessKey,gatewayType,oneBusinessNum,null);
     }
     @Async("taskExecutor")
     @Override

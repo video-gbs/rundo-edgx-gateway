@@ -127,7 +127,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
     IOnlineStreamsService onlineStreamsService;
 
     @Override
-    public SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto,GatewayMsgType gatewayMsgType,String businessSceneKey) {
+    public SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto,StreamBusinessMsgType msgType,String businessSceneKey) {
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "调度服务", "创建端口请求", baseRtpServerDto);
 
         SsrcInfo ssrcInfo = null;
@@ -146,7 +146,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
             String pushStreamId = json.getString("stream");
             StreamInfo streamInfoByAppAndStream = getStreamInfoByAppAndStream(mediaServerItem, VideoManagerConstants.GB28181_APP, pushStreamId);
             //发送调度服务的业务队列 通知流实际成功
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.SUCCESS,streamInfoByAppAndStream);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,msgType,BusinessErrorEnums.SUCCESS,streamInfoByAppAndStream);
 
             // hook响应
             subscribe.removeSubscribe(hookSubscribe);
@@ -160,7 +160,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
             rtpServerPort = mediaServerItem.getRtpProxyPort();
         }
         if(rtpServerPort <=0 ){
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.MEDIA_ZLM_RTPSERVER_CREATE_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,msgType,BusinessErrorEnums.MEDIA_ZLM_RTPSERVER_CREATE_ERROR,null);
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_RTPSERVER_CREATE_ERROR);
         }
         ssrcInfo = new SsrcInfo(rtpServerPort,ssrc,streamId,mediaServerItem.getId());
@@ -641,8 +641,8 @@ public class MediaServerServiceImpl implements ImediaServerService {
                 StreamPlayDto streamPlayResult = new StreamPlayDto();
                 streamPlayResult.setStreamId(streamId);
                 streamPlayResult.setIsSuccess(true);
-                String businessSceneKey = GatewayMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_PLAY_RESULT,BusinessErrorEnums.SUCCESS,streamPlayResult);
+                String businessSceneKey = StreamBusinessMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_PLAY_RESULT,BusinessErrorEnums.SUCCESS,streamPlayResult);
             }
         }
         return streamInfo;
@@ -663,7 +663,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
                 return;
             }
             //通知网关
-            CommonMqDto byeMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STOP_PLAY.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
+            CommonMqDto byeMqInfo = redisCatchStorageService.getMqInfo(GatewayBusinessMsgType.STOP_PLAY.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
             StreamPlayDto streamPlayDto = new StreamPlayDto();
             streamPlayDto.setStreamId(streamId);
             byeMqInfo.setData(streamPlayDto);
@@ -688,7 +688,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
         //查看流是否存在
         JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(defaultMediaServer, streamId);
         logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "bye之前先获取流是否存在", rtpInfo);
-        CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_PLAY_STOP.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
+        CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(StreamBusinessMsgType.STREAM_PLAY_STOP.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
         mqInfo.setData(false);
         if(rtpInfo.getInteger("code") == 0){
             if (!rtpInfo.getBoolean("exist")) {
@@ -731,7 +731,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
             }
         });
         //业务队列发送流的列表
-        CommonMqDto mqinfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CHECK_STREAM.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
+        CommonMqDto mqinfo = redisCatchStorageService.getMqInfo(StreamBusinessMsgType.STREAM_CHECK_STREAM.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
         mqinfo.setData(collect);
         logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "流检查发送", mqinfo);
         rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqinfo,true);

@@ -3,7 +3,7 @@ package com.runjian.media.dispatcher.mq.MqMsgDealService.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.StreamBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMsgProcessorService;
@@ -26,7 +26,7 @@ public class StreamCheckStreamMsgServiceImpl implements InitializingBean, IMsgPr
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.STREAM_CHECK_STREAM.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(StreamBusinessMsgType.STREAM_CHECK_STREAM.getTypeName(),this);
     }
 
     @Override

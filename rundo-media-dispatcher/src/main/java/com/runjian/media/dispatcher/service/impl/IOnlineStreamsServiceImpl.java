@@ -104,7 +104,7 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
                 StreamCloseDto streamCloseDto = new StreamCloseDto();
                 streamCloseDto.setStreamId(streamId);
                 streamCloseDto.setCanClose(false);
-                CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
+                CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(StreamBusinessMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
 
                 mqInfo.setData(streamCloseDto);
                 mqInfo.setData(streamCloseDto);

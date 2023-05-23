@@ -348,7 +348,7 @@ public class ZLMHttpHookListener {
 		ret.put("close", false);
 		if (VideoManagerConstants.GB28181_APP.equals(app)){
 			// 国标流， 点播/录像回放/录像下载
-			CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
+			CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(StreamBusinessMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
 			StreamCloseDto streamCloseDto = new StreamCloseDto();
 			streamCloseDto.setStreamId(streamId);
 			streamCloseDto.setCanClose(true);

@@ -6,6 +6,7 @@ import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.StreamBusinessMsgType;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 import com.runjian.media.dispatcher.zlm.ZLMServerConfig;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
@@ -49,7 +50,7 @@ public interface ImediaServerService {
      * @param baseRtpServerDto
      * @return
      */
-    SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto, GatewayMsgType gatewayMsgType,String businessSceneKey);
+    SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto, StreamBusinessMsgType msgType, String businessSceneKey);
 
 
     Boolean closeRTPServer(MediaServerItem mediaServerItem, String streamId);

@@ -48,4 +48,13 @@ public enum StreamBusinessMsgType {
 
     private final String typeName;
 
+    public static StreamBusinessMsgType getTypeName(String typeName){
+        typeName = typeName.toUpperCase();
+        for (StreamBusinessMsgType value : values()){
+            if (value.typeName.equals(typeName)){
+                return value;
+            }
+        }
+        return null;
+    }
 }

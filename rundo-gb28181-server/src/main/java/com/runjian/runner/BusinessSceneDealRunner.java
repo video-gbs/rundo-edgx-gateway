@@ -105,37 +105,37 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
 
     }
 
-    private void commonBusinessDeal(GatewayBusinessSceneResp businessSceneResp,String redisKey){
-        //删除状态值的key,修改数据库
-        RedisCommonUtil.del(redisTemplate,redisKey);
-        String redisLockKey = BusinessSceneConstants.BUSINESS_LOCK_KEY+redisKey ;
-        RLock lock = redissonClient.getLock(redisLockKey);
-        try {
-            //分布式锁 进行
-            lock.lock(3,  TimeUnit.SECONDS);
-            //进行list数据的处理
-            String businessSceneKey = redisKey.substring(BusinessSceneConstants.GATEWAY_BUSINESS_KEY.length());
-            //list集合的key值
-            String  redisListKey = BusinessSceneConstants.GATEWAY_BUSINESS_LISTS+ businessSceneKey;
-            ArrayList<String> keyStrings = new ArrayList<>();
-
-            while (!ObjectUtils.isEmpty(RedisCommonUtil.rangListAll(redisTemplate,redisListKey))){
-
-
-
-                GatewayBusinessSceneResp oneResp = (GatewayBusinessSceneResp)RedisCommonUtil.leftPop(redisTemplate, redisListKey);
-                //消息汇聚聚合
-                keyStrings.add(oneResp.getMsgId());
-                gatewayBusinessAsyncSender.sendforAllScene(oneResp,redisKey);
-            };
-            //消息日志记录 根据消息id进行消息修改
-            redisCatchStorageService.businessSceneLogDb(businessSceneResp,keyStrings);
-
-        }catch (Exception e){
-            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE,"处理网关业务状态","缓存编辑执行失败",redisKey,e);
-        }finally {
-            lock.unlock();
-        }
-
-    }
+//    private void commonBusinessDeal(GatewayBusinessSceneResp businessSceneResp,String redisKey){
+//        //删除状态值的key,修改数据库
+//        RedisCommonUtil.del(redisTemplate,redisKey);
+//        String redisLockKey = BusinessSceneConstants.BUSINESS_LOCK_KEY+redisKey ;
+//        RLock lock = redissonClient.getLock(redisLockKey);
+//        try {
+//            //分布式锁 进行
+//            lock.lock(3,  TimeUnit.SECONDS);
+//            //进行list数据的处理
+//            String businessSceneKey = redisKey.substring(BusinessSceneConstants.GATEWAY_BUSINESS_KEY.length());
+//            //list集合的key值
+//            String  redisListKey = BusinessSceneConstants.GATEWAY_BUSINESS_LISTS+ businessSceneKey;
+//            ArrayList<String> keyStrings = new ArrayList<>();
+//
+//            while (!ObjectUtils.isEmpty(RedisCommonUtil.rangListAll(redisTemplate,redisListKey))){
+//
+//
+//
+//                GatewayBusinessSceneResp oneResp = (GatewayBusinessSceneResp)RedisCommonUtil.leftPop(redisTemplate, redisListKey);
+//                //消息汇聚聚合
+//                keyStrings.add(oneResp.getMsgId());
+//                gatewayBusinessAsyncSender.sendforAllScene(oneResp,redisKey);
+//            };
+//            //消息日志记录 根据消息id进行消息修改
+//            redisCatchStorageService.businessSceneLogDb(businessSceneResp,keyStrings);
+//
+//        }catch (Exception e){
+//            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE,"处理网关业务状态","缓存编辑执行失败",redisKey,e);
+//        }finally {
+//            lock.unlock();
+//        }
+//
+//    }
 }
