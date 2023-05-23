@@ -134,6 +134,15 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void offline(Device device) {
+        String businessSceneKey = GatewayBusinessMsgType.REGISTER.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
+        boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.REGISTER, null);
+        if (!b) {
+            //加锁失败，不继续执行
+            log.info(LogTemplate.PROCESS_LOG_TEMPLATE, "设备离线,加锁失败，合并全局的请求", device);
+            return;
+        }
+
+
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "设备服务", "设备离线", device);
         //判断数据库中是否存在
         if(device.getId() == 0){
@@ -151,9 +160,8 @@ public class DeviceServiceImpl implements IDeviceService {
         //发送mq设备上线信息
         DeviceSendDto deviceSendDto = new DeviceSendDto();
         BeanUtil.copyProperties(device,deviceSendDto);
-        GatewayBusinessSceneResp<DeviceSendDto> tBusinessSceneResp = GatewayBusinessSceneResp.addSceneEnd(GatewayBusinessMsgType.REGISTER, BusinessErrorEnums.SUCCESS, null, 0, LocalDateTime.now(), deviceSendDto);
-        String businessSceneKey = GatewayBusinessMsgType.REGISTER.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
-        gatewayBusinessAsyncSender.sendforAllScene(tBusinessSceneResp,businessSceneKey);
+        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.REGISTER,BusinessErrorEnums.SUCCESS,deviceSendDto);
+
     }
 
     @Override

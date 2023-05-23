@@ -98,8 +98,6 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                 }
             }catch (Exception e){
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景常驻线程处理","异常处理失败",e);
-            }finally {
-
             }
         }
 
