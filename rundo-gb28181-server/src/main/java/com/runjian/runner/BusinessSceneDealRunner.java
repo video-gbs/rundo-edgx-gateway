@@ -7,6 +7,7 @@ import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.constant.*;
 import com.runjian.common.utils.redis.RedisCommonUtil;
+import com.runjian.conf.mq.GatewaySignInConf;
 import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
 import com.runjian.service.IRedisCatchStorageService;
 import com.runjian.service.IplayService;
@@ -54,6 +55,10 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
 
     @Autowired
     IRedisCatchStorageService redisCatchStorageService;
+
+    @Autowired
+    GatewaySignInConf gatewaySignInConf;
+
     @Async
     @Override
     public void run(String... args) throws Exception {
@@ -78,6 +83,11 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                             BusinessSceneStatusEnum statusEnum =gatewayBusinessSceneResp.getStatus();
                             LocalDateTime now = LocalDateTime.now();
                             if(time.isBefore(now) || statusEnum.equals(BusinessSceneStatusEnum.end)){
+                                if(ObjectUtils.isEmpty(gatewaySignInConf)){
+                                    //业务队列暂时未创建成功，无法发送消息 todo 后续做补偿机制，顺序进行消息的推送
+                                    log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送失败，业务队列暂时未初始化", gatewayBusinessSceneResp);
+                                    continue;
+                                }
                                 //消息跟踪完毕 删除指定的键值 异步处理对应的mq消息发送,并释放相应的redisson锁
                                 commonBusinessDeal(gatewayBusinessSceneResp,key);
 
@@ -110,6 +120,9 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
             ArrayList<String> keyStrings = new ArrayList<>();
 
             while (!ObjectUtils.isEmpty(RedisCommonUtil.rangListAll(redisTemplate,redisListKey))){
+
+
+
                 GatewayBusinessSceneResp oneResp = (GatewayBusinessSceneResp)RedisCommonUtil.leftPop(redisTemplate, redisListKey);
                 //消息汇聚聚合
                 keyStrings.add(oneResp.getMsgId());

@@ -70,57 +70,34 @@ public class GatewayBusinessAsyncSender {
         GatewayBusinessSendBefore gatewayBusinessSendBefore = new GatewayBusinessSendBefore();
         gatewayBusinessSendBefore.setBusinessSceneKey(businessSceneKey);
         gatewayBusinessSendBefore.setBusinessSceneKey(businessSceneKey);
-        //先进先出，处理消息队列未能发送失败的场景
-        taskQueue.offer(gatewayBusinessSendBefore);
-        String mqGetQueue = gatewaySignInConf.getMqSetQueue();
-        if(ObjectUtils.isEmpty(mqGetQueue)){
-            //业务队列暂时未创建成功，无法发送消息 todo 后续做补偿机制，顺序进行消息的推送
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送失败，业务队列暂时未初始化", businessSceneResp);
-            return;
-        }
+        taskExecutor.execute(()->{
+            GatewayBusinessMsgType gatewayMsgType = businessSceneResp.getGatewayMsgType();
+            String msgId = businessSceneResp.getMsgId();
+            CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix, msgId);
+            mqInfo.setData(businessSceneResp.getData());
+            mqInfo.setCode(businessSceneResp.getCode());
+            mqInfo.setMsg(businessSceneResp.getMsg());
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", mqInfo);
+            //针对点播和回放的通知 仅通知调度服务
+            if (gatewayMsgType.equals(GatewayBusinessMsgType.PLAY_BACK) || gatewayMsgType.equals(GatewayBusinessMsgType.PLAY)) {
+                //restfulapi请求 分离请求中的streamId
+                String streamId = businessSceneKey.substring(businessSceneKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY) + 1);
+                GatewayStreamNotify gatewayStreamNotify = new GatewayStreamNotify();
+                gatewayStreamNotify.setStreamId(streamId);
+                gatewayStreamNotify.setBusinessSceneResp(businessSceneResp);
+                //获取实体中的设备数据 转换为playreq
+                //设备信息同步  获取设备信息
+                PlayReq playReq = JSONObject.toJavaObject((JSONObject) businessSceneResp.getData(), PlayReq.class);
+                CommonResponse<Boolean> booleanCommonResponse = RestTemplateUtil.postStreamNotifyRespons(playReq.getDispatchUrl() + streamNotifyApi, gatewayStreamNotify, restTemplate);
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", booleanCommonResponse);
 
-    }
-
-//    @PostConstruct
-    public  void  taskQueueExcutor(){
-
-            while (true) {
-                GatewayBusinessSendBefore businessSceneRespPoll = taskQueue.poll();
-                if(ObjectUtils.isEmpty(businessSceneRespPoll)){
-                    Thread.yield();
-                    continue;
-                }
-                GatewayBusinessSceneResp businessSceneResp = businessSceneRespPoll.getBusinessSceneResp();
-                String businessSceneKey = businessSceneRespPoll.getBusinessSceneKey();
-                taskExecutor.execute(()->{
-                    GatewayBusinessMsgType gatewayMsgType = businessSceneResp.getGatewayMsgType();
-                    String msgId = businessSceneResp.getMsgId();
-                    CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix, msgId);
-                    mqInfo.setData(businessSceneResp.getData());
-                    mqInfo.setCode(businessSceneResp.getCode());
-                    mqInfo.setMsg(businessSceneResp.getMsg());
-                    log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", mqInfo);
-                    //针对点播和回放的通知 仅通知调度服务
-                    if (gatewayMsgType.equals(GatewayBusinessMsgType.PLAY_BACK) || gatewayMsgType.equals(GatewayBusinessMsgType.PLAY)) {
-                        //restfulapi请求 分离请求中的streamId
-                        String streamId = businessSceneKey.substring(businessSceneKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY) + 1);
-                        GatewayStreamNotify gatewayStreamNotify = new GatewayStreamNotify();
-                        gatewayStreamNotify.setStreamId(streamId);
-                        gatewayStreamNotify.setBusinessSceneResp(businessSceneResp);
-                        //获取实体中的设备数据 转换为playreq
-                        //设备信息同步  获取设备信息
-                        PlayReq playReq = JSONObject.toJavaObject((JSONObject) businessSceneResp.getData(), PlayReq.class);
-                        CommonResponse<Boolean> booleanCommonResponse = RestTemplateUtil.postStreamNotifyRespons(playReq.getDispatchUrl() + streamNotifyApi, gatewayStreamNotify, restTemplate);
-                        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", booleanCommonResponse);
-
-                    } else {
-                        String mqGetQueue = gatewaySignInConf.getMqSetQueue();
-                        rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
-                    }
-                });
-
+            } else {
+                String mqGetQueue = gatewaySignInConf.getMqSetQueue();
+                rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
             }
+        });
     }
+
 
 
 
