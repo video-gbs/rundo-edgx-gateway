@@ -63,4 +63,13 @@ public enum GatewayBusinessMsgType {
 
     private final String typeName;
 
+    public static GatewayBusinessMsgType getTypeName(String typeName){
+        typeName = typeName.toUpperCase();
+        for (GatewayBusinessMsgType value : values()){
+            if (value.typeName.equals(typeName)){
+                return value;
+            }
+        }
+        return null;
+    }
 }

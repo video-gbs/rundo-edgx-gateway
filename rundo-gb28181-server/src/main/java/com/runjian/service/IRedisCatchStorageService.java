@@ -5,6 +5,7 @@ import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
+import com.runjian.common.utils.CircleArray;
 import com.runjian.conf.SsrcConfig;
 
 import java.util.List;
@@ -14,6 +15,15 @@ import java.util.List;
  */
 public interface IRedisCatchStorageService {
 
+    /**
+     * 过期时钟
+     */
+    CircleArray<String> msgIdArray = new CircleArray<>(20);
+
+    /**
+     * 心跳
+     */
+    void msgExpireRoutine();
     /**
      * 计数器。为cseq进行计数
      *

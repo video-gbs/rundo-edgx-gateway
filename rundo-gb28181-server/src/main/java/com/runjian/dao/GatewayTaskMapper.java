@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author chenjialing
@@ -46,4 +47,23 @@ public interface GatewayTaskMapper {
     @Select("SELECT * FROM "+TABLE+" WHERE msg_id= #{msgId}")
     GatewayTask getOne(String msgId);
 
+
+    /**
+     * 进行msgId相关消息查询
+     * @param businessKey
+     * @return
+     */
+    @Select("SELECT * FROM "+TABLE+" WHERE business_key= #{businessKey} and status = 0")
+    GatewayTask getOneByBusinessKey(String businessKey);
+
+    /**
+     * 进行msgId相关消息查询
+     * @param businessKeys
+     * @return
+     */
+    @Select("<script> " +
+            "SELECT * FROM "+TABLE+" WHERE status = 0 and business_key in "+
+            " <foreach collection='businessKeys' item='item' open='(' separator=',' close=')'>'${item}'</foreach>" +
+            "</script> ")
+    List<GatewayTask> getListByBusinessKey(Set<String> businessKeys);
 }

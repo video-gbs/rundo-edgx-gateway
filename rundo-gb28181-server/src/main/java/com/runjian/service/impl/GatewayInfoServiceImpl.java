@@ -114,7 +114,6 @@ public class GatewayInfoServiceImpl implements IGatewayInfoService {
         config.setGatewayType(GatewayTypeEnum.OTHER.getTypeName());
         config.setProtocol(GatewayProtocalEnum.GB28181.getTypeName());
         config.setOutTime(DateUtils.getExpireTimestamp(expire));
-        gatewayInfoConf.setEdgeGatewayInfoDto(config);
 
         //进行mq消息发送
         String sn = iRedisCatchStorageService.getSn(GatewayCacheConstants.GATEWAY_INFO_SN_INCR);

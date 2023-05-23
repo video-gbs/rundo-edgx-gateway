@@ -7,6 +7,7 @@ import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.constant.*;
 import com.runjian.common.utils.redis.RedisCommonUtil;
+import com.runjian.conf.GatewayInfoConf;
 import com.runjian.conf.mq.GatewaySignInConf;
 import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
 import com.runjian.service.IRedisCatchStorageService;
@@ -31,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -59,6 +61,8 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
     @Autowired
     GatewaySignInConf gatewaySignInConf;
 
+    @Autowired
+    GatewayInfoConf gatewayInfoConf;
     @Async
     @Override
     public void run(String... args) throws Exception {
@@ -67,34 +71,32 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
 
         while (true){
             try{
-                //获取全部的待处理缓存业务值
-                for (GatewayBusinessMsgType value : GatewayBusinessMsgType.values()){
-                    String typeName = value.getTypeName();
-                    String businessSceneKey =  BusinessSceneConstants.GATEWAY_BUSINESS_KEY + typeName + "*";
-                    Set<String> keys = RedisCommonUtil.keys(redisTemplate, businessSceneKey);
-                    if(!ObjectUtils.isEmpty(keys)){
-                        //该场景有信令场景需要处理
-                        for (String key : keys){
-                            GatewayBusinessSceneResp gatewayBusinessSceneResp = (GatewayBusinessSceneResp)RedisCommonUtil.get(redisTemplate, key);
-                            if(ObjectUtils.isEmpty(gatewayBusinessSceneResp)){
-                                log.error(LogTemplate.ERROR_LOG_TEMPLATE,"常驻线程执行","缓存异常",gatewayBusinessSceneResp);
-                            }
-                            LocalDateTime time = gatewayBusinessSceneResp.getTime();
-                            BusinessSceneStatusEnum statusEnum =gatewayBusinessSceneResp.getStatus();
-                            LocalDateTime now = LocalDateTime.now();
-                            if(time.isBefore(now) || statusEnum.equals(BusinessSceneStatusEnum.end)){
-                                if(ObjectUtils.isEmpty(gatewaySignInConf)){
-                                    //业务队列暂时未创建成功，无法发送消息 todo 后续做补偿机制，顺序进行消息的推送
-                                    log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送失败，业务队列暂时未初始化", gatewayBusinessSceneResp);
-                                    continue;
-                                }
-                                //消息跟踪完毕 删除指定的键值 异步处理对应的mq消息发送,并释放相应的redisson锁
-                                commonBusinessDeal(gatewayBusinessSceneResp,key);
 
-                            }
-                        }
+
+                ConcurrentLinkedQueue<GatewayBusinessSceneResp> taskQueue = gatewayInfoConf.getTaskQueue();
+                if(!ObjectUtils.isEmpty(taskQueue)){
+
+                    if(ObjectUtils.isEmpty(gatewaySignInConf)){
+                        //业务队列暂时未创建成功，无法发送消息 todo 后续做补偿机制，顺序进行消息的推送
+                        log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景处理", "业务队列暂时未初始化", null);
+                        Thread.sleep(10);
                     }
 
+                    GatewayBusinessSceneResp  gatewayBusinessSceneRespEnd = taskQueue.poll();
+                    String businessSceneKey = gatewayBusinessSceneRespEnd.getBusinessSceneKey();
+                    ArrayList<String> keyStrings = new ArrayList<>();
+                    while (!ObjectUtils.isEmpty(RedisCommonUtil.rangListAll(redisTemplate,BusinessSceneConstants.GATEWAY_BUSINESS_LISTS + businessSceneKey))){
+
+                        GatewayBusinessSceneResp oneResp = (GatewayBusinessSceneResp)RedisCommonUtil.leftPop(redisTemplate, BusinessSceneConstants.GATEWAY_BUSINESS_LISTS + businessSceneKey);
+                        //消息汇聚聚合
+                        keyStrings.add(oneResp.getMsgId());
+                        gatewayBusinessAsyncSender.sendforAllScene(oneResp,businessSceneKey);
+                    };
+                    //消息日志记录 根据消息id进行消息修改
+                    redisCatchStorageService.businessSceneLogDb(gatewayBusinessSceneRespEnd,keyStrings);
+
+                }else {
+                    Thread.sleep(10);
                 }
             }catch (Exception e){
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景常驻线程处理","异常处理失败",e);
@@ -124,7 +126,7 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                 GatewayBusinessSceneResp oneResp = (GatewayBusinessSceneResp)RedisCommonUtil.leftPop(redisTemplate, redisListKey);
                 //消息汇聚聚合
                 keyStrings.add(oneResp.getMsgId());
-                gatewayBusinessAsyncSender.sendforAllScene(businessSceneResp,redisKey);
+                gatewayBusinessAsyncSender.sendforAllScene(oneResp,redisKey);
             };
             //消息日志记录 根据消息id进行消息修改
             redisCatchStorageService.businessSceneLogDb(businessSceneResp,keyStrings);
