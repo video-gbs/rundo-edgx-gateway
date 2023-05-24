@@ -8,6 +8,7 @@ import com.runjian.gb28181.bean.Device;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -53,7 +54,7 @@ public interface GatewayTaskMapper {
      * @param businessKey
      * @return
      */
-    @Select("SELECT * FROM "+TABLE+" WHERE business_key= #{businessKey} and status = 0")
+    @Select("SELECT * FROM "+TABLE+" WHERE business_key= #{businessKey} and status = 0 limit 1")
     GatewayTask getOneByBusinessKey(String businessKey);
 
     /**
@@ -66,4 +67,12 @@ public interface GatewayTaskMapper {
             " <foreach collection='businessKeys' item='item' open='(' separator=',' close=')'>'${item}'</foreach>" +
             "</script> ")
     List<GatewayTask> getListByBusinessKey(Set<String> businessKeys);
+
+    /**
+     * 获取过期消息数据处理
+     * @param now
+     * @return
+     */
+    @Select("SELECT * FROM "+TABLE+" WHERE status = 0 and created_at <= #{now} ")
+    List<GatewayTask> getExpireListByBusinessKey(LocalDateTime now);
 }

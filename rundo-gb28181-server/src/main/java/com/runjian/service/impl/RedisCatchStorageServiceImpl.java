@@ -68,22 +68,18 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
      * 定时任务-网关心跳处理
      */
     @Override
-    @Scheduled(fixedRate = 1000)
+    @Scheduled(fixedRate = 10000)
     public void msgExpireRoutine() {
-        Set<String> businessKeys = msgIdArray.pullAndNext();
-        //过期数据处理
-        if(!ObjectUtils.isEmpty(businessKeys)){
-            List<GatewayTask> listByBusinessKey = gatewayTaskMapper.getListByBusinessKey(businessKeys);
-            if(!ObjectUtils.isEmpty(listByBusinessKey)){
-                ConcurrentLinkedQueue<GatewayBusinessSceneResp> taskQueue = gatewayInfoConf.getTaskQueue();
-                for (GatewayTask gatewayTask : listByBusinessKey) {
-                    GatewayBusinessMsgType typeName = GatewayBusinessMsgType.getTypeName(gatewayTask.getMsgType());
-                    GatewayBusinessSceneResp<Object> objectGatewayBusinessSceneResp = GatewayBusinessSceneResp.addSceneTimeout(typeName, BusinessErrorEnums.MSG_OPERATION_TIMEOUT,gatewayTask.getBusinessKey(), null);
+        //处理过期数据
+        LocalDateTime localDateTime = LocalDateTime.now().minusSeconds(userSetting.getBusinessSceneTimeout() / 1000);
+        List<GatewayTask> listByBusinessKey = gatewayTaskMapper.getExpireListByBusinessKey(localDateTime);
+        if(!ObjectUtils.isEmpty(listByBusinessKey)){
+            ConcurrentLinkedQueue<GatewayBusinessSceneResp> taskQueue = gatewayInfoConf.getTaskQueue();
+            for (GatewayTask gatewayTask : listByBusinessKey) {
+                GatewayBusinessMsgType typeName = GatewayBusinessMsgType.getTypeName(gatewayTask.getMsgType());
+                GatewayBusinessSceneResp<Object> objectGatewayBusinessSceneResp = GatewayBusinessSceneResp.addSceneTimeout(typeName, BusinessErrorEnums.MSG_OPERATION_TIMEOUT,gatewayTask.getBusinessKey(), null,gatewayTask.getMsgId(),gatewayTask.getThreadId());
 
-                    taskQueue.offer(objectGatewayBusinessSceneResp);
-                }
-            }else {
-                log.error(LogTemplate.ERROR_LOG_TEMPLATE,"过期消息数据异常","内存与db数据不一致",businessKeys);
+                taskQueue.offer(objectGatewayBusinessSceneResp);
             }
         }
 
@@ -169,11 +165,14 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     }
 
     @Override
-    public  void editBusinessSceneKey(String businessSceneKey,GatewayBusinessMsgType gatewayBusinessMsgType, BusinessErrorEnums businessErrorEnums,Object data) {
+    public synchronized void editBusinessSceneKey(String businessSceneKey,GatewayBusinessMsgType gatewayBusinessMsgType, BusinessErrorEnums businessErrorEnums,Object data) {
         try {
-            //待过期数据剔除
-            msgIdArray.deleteTime(businessSceneKey);
-            GatewayBusinessSceneResp<Object> objectGatewayBusinessSceneResp = GatewayBusinessSceneResp.addSceneEnd(gatewayBusinessMsgType, businessErrorEnums,businessSceneKey, data);
+            GatewayTask oneByBusiness = gatewayTaskMapper.getOneByBusinessKey(businessSceneKey);
+            if(ObjectUtils.isEmpty(oneByBusiness)){
+                log.error(LogTemplate.PROCESS_LOG_TEMPLATE,"处理网关业务状态","数据已被处理",businessSceneKey);
+                return;
+            }
+            GatewayBusinessSceneResp<Object> objectGatewayBusinessSceneResp = GatewayBusinessSceneResp.addSceneEnd(gatewayBusinessMsgType, businessErrorEnums,businessSceneKey, data,oneByBusiness.getMsgId(),oneByBusiness.getThreadId());
             ConcurrentLinkedQueue<GatewayBusinessSceneResp> taskQueue = gatewayInfoConf.getTaskQueue();
             taskQueue.offer(objectGatewayBusinessSceneResp);
         }catch (Exception e){
@@ -197,9 +196,6 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
             GatewayBusinessSceneResp<Object> objectGatewayBusinessSceneResp = GatewayBusinessSceneResp.addSceneReady(gatewayBusinessMsgType, msgId, businessSceneKey,null);
             RedisCommonUtil.leftPush(redisTemplate,BusinessSceneConstants.GATEWAY_BUSINESS_LISTS+businessSceneKey,objectGatewayBusinessSceneResp);
             if(aBoolean){
-                //待过期数据整理
-                msgIdArray.addOrUpdateTime(businessSceneKey,userSetting.getBusinessSceneTimeout().longValue());
-
                 //消息链路的数据库记录
                 GatewayTask gatewayTask = new GatewayTask();
                 gatewayTask.setMsgId(msgId);
@@ -209,13 +205,12 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
                 gatewayTask.setMsg(objectGatewayBusinessSceneResp.getMsg());
                 gatewayTask.setMsgType(gatewayBusinessMsgType.getTypeName());
                 gatewayTask.setStatus(0);
+                gatewayTask.setThreadId(objectGatewayBusinessSceneResp.getThreadId());
                 gatewayTaskMapper.add(gatewayTask);
             }
             return aBoolean;
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE,"处理网关业务状态","缓存添加执行失败",businessSceneKey,e);
-        }finally {
-            lock.unlock();
         }
         return aBoolean;
 

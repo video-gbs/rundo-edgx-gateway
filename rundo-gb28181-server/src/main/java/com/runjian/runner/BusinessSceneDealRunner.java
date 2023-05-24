@@ -94,7 +94,10 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                     };
                     //消息日志记录 根据消息id进行消息修改
                     redisCatchStorageService.businessSceneLogDb(gatewayBusinessSceneRespEnd,keyStrings);
-
+                    RLock lock = redissonClient.getLock( BusinessSceneConstants.BUSINESS_LOCK_KEY+businessSceneKey);
+                    if(!ObjectUtils.isEmpty(lock)){
+                        lock.unlockAsync(gatewayBusinessSceneRespEnd.getThreadId());
+                    }
                 }else {
                     Thread.sleep(10);
                 }

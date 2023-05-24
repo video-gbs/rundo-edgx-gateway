@@ -9,7 +9,7 @@ public class GatewayTask {
      */
     private Long id;
 
-
+    private Long threadId;
 
     private String msgId;
 
