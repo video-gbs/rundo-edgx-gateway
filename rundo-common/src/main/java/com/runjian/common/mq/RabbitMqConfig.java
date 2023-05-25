@@ -100,7 +100,6 @@ public class RabbitMqConfig {
                         throw new BusinessException(BusinessErrorEnums.MQ_UNKNOWN_EXCHANGE_TYPE);
                 }
                 exchangeData.setExchange(exchange);
-                rabbitAdmin.declareExchange(exchange);
                 exchangeDataMap.put(exchangeData.getId(), exchangeData);
             }
             rabbitMqProperties.setExchangeDataMap(exchangeDataMap);
@@ -112,11 +111,6 @@ public class RabbitMqConfig {
         if (exchangeDataList.size() > 0 && queueDataList.size() > 0){
             Map<String, RabbitMqProperties.QueueData> queueDataMap = new HashMap<>(queueDataList.size());
             for (RabbitMqProperties.QueueData queueData : queueDataList){
-                Queue queue = new Queue(queueData.getQueueName(), true, false, false);
-                AbstractExchange exchange = rabbitMqProperties.getExchangeDataMap().get(queueData.getExchangeId()).getExchange();
-                Binding binding = BindingBuilder.bind(queue).to(exchange).with(queueData.getRoutingKey()).noargs();
-                rabbitAdmin.declareQueue(queue);
-                rabbitAdmin.declareBinding(binding);
                 queueDataMap.put(queueData.getId(), queueData);
             }
             rabbitMqProperties.setQueueDataMap(queueDataMap);
