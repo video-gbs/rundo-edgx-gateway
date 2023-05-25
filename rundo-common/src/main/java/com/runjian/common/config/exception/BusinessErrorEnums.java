@@ -89,6 +89,7 @@ public enum BusinessErrorEnums {
     /**************************** 网关业务相关 CODE:231xx ****************************/
     REDIS_EXCEPTION(500,23100,"redis缓存异常"),
     BUSINESS_SCENE_EXCEPTION(500,23101,"业务场景处理异常"),
+    BUSINESS_SCENE_RUNNING(500,23102,"业务场景处理执行中"),
 
     /************************** 网关自定义s事件异常 CODE:232xx ****************************/
     SIP_TIMEOUT_EVENT(500,232001,"消息超时未回复"),
@@ -107,7 +108,7 @@ public enum BusinessErrorEnums {
 
     DB_DEVICE_NOT_FOUND(500,232009,"设备数据查找失败"),
 
-    SIP_SEND_SUCESS(500,232010,"信令交互成功，推流失败"),
+    COMMDER_SEND_SUCESS(500,232010,"信令交互成功，等待推流超时"),
 
     SIP_DELETE_SUCESS(500,232011,"设备删除失败"),
 

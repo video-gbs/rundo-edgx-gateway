@@ -1,13 +1,11 @@
 package com.runjian.media.dispatcher.runner;
 
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.config.response.StreamBusinessSceneResp;
-import com.runjian.common.constant.BusinessSceneConstants;
-import com.runjian.common.constant.BusinessSceneStatusEnum;
-import com.runjian.common.constant.GatewayMsgType;
-import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.constant.*;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.StreamInfoConf;
 import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
@@ -93,6 +91,14 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                     };
                     //消息日志记录 根据消息id进行消息修改
                     redisCatchStorageService.businessSceneLogDb(businessSceneRespEnd,keyStrings);
+                    if(businessSceneRespEnd.getMsgType().equals(StreamBusinessMsgType.STREAM_LIVE_PLAY_START) || businessSceneRespEnd.getMsgType().equals(StreamBusinessMsgType.STREAM_RECORD_PLAY_START)){
+                        if(businessSceneRespEnd.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
+                            //异常点播处理
+                            mediaPlayService.playBusinessErrorScene(businessSceneRespEnd);
+
+                        }
+                    }
+
                     RLock lock = redissonClient.getLock( BusinessSceneConstants.BUSINESS_LOCK_KEY+businessSceneKey);
                     if(!ObjectUtils.isEmpty(lock)){
                         lock.unlockAsync(businessSceneRespEnd.getThreadId());

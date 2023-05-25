@@ -157,7 +157,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     }
 
     @Override
-    public  void editBusinessSceneKey(String businessSceneKey,StreamBusinessMsgType msgType, BusinessErrorEnums businessErrorEnums,Object data) {
+    public synchronized   void editBusinessSceneKey(String businessSceneKey,StreamBusinessMsgType msgType, BusinessErrorEnums businessErrorEnums,Object data) {
         try {
             //待过期数据剔除
             GatewayTask oneByBusiness = gatewayTaskMapper.getOneByBusinessKey(businessSceneKey);

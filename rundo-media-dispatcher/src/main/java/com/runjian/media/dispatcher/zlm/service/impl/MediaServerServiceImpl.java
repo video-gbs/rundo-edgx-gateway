@@ -24,6 +24,7 @@ import com.runjian.media.dispatcher.conf.DynamicTask;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
+import com.runjian.media.dispatcher.service.IGatewayDealMsgService;
 import com.runjian.media.dispatcher.service.IOnlineStreamsService;
 import com.runjian.media.dispatcher.zlm.ZLMRESTfulUtils;
 import com.runjian.media.dispatcher.zlm.ZLMRTPServerFactory;
@@ -125,6 +126,9 @@ public class MediaServerServiceImpl implements ImediaServerService {
 
     @Autowired
     IOnlineStreamsService onlineStreamsService;
+
+    @Autowired
+    IGatewayDealMsgService gatewayDealMsgService;
 
     @Override
     public SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto,StreamBusinessMsgType msgType,String businessSceneKey) {
@@ -652,33 +656,30 @@ public class MediaServerServiceImpl implements ImediaServerService {
     @Override
     public void streamBye(String streamId, String msgId) {
         CustomPlayReq customPlayReq= (CustomPlayReq)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_PUSH_STREAM_REQ+BusinessSceneConstants.SCENE_SEM_KEY+streamId);
+        try {
+            if(ObjectUtils.isEmpty(customPlayReq)){
+                //缓存bye相关的请求参数--1分钟  用作异常断流的判断
+                RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_STREAM_BYE+ BusinessSceneConstants.SCENE_SEM_KEY+streamId,streamId,60);
+                //通知网关进行bye请求的发送
+                BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
+                if(ObjectUtils.isEmpty(baseRtpServerDto)){
+                    logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"流停止请求","停止失败,流的缓存信息不存在",streamId);
+                    return;
+                }
+                gatewayDealMsgService.sendGatewayStreamBye(streamId,msgId,baseRtpServerDto);
+                //关闭端口
 
-        if(ObjectUtils.isEmpty(customPlayReq)){
-            //缓存bye相关的请求参数--1分钟  用作异常断流的判断
-            RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_STREAM_BYE+ BusinessSceneConstants.SCENE_SEM_KEY+streamId,streamId,60);
-            //通知网关进行bye请求的发送
-            BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
-            if(ObjectUtils.isEmpty(baseRtpServerDto)){
-                logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"流停止请求","停止失败,流的缓存信息不存在",streamId);
-                return;
+                closeRTPServer(baseRtpServerDto.getMediaServerId(),streamId);
+                //释放ssrc
+
+                redisCatchStorageService.ssrcRelease(baseRtpServerDto.getSsrc());
+                //清除点播请求
+                RedisCommonUtil.del(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
             }
-            //通知网关
-            CommonMqDto byeMqInfo = redisCatchStorageService.getMqInfo(GatewayBusinessMsgType.STOP_PLAY.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
-            StreamPlayDto streamPlayDto = new StreamPlayDto();
-            streamPlayDto.setStreamId(streamId);
-            byeMqInfo.setData(streamPlayDto);
-            GatewayBindReq gatewayBindReq = baseRtpServerDto.getGatewayBindReq();
-            rabbitMqSender.sendMsgByExchange(gatewayBindReq.getMqExchange(), gatewayBindReq.getMqRouteKey(), UuidUtil.toUuid(),byeMqInfo,true);
-            //关闭端口
-
-            closeRTPServer(baseRtpServerDto.getMediaServerId(),streamId);
-            //释放ssrc
-
-            redisCatchStorageService.ssrcRelease(baseRtpServerDto.getSsrc());
-        }else {
-            //无法控制 直接关闭
-            return;
+        }catch(Exception e){
+            e.printStackTrace();
         }
+
 
     }
 

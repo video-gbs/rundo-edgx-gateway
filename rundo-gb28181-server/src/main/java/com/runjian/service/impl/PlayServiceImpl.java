@@ -128,7 +128,7 @@ public class PlayServiceImpl implements IplayService {
                 //todo 判断ssrc是否匹配
 
                 //传递ssrc进去，出现推流不成功的异常，进行相关逻辑处理
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY,BusinessErrorEnums.SIP_SEND_SUCESS,playReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY,BusinessErrorEnums.COMMDER_SEND_SUCESS,playReq);
                 streamSession.putSsrcTransaction(device.getDeviceId(), playReq.getChannelId(), "play", playReq.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.play,playReq.getDispatchUrl());
             },error->{
                 //失败业务处理
@@ -173,7 +173,7 @@ public class PlayServiceImpl implements IplayService {
                 //todo 判断ssrc是否匹配
 
                 //传递ssrc进去，出现推流不成功的异常，进行相关逻辑处理
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY_BACK,BusinessErrorEnums.SIP_SEND_SUCESS,playBackReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY_BACK,BusinessErrorEnums.COMMDER_SEND_SUCESS,playBackReq);
                 streamSession.putSsrcTransaction(device.getDeviceId(), playBackReq.getChannelId(), sipSender.getNewCallIdHeader(device.getTransport()).getCallId(), playBackReq.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.playback,playBackReq.getDispatchUrl());
             },error->{
                 //失败业务处理
