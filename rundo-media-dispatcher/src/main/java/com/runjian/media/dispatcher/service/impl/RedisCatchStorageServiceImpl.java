@@ -71,6 +71,15 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
         if(!ObjectUtils.isEmpty(listByBusinessKey)){
             ConcurrentLinkedQueue<StreamBusinessSceneResp> taskQueue = InfoConf.getTaskQueue();
             for (GatewayTask gatewayTask : listByBusinessKey) {
+                if(gatewayTask.getSourceType() == 1){
+                    //直接进行超时数据库的修改
+                    gatewayTask.setCode(BusinessErrorEnums.MSG_OPERATION_TIMEOUT.getErrCode());
+                    gatewayTask.setMsg(BusinessErrorEnums.MSG_OPERATION_TIMEOUT.getErrMsg());
+                    gatewayTask.setStatus(BusinessSceneStatusEnum.TimeOut.getCode());
+                    gatewayTaskMapper.updateById(gatewayTask);
+                    continue;
+                }
+
                 StreamBusinessMsgType typeName = StreamBusinessMsgType.getTypeName(gatewayTask.getMsgType());
                 StreamBusinessSceneResp<Object> objectGatewayBusinessSceneResp = StreamBusinessSceneResp.addSceneTimeout(typeName, BusinessErrorEnums.MSG_OPERATION_TIMEOUT,gatewayTask.getBusinessKey(), null,gatewayTask.getMsgId(),gatewayTask.getThreadId());
 

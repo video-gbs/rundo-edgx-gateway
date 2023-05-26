@@ -105,7 +105,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "点播回放服务", "回放失败", mediaPlayBackReq,e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_LIVE_PLAY_START,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_RECORD_PLAY_START,BusinessErrorEnums.UNKNOWN_ERROR,null);
         }
 
     }

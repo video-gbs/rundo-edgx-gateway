@@ -30,6 +30,8 @@ public class GatewayTask {
 
     private Integer status;
 
+    private Integer sourceType;
+
     private String detail;
 
 }

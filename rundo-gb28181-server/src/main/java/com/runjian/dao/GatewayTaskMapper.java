@@ -73,6 +73,6 @@ public interface GatewayTaskMapper {
      * @param now
      * @return
      */
-    @Select("SELECT * FROM "+TABLE+" WHERE status = 0 and created_at <= #{now} ")
+    @Select("SELECT * FROM "+TABLE+" WHERE status = 0  and source_type = 0 and created_at <= #{now} ")
     List<GatewayTask> getExpireListByBusinessKey(LocalDateTime now);
 }

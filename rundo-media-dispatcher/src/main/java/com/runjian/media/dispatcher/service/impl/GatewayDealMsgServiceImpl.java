@@ -58,6 +58,7 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
         gatewayTask.setMsg(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrMsg());
         gatewayTask.setMsgType(GatewayBusinessMsgType.PLAY.getTypeName());
         gatewayTask.setStatus(0);
+        gatewayTask.setSourceType(1);
         gatewayTask.setThreadId(Thread.currentThread().getId());
         gatewayTaskMapper.add(gatewayTask);
 
@@ -86,6 +87,7 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
         gatewayTask.setMsg(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrMsg());
         gatewayTask.setMsgType(GatewayBusinessMsgType.PLAY_BACK.getTypeName());
         gatewayTask.setStatus(0);
+        gatewayTask.setSourceType(1);
         gatewayTask.setThreadId(Thread.currentThread().getId());
         gatewayTaskMapper.add(gatewayTask);
     }
@@ -107,6 +109,7 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
         gatewayTask.setMsg(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrMsg());
         gatewayTask.setMsgType(GatewayBusinessMsgType.STOP_PLAY.getTypeName());
         gatewayTask.setStatus(0);
+        gatewayTask.setSourceType(1);
         gatewayTask.setThreadId(Thread.currentThread().getId());
         gatewayTaskMapper.add(gatewayTask);
     }
