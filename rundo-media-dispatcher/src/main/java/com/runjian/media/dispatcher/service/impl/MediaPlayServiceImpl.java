@@ -416,4 +416,22 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
         return true;
     }
+
+    @Override
+    public Boolean onStreamNoneReader(String app,String streamId) {
+
+        if (VideoManagerConstants.GB28181_APP.equals(app)){
+            // 国标流， 点播/录像回放/录像下载
+            CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(StreamBusinessMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
+            StreamCloseDto streamCloseDto = new StreamCloseDto();
+            streamCloseDto.setStreamId(streamId);
+            streamCloseDto.setCanClose(true);
+            mqInfo.setData(streamCloseDto);
+            rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
+            return false;
+
+        }else {
+            return true;
+        }
+    }
 }

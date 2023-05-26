@@ -333,34 +333,8 @@ public class ZLMHttpHookListener {
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		//是否关闭推拉流 交给上层业务判断
-		ret.put("close", false);
-		if (VideoManagerConstants.GB28181_APP.equals(app)){
-			// 国标流， 点播/录像回放/录像下载
-			CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(StreamBusinessMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
-			StreamCloseDto streamCloseDto = new StreamCloseDto();
-			streamCloseDto.setStreamId(streamId);
-			streamCloseDto.setCanClose(true);
-			mqInfo.setData(streamCloseDto);
-			if(!ObjectUtils.isEmpty(dispatcherSignInConf.getMqExchange())){
-				rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
-
-			}else {
-				logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"on_stream_none_reader异常","业务队列未初始化",json);
-			}
-		}else {
-			// 非国标流 推流/拉流代理
-			//rtsp或则rtmp的推流 获取流对应的缓存是否存在
-			CustomPlayReq customPlayReq= (CustomPlayReq)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_PUSH_STREAM_REQ+BusinessSceneConstants.SCENE_SEM_KEY+streamId);
-
-			if(!ObjectUtils.isEmpty(customPlayReq)){
-				//是否关闭
-				Integer autoCloseState = customPlayReq.getAutoCloseState();
-				if(ObjectUtils.isEmpty(autoCloseState)){
-					autoCloseState = 1;
-				}
-				ret.put("close", autoCloseState==1);
-			}
-		}
+		Boolean aBoolean = mediaPlayService.onStreamNoneReader(app, streamId);
+		ret.put("close", aBoolean);
 
 		return ret;
 	}

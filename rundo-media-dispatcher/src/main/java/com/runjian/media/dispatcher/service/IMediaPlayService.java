@@ -73,6 +73,20 @@ public interface IMediaPlayService {
 
     void streamChangeDeal(JSONObject json);
 
+    /**
+     * 发送streamClose
+     * @param streamId
+     * @param canClose
+     * @return
+     */
     Boolean streamCloseSend(String streamId,Boolean canClose);
+
+    /**
+     * 无人观看处理
+     * @param app
+     * @param streamId
+     * @return
+     */
+    Boolean onStreamNoneReader(String app,String streamId);
 
 }
