@@ -15,6 +15,7 @@ import com.runjian.common.constant.GatewayCacheConstants;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.UuidUtil;
+import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 import com.runjian.media.dispatcher.mapper.GatewayTaskMapper;
 import com.runjian.media.dispatcher.service.IGatewayDealMsgService;
 import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
@@ -93,14 +94,13 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
     }
 
     @Override
-    public void sendGatewayStreamBye(String streamId, String msgId, BaseRtpServerDto baseRtpServerDto) {
+    public void sendGatewayStreamBye(String streamId, String msgId, OnlineStreamsEntity oneBystreamId) {
         //通知网关
         CommonMqDto byeMqInfo = redisCatchStorageService.getMqInfo(GatewayBusinessMsgType.STOP_PLAY.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
         StreamPlayDto streamPlayDto = new StreamPlayDto();
         streamPlayDto.setStreamId(streamId);
         byeMqInfo.setData(streamPlayDto);
-        GatewayBindReq gatewayBindReq = baseRtpServerDto.getGatewayBindReq();
-        rabbitMqSender.sendMsgByExchange(gatewayBindReq.getMqExchange(), gatewayBindReq.getMqRouteKey(), UuidUtil.toUuid(),byeMqInfo,true);
+        rabbitMqSender.sendMsgByExchange(oneBystreamId.getMqExchange(), oneBystreamId.getMqRouteKey(), UuidUtil.toUuid(),byeMqInfo,true);
         //消息链路的数据库记录
         GatewayTask gatewayTask = new GatewayTask();
         gatewayTask.setMsgId(msgId);

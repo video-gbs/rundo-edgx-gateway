@@ -140,7 +140,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     }
 
     @Override
-    public Boolean ssrcRelease(String ssrc) {
+    public synchronized Boolean ssrcRelease(String ssrc) {
         Object o = RedisCommonUtil.get(redisTemplate, VideoManagerConstants.SSRC_CACHE_KEY+sipDomain);
         if(ObjectUtils.isEmpty(o)){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"释放ssrc","释放失败,对应的ssrc缓存不存在",ssrc);

@@ -5,6 +5,7 @@ import com.runjian.common.constant.StreamBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMsgProcessorService;
+import com.runjian.media.dispatcher.service.IMediaPlayService;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ public class StreamCloseMsgServiceImpl implements InitializingBean, IMsgProcesso
     IMqMsgDealServer iMqMsgDealServer;
 
     @Autowired
-    ImediaServerService imediaServerService;
+    IMediaPlayService mediaPlayService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -34,7 +35,7 @@ public class StreamCloseMsgServiceImpl implements InitializingBean, IMsgProcesso
         String streamId = dataJson.getString("streamId");
         if(canClose){
             //针对无人观看的处理 进行实际流的停止处理
-            imediaServerService.streamBye(streamId, commonMqDto.getMsgId());
+            mediaPlayService.streamBye(streamId, commonMqDto.getMsgId());
         }
     }
 

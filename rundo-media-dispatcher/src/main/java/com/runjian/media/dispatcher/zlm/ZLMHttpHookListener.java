@@ -13,6 +13,7 @@ import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
+import com.runjian.media.dispatcher.service.IMediaPlayService;
 import com.runjian.media.dispatcher.service.IOnlineStreamsService;
 import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
 import com.runjian.media.dispatcher.zlm.dto.*;
@@ -73,6 +74,9 @@ public class ZLMHttpHookListener {
 
 	@Autowired
 	IOnlineStreamsService onlineStreamsService;
+
+	@Autowired
+	IMediaPlayService mediaPlayService;
 
 	/**
 	 * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
@@ -307,24 +311,8 @@ public class ZLMHttpHookListener {
 	@PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
 	public JSONObject onStreamChanged(@RequestBody MediaItem item){
 		logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ZLM HOOK", "on_stream_changed API调用", JSONObject.toJSONString(item));
-		String mediaServerId = item.getMediaServerId();
 		JSONObject json = (JSONObject) JSON.toJSON(item);
-		ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_stream_changed, json);
-		if (subscribe != null ) {
-			//返回订阅的信息
-			MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
-			if (mediaInfo != null) {
-				subscribe.response(mediaInfo, json);
-			}
-		}
-		Boolean regist = json.getBoolean("regist");
-		String streamId = json.getString("stream");
-		String schema = json.getString("schema");
-		String app = json.getString("app");
-		//同一个流 只处理一种协议的通知 暂定未rtsp流
-		if(schema.equals("rtsp")){
-			onlineStreamsService.streamChangeDeal(streamId,regist,app);
-		}
+		mediaPlayService.streamChangeDeal(json);
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");
