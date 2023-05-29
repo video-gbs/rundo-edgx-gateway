@@ -13,6 +13,7 @@ import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
+import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 import com.runjian.media.dispatcher.service.IMediaPlayService;
 import com.runjian.media.dispatcher.service.IOnlineStreamsService;
 import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
@@ -182,42 +183,15 @@ public class ZLMHttpHookListener {
 		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 		String app = json.getString("app");
 		String streamId = json.getString("stream");
-		ret.put("code", 0);
+		ret.put("code", -1);
 		ret.put("msg", "success");
 		ret.put("enable_hls", true);
 
-		//判断推流的方式
-		if (VideoManagerConstants.GB28181_APP.equals(app)) {
-
-			//todo 判断是否录制mp4 以及是否开启音频
-			BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ+BusinessSceneConstants.SCENE_SEM_KEY+streamId);
-			if(ObjectUtils.isEmpty(baseRtpServerDto)){
-				//缓存不存在或则推流超时了
-				logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"on_publish API调用","rtpserver信息缓存不存在",json);
-				ret.put("code", 1);
-				ret.put("msg", "rtpServer not exists");
-			}else {
-				//正常推流，判断是否开启音频
-				ret.put("enable_audio", baseRtpServerDto.getEnableAudio());
-				ret.put("enable_mp4", baseRtpServerDto.getRecordState() != 0);
-			}
-		}else {
-			//rtsp或则rtmp的推流 获取流对应的缓存是否存在
-			CustomPlayReq customPlayReq= (CustomPlayReq)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_PUSH_STREAM_REQ+BusinessSceneConstants.SCENE_SEM_KEY+streamId);
-
-			if(ObjectUtils.isEmpty(customPlayReq)){
-				//缓存不存在或则推流超时了
-				logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"on_publish API调用","customPlayReq信息缓存不存在",json);
-				ret.put("code", 1);
-				ret.put("msg", "rtpServer not exists");
-			}else {
-				//正常推流，判断是否开启音频
-				ret.put("enable_audio", customPlayReq.getEnableAudio());
-				ret.put("enable_mp4", customPlayReq.getRecordState() != 0);
-			}
+		OnlineStreamsEntity oneBystreamId = onlineStreamsService.getOneBystreamId(streamId);
+		if(!ObjectUtils.isEmpty(oneBystreamId)){
+			ret.put("enable_audio", oneBystreamId.getEnableAudio());
+			ret.put("enable_mp4", oneBystreamId.getRecordState() != 0);
 		}
-
-
 
 		return ret;
 	}

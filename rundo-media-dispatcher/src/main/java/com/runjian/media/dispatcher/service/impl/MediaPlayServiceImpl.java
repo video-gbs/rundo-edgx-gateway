@@ -306,6 +306,35 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
     }
 
+    @Override
+    public void streamStop(String streamId, String msgId) {
+        MediaServerItem defaultMediaServer = mediaServerService.getDefaultMediaServer();
+        //查看流是否存在
+        JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(defaultMediaServer, streamId);
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE, "bye之前先获取流是否存在", rtpInfo);
+        CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(StreamBusinessMsgType.STREAM_PLAY_STOP.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
+        mqInfo.setData(false);
+        if(rtpInfo.getInteger("code") == 0){
+            if (!rtpInfo.getBoolean("exist")) {
+                //流不存在 通知调度中心可以关闭
+                mqInfo.setData(true);
+            }
+        }
+        //查看是否有人观看
+        int i = zlmresTfulUtils.totalReaderCount(defaultMediaServer, VideoManagerConstants.GB28181_APP, streamId);
+        //通知调度中心 进行bye场景的控制
+        if(i>0){
+            //不允许关闭
+            rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
+            return;
+        }else {
+            mqInfo.setData(true);
+            rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
+        }
+        streamBye(streamId,msgId);
+
+    }
+
     @Async("taskExecutor")
     @Override
     public void streamChangeDeal(JSONObject json) {
@@ -422,12 +451,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
         if (VideoManagerConstants.GB28181_APP.equals(app)){
             // 国标流， 点播/录像回放/录像下载
-            CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(StreamBusinessMsgType.STREAM_CLOSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
-            StreamCloseDto streamCloseDto = new StreamCloseDto();
-            streamCloseDto.setStreamId(streamId);
-            streamCloseDto.setCanClose(true);
-            mqInfo.setData(streamCloseDto);
-            rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
+            streamCloseSend(streamId,true);
             return false;
 
         }else {

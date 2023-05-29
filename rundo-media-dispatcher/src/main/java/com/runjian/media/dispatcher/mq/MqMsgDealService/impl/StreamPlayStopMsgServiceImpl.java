@@ -5,6 +5,7 @@ import com.runjian.common.constant.StreamBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMsgProcessorService;
+import com.runjian.media.dispatcher.service.IMediaPlayService;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ public class StreamPlayStopMsgServiceImpl implements InitializingBean, IMsgProce
     IMqMsgDealServer iMqMsgDealServer;
 
     @Autowired
-    ImediaServerService imediaServerService;
+    IMediaPlayService mediaPlayService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -32,7 +33,7 @@ public class StreamPlayStopMsgServiceImpl implements InitializingBean, IMsgProce
 
         //bye指令信息
         String streamId = dataJson.getString("streamId");
-        imediaServerService.streamStop(streamId, commonMqDto.getMsgId());
+        mediaPlayService.streamStop(streamId, commonMqDto.getMsgId());
     }
 
 

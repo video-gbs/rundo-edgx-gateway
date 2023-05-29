@@ -315,47 +315,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
         dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(serverItem), (serverItem.getHookAliveInterval() + 5) * 1000);
         publisher.zlmOnlineEventPublish(serverItem.getId());
         logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "媒体服务器节点管理服务", String.format("[ZLM] 连接成功: %s -> %s:%s", zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort()));
-        //判断当前流列表数据是否与流媒体中数据一致  主要解决重启和网关异常断开重连播放流的同步问题
-        clearOnlineStream(serverItem);
 
-    }
-
-
-    private void clearOnlineStream(MediaServerItem serverItem){
-        String key = VideoManagerConstants.MEDIA_RTP_SERVER_REQ+ BusinessSceneConstants.SCENE_SEM_KEY+"*";
-
-        List<Object> scanResult = RedisCommonUtil.scan(redisTemplate,key);
-        List<OnlineStreamsEntity> onlineStreamsEntities = onlineStreamsService.streamList(serverItem.getId());
-        if(!CollectionUtils.isEmpty(onlineStreamsEntities)){
-            //查询当前流媒体中存在的流
-            JSONObject rtspOnlineS = zlmresTfulUtils.getMediaListBySchema(serverItem, VideoManagerConstants.GB28181_APP, "rtsp");
-            if(rtspOnlineS.getInteger("code") == 0){
-                JSONArray dataArray = rtspOnlineS.getJSONArray("data");
-                if(!CollectionUtils.isEmpty(dataArray)){
-                    ArrayList<String> streamIdList = new ArrayList<>();
-                    List<String> streamCollect = onlineStreamsEntities.stream().map(OnlineStreamsEntity::getStreamId).collect(Collectors.toList());
-                    for(Object streamInfo : dataArray){
-                        ZlmStreamDto zlmStreamDto = JSONObject.parseObject(streamInfo.toString(), ZlmStreamDto.class);
-                        if(!streamCollect.contains(zlmStreamDto.getStream())){
-                            streamIdList.add(zlmStreamDto.getStream());
-                        }
-                    }
-                    //已经失效的播放流
-                    if(!CollectionUtils.isEmpty(streamIdList)){
-                        logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "zlm上线清理,已经停止的在线流",streamIdList);
-                        onlineStreamsService.removeByStreamList(streamIdList);
-
-                    }
-                }else {
-                    onlineStreamsService.removeAll();
-                }
-
-            }else {
-                //连接失败  清理全部的流列表
-                onlineStreamsService.removeAll();
-            }
-
-        }
     }
 
 
@@ -394,7 +354,6 @@ public class MediaServerServiceImpl implements ImediaServerService {
             logger.warn(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "媒体服务器节点下线管理服务","流媒体zlm不存在",mediaServerId);
             return;
         }
-        clearOnlineStream(serverItem);
     }
 
 

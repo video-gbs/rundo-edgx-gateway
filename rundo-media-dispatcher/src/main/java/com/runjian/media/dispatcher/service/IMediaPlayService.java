@@ -23,23 +23,28 @@ public interface IMediaPlayService {
 
     /**
      * 点播
+     *
      * @param mediaPlayReq
      */
     void play(MediaPlayReq mediaPlayReq);
 
     /**
      * 回放
+     *
      * @param mediaPlayBackReq
      */
     void playBack(MediaPlayBackReq mediaPlayBackReq);
 
     /**
      * 自定义直播
+     *
      * @param customPlayReq
      */
     StreamInfo playCustom(CustomPlayReq customPlayReq);
+
     /**
      * 点播通知
+     *
      * @param gatewayStreamNotify
      */
     void streamNotifyServer(GatewayStreamNotify gatewayStreamNotify);
@@ -51,16 +56,24 @@ public interface IMediaPlayService {
 
     /**
      * 通知网关停止流
+     *
      * @param streamId
      * @param msgId
      */
-    void streamBye(String streamId,String msgId);
-
-
+    void streamBye(String streamId, String msgId);
 
 
     /**
+     * 停止通知+网关停止流的判断
+     *
+     * @param streamId
+     * @param msgId
+     */
+    void streamStop(String streamId, String msgId);
+
+    /**
      * 获取流列表
+     *
      * @param streamCheckListResp
      * @return
      */
@@ -71,22 +84,29 @@ public interface IMediaPlayService {
      */
     void streamStopAll();
 
+    /**
+     * 流状态变化处理
+     *
+     * @param json
+     */
     void streamChangeDeal(JSONObject json);
 
     /**
      * 发送streamClose
+     *
      * @param streamId
      * @param canClose
      * @return
      */
-    Boolean streamCloseSend(String streamId,Boolean canClose);
+    Boolean streamCloseSend(String streamId, Boolean canClose);
 
     /**
      * 无人观看处理
+     *
      * @param app
      * @param streamId
      * @return
      */
-    Boolean onStreamNoneReader(String app,String streamId);
+    Boolean onStreamNoneReader(String app, String streamId);
 
 }
