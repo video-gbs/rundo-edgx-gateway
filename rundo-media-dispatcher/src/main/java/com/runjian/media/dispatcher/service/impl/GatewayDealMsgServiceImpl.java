@@ -51,17 +51,17 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
         rabbitMqSender.sendMsgByExchange(playReq.getGatewayMqExchange(), playReq.getGatewayMqRouteKey(), UuidUtil.toUuid(),businessMqInfo,true);
         //存储网关点播请求
         //消息链路的数据库记录
-        GatewayTask gatewayTask = new GatewayTask();
-        gatewayTask.setMsgId(playReq.getMsgId());
-        gatewayTask.setBusinessKey(GatewayBusinessMsgType.PLAY+playReq.getStreamId());
-        gatewayTask.setCode(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrCode());
-
-        gatewayTask.setMsg(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrMsg());
-        gatewayTask.setMsgType(GatewayBusinessMsgType.PLAY.getTypeName());
-        gatewayTask.setStatus(0);
-        gatewayTask.setSourceType(1);
-        gatewayTask.setThreadId(Thread.currentThread().getId());
-        gatewayTaskMapper.add(gatewayTask);
+//        GatewayTask gatewayTask = new GatewayTask();
+//        gatewayTask.setMsgId(playReq.getMsgId());
+//        gatewayTask.setBusinessKey(GatewayBusinessMsgType.PLAY+playReq.getStreamId());
+//        gatewayTask.setCode(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrCode());
+//
+//        gatewayTask.setMsg(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrMsg());
+//        gatewayTask.setMsgType(GatewayBusinessMsgType.PLAY.getTypeName());
+//        gatewayTask.setStatus(0);
+//        gatewayTask.setSourceType(1);
+//        gatewayTask.setThreadId(Thread.currentThread().getId());
+//        gatewayTaskMapper.add(gatewayTask);
 
     }
 
@@ -80,17 +80,17 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
         gatewayPlayBackReq.setEndTime(mediaPlayBackReq.getEndTime());
         rabbitMqSender.sendMsgByExchange(mediaPlayBackReq.getGatewayMqExchange(), mediaPlayBackReq.getGatewayMqRouteKey(), UuidUtil.toUuid(),businessMqInfo,true);
 //消息链路的数据库记录
-        GatewayTask gatewayTask = new GatewayTask();
-        gatewayTask.setMsgId(mediaPlayBackReq.getMsgId());
-        gatewayTask.setBusinessKey(GatewayBusinessMsgType.PLAY_BACK+mediaPlayBackReq.getStreamId());
-        gatewayTask.setCode(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrCode());
-
-        gatewayTask.setMsg(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrMsg());
-        gatewayTask.setMsgType(GatewayBusinessMsgType.PLAY_BACK.getTypeName());
-        gatewayTask.setStatus(0);
-        gatewayTask.setSourceType(1);
-        gatewayTask.setThreadId(Thread.currentThread().getId());
-        gatewayTaskMapper.add(gatewayTask);
+//        GatewayTask gatewayTask = new GatewayTask();
+//        gatewayTask.setMsgId(mediaPlayBackReq.getMsgId());
+//        gatewayTask.setBusinessKey(GatewayBusinessMsgType.PLAY_BACK+mediaPlayBackReq.getStreamId());
+//        gatewayTask.setCode(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrCode());
+//
+//        gatewayTask.setMsg(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrMsg());
+//        gatewayTask.setMsgType(GatewayBusinessMsgType.PLAY_BACK.getTypeName());
+//        gatewayTask.setStatus(0);
+//        gatewayTask.setSourceType(1);
+//        gatewayTask.setThreadId(Thread.currentThread().getId());
+//        gatewayTaskMapper.add(gatewayTask);
     }
 
     @Override
@@ -102,15 +102,15 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
         byeMqInfo.setData(streamPlayDto);
         rabbitMqSender.sendMsgByExchange(oneBystreamId.getMqExchange(), oneBystreamId.getMqRouteKey(), UuidUtil.toUuid(),byeMqInfo,true);
         //消息链路的数据库记录
-        GatewayTask gatewayTask = new GatewayTask();
-        gatewayTask.setMsgId(msgId);
-        gatewayTask.setBusinessKey(GatewayBusinessMsgType.STOP_PLAY+streamId);
-        gatewayTask.setCode(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrCode());
-        gatewayTask.setMsg(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrMsg());
-        gatewayTask.setMsgType(GatewayBusinessMsgType.STOP_PLAY.getTypeName());
-        gatewayTask.setStatus(0);
-        gatewayTask.setSourceType(1);
-        gatewayTask.setThreadId(Thread.currentThread().getId());
-        gatewayTaskMapper.add(gatewayTask);
+//        GatewayTask gatewayTask = new GatewayTask();
+//        gatewayTask.setMsgId(msgId);
+//        gatewayTask.setBusinessKey(GatewayBusinessMsgType.STOP_PLAY+streamId);
+//        gatewayTask.setCode(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrCode());
+//        gatewayTask.setMsg(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrMsg());
+//        gatewayTask.setMsgType(GatewayBusinessMsgType.STOP_PLAY.getTypeName());
+//        gatewayTask.setStatus(0);
+//        gatewayTask.setSourceType(1);
+//        gatewayTask.setThreadId(Thread.currentThread().getId());
+//        gatewayTaskMapper.add(gatewayTask);
     }
 }

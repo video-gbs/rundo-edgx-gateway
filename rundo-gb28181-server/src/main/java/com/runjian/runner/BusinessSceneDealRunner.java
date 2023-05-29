@@ -90,6 +90,9 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                         GatewayBusinessSceneResp oneResp = (GatewayBusinessSceneResp)RedisCommonUtil.leftPop(redisTemplate, BusinessSceneConstants.GATEWAY_BUSINESS_LISTS + businessSceneKey);
                         //消息汇聚聚合
                         keyStrings.add(oneResp.getMsgId());
+                        oneResp.setCode(gatewayBusinessSceneRespEnd.getCode());
+                        oneResp.setMsg(gatewayBusinessSceneRespEnd.getMsg());
+                        oneResp.setData(gatewayBusinessSceneRespEnd.getData());
                         gatewayBusinessAsyncSender.sendforAllScene(oneResp,businessSceneKey);
                     };
                     //消息日志记录 根据消息id进行消息修改
