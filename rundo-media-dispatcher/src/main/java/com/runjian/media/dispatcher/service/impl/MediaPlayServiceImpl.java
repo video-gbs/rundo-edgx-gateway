@@ -1,11 +1,13 @@
 package com.runjian.media.dispatcher.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.dto.SsrcConfig;
 import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
+import com.runjian.common.commonDto.Gb28181Media.ZlmStreamDto;
 import com.runjian.common.commonDto.Gb28181Media.req.*;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.commonDto.SsrcInfo;
@@ -162,8 +164,9 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         OnlineStreamsEntity onlineStreamsEntity = new OnlineStreamsEntity();
         BeanUtil.copyProperties(customPlayReq,onlineStreamsEntity);
         onlineStreamsEntity.setMediaServerId(oneMedia.getId());
-        onlineStreamsEntity.setMediaServerId(oneMedia.getId());
         onlineStreamsEntity.setStreamType(1);
+        onlineStreamsEntity.setMediaServerId(oneMedia.getId());
+        onlineStreamsEntity.setApp(VideoManagerConstants.PUSH_LIVE_APP);
         onlineStreamsService.save(onlineStreamsEntity);
         return streamInfoByAppAndStream;
 
@@ -237,6 +240,8 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         onlineStreamsEntity.setMqExchange(playReq.getGatewayMqExchange());
         onlineStreamsEntity.setMqQueueName(playReq.getGatewayMqRouteKey());
         onlineStreamsEntity.setMqRouteKey(playReq.getGatewayMqRouteKey());
+        onlineStreamsEntity.setSsrc(ssrcInfo.getSsrc());
+        onlineStreamsEntity.setApp(VideoManagerConstants.GB28181_APP);
         onlineStreamsService.save(onlineStreamsEntity);
         return ssrcInfo;
 
@@ -264,7 +269,6 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         }
 
     }
-    @Async("taskExecutor")
     @Override
     public void playBusinessErrorScene(StreamBusinessSceneResp businessSceneResp ) {
         //点播相关的key的组合条件
@@ -290,18 +294,28 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             if(oneBystreamId.getStreamType() == 0){
                 //订阅流主销处理
                 //流注销成功 回调
-                HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.GB28181_APP, oneBystreamId.getStreamId(),false, VideoManagerConstants.GB28181_SCHEAM ,oneBystreamId.getMediaServerId());
-                subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
-                    //流注册处理  发送指定mq消息
-                    log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm推流注销通知", "收到推流注销消息", json.toJSONString());
+                if(oneBystreamId.getStatus() == 0){
+                    //流准备中 未成功点流
                     mediaServerService.closeRTPServer(oneBystreamId.getMediaServerId(),streamId);
                     //释放ssrc
                     redisCatchStorageService.ssrcRelease(oneBystreamId.getSsrc());
                     //清除点播请求
                     onlineStreamsService.remove(streamId);
-                    // hook响应
-                    subscribe.removeSubscribe(hookSubscribe);
-                });
+                }else {
+                    HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.GB28181_APP, oneBystreamId.getStreamId(),false, VideoManagerConstants.GB28181_SCHEAM ,oneBystreamId.getMediaServerId());
+                    subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
+                        //流注册处理  发送指定mq消息
+                        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm推流注销通知", "收到推流注销消息", json.toJSONString());
+                        mediaServerService.closeRTPServer(oneBystreamId.getMediaServerId(),streamId);
+                        //释放ssrc
+                        redisCatchStorageService.ssrcRelease(oneBystreamId.getSsrc());
+                        //清除点播请求
+                        onlineStreamsService.remove(streamId);
+                        // hook响应
+                        subscribe.removeSubscribe(hookSubscribe);
+                    });
+                }
+
                 //网关流注销通知
                 gatewayDealMsgService.sendGatewayStreamBye(streamId,msgId,oneBystreamId);
             }
@@ -406,13 +420,15 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         List<OnlineStreamsEntity> onlineStreamsEntities = onlineStreamsService.streamListByCheckTime(streamLists,checkTime);
         List<String> collect = onlineStreamsEntities.stream().map(OnlineStreamsEntity::getStreamId).collect(Collectors.toList());
         //获取差集
-        List<String> streamListsBye = new ArrayList<>();
         collect.forEach(streamId->{
             if(!streamLists.contains(streamId)){
                 //脏数据或则遗留数据，进行流的bye 关闭
                 streamBye(streamId,null);
             }
         });
+
+
+
         //业务队列发送流的列表
         CommonMqDto mqinfo = redisCatchStorageService.getMqInfo(StreamBusinessMsgType.STREAM_CHECK_STREAM.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
         mqinfo.setData(collect);
@@ -431,6 +447,62 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             onlineStreamsEntities.forEach(onlineStreamsEntity -> {
                 streamBye(onlineStreamsEntity.getStreamId(),null);
             });
+        }
+    }
+
+    @Override
+    public void streamMediaOffline(String mediaServerId) {
+        //删除全部的当前的流列表数据
+        List<OnlineStreamsEntity> onlineStreamsEntities = onlineStreamsService.streamList(mediaServerId);
+
+        if(!CollectionUtils.isEmpty(onlineStreamsEntities)){
+            onlineStreamsEntities.forEach(onlineStreamsEntity -> {
+                //订阅流主销处理
+                //流注销成功 回调
+                //释放ssrc
+                redisCatchStorageService.ssrcRelease(onlineStreamsEntity.getSsrc());
+                //清除点播请求
+                onlineStreamsService.remove(onlineStreamsEntity.getStreamId());
+                //网关流注销通知
+                gatewayDealMsgService.sendGatewayStreamBye(onlineStreamsEntity.getStreamId(),null,onlineStreamsEntity);
+
+            });
+        }
+    }
+
+    @Override
+    public void streamMediaOnline(String mediaServerId) {
+        MediaServerItem serverItem = mediaServerService.getOne(mediaServerId);
+        List<OnlineStreamsEntity> onlineStreamsEntities = onlineStreamsService.streamList(serverItem.getId());
+        if(!CollectionUtils.isEmpty(onlineStreamsEntities)){
+            //查询当前流媒体中存在的流
+            JSONObject rtspOnlineS = zlmresTfulUtils.getMediaListBySchema(serverItem, VideoManagerConstants.GB28181_APP, "rtsp");
+            if(rtspOnlineS.getInteger("code") == 0){
+                JSONArray dataArray = rtspOnlineS.getJSONArray("data");
+                if(!CollectionUtils.isEmpty(dataArray)){
+                    ArrayList<String> streamIdList = new ArrayList<>();
+                    List<String> streamCollect = onlineStreamsEntities.stream().map(OnlineStreamsEntity::getStreamId).collect(Collectors.toList());
+                    for(Object streamInfo : dataArray){
+                        ZlmStreamDto zlmStreamDto = JSONObject.parseObject(streamInfo.toString(), ZlmStreamDto.class);
+                        if(!streamCollect.contains(zlmStreamDto.getStream())){
+                            streamIdList.add(zlmStreamDto.getStream());
+                        }
+                    }
+                    //已经失效的播放流
+                    if(!CollectionUtils.isEmpty(streamIdList)){
+                        log.info(LogTemplate.PROCESS_LOG_TEMPLATE, "zlm上线清理,已经停止的在线流",streamIdList);
+                        onlineStreamsService.removeByStreamList(streamIdList);
+
+                    }
+                }else {
+                    onlineStreamsService.removeAll();
+                }
+
+            }else {
+                //连接失败  清理全部的流列表
+                onlineStreamsService.removeAll();
+            }
+
         }
     }
 

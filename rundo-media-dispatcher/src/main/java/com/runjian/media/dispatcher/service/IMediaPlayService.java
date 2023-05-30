@@ -1,7 +1,9 @@
 package com.runjian.media.dispatcher.service;
 
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.Gb28181Media.ZlmStreamDto;
 import com.runjian.common.commonDto.Gb28181Media.req.CustomPlayReq;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayBackReq;
@@ -10,9 +12,15 @@ import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.StreamBusinessSceneResp;
+import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.constant.VideoManagerConstants;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
+import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 点播处理
@@ -83,6 +91,21 @@ public interface IMediaPlayService {
      * 停止对应流媒体中全部的
      */
     void streamStopAll();
+
+
+    /**
+     * 停止对应流媒体中全部的流
+     * @param mediaServerId
+     */
+    void streamMediaOffline(String mediaServerId);
+
+
+    /**
+     * 停止对应流媒体中全部的流
+     * @param mediaServerId
+     */
+    void streamMediaOnline(String mediaServerId);
+
 
     /**
      * 流状态变化处理
