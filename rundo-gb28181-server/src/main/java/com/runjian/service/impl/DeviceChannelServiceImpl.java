@@ -1,20 +1,15 @@
 package com.runjian.service.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
 import com.runjian.common.config.exception.BusinessErrorEnums;
-import com.runjian.common.config.response.BusinessSceneResp;
-import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.BusinessSceneConstants;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.utils.BeanUtil;
-import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.UserSetting;
 import com.runjian.dao.DeviceChannelMapper;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceChannel;
-import com.runjian.gb28181.bean.RecordInfo;
 import com.runjian.gb28181.transmit.cmd.ISIPCommander;
 import com.runjian.service.IDeviceChannelService;
 import com.runjian.service.IDeviceService;
@@ -58,6 +53,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Autowired
     IDeviceService deviceService;
+
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public synchronized boolean resetChannelsForcatalog(String deviceId, List<DeviceChannel> deviceChannelList) {
@@ -145,14 +142,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         String channelId = recordInfoReq.getChannelId();
         String startTime = recordInfoReq.getStartTime();
         String endTime = recordInfoReq.getEndTime();
-        String msgId = recordInfoReq.getMsgId();
-        String businessSceneKey = GatewayMsgType.RECORD_INFO.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceId+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
+        String businessSceneKey = GatewayBusinessMsgType.RECORD_INFO.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceId+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
         try {
-            RLock lock = redissonClient.getLock(businessSceneKey);
-            //阻塞型,默认是30s无返回参数
-            redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayMsgType.RECORD_INFO,recordInfoReq.getMsgId());
-            //尝试获取锁
-            boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100, TimeUnit.MILLISECONDS);
+            Boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.RECORD_INFO, recordInfoReq.getMsgId());
             if(!b){
                 //加锁失败，不继续执行
                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备服务,获取录像信息，合并全局的请求",recordInfoReq);
@@ -160,7 +152,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             }
             Device device = deviceService.getDevice(deviceId);
             if(ObjectUtils.isEmpty(device)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.RECORD_INFO,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.RECORD_INFO,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
                 return ;
             }
 
@@ -168,9 +160,63 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             sipCommander.recordInfoQuery(device, channelId, startTime, endTime, sn, null, null, null, null);
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.RECORD_INFO,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.RECORD_INFO,BusinessErrorEnums.UNKNOWN_ERROR,null);
 
         }
         //在异步线程进行解锁
+    }
+
+
+    @Override
+    public void channelHardDelete(String deviceId, String channelId, String msgId) {
+
+        String businessSceneKey = GatewayBusinessMsgType.CHANNEL_DELETE_HARD.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceId+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
+        try {
+            RLock lock = redissonClient.getLock(businessSceneKey);
+            //阻塞型,默认是30s无返回参数
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_DELETE_HARD,msgId);
+            //尝试获取锁
+            boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100, TimeUnit.MILLISECONDS);
+            if(!b){
+                //加锁失败，不继续执行
+                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备服务,删除通道，合并全局的请求",msgId);
+                return;
+            }
+            //删除通道
+            deviceChannelMapper.hardDeleteByDeviceId(deviceId,channelId);
+
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DELETE_HARD,BusinessErrorEnums.SUCCESS,true);
+
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "删除通道", e);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DELETE_HARD,BusinessErrorEnums.UNKNOWN_ERROR,null);
+
+        }
+    }
+
+    @Override
+    public void channelSoftDelete(String deviceId, String channelId, String msgId) {
+        String businessSceneKey = GatewayBusinessMsgType.CHANNEL_DELETE_SOFT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceId+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
+        try {
+            RLock lock = redissonClient.getLock(businessSceneKey);
+            //阻塞型,默认是30s无返回参数
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_DELETE_SOFT,msgId);
+            //尝试获取锁
+            boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100, TimeUnit.MILLISECONDS);
+            if(!b){
+                //加锁失败，不继续执行
+                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备服务,软删除通道，合并全局的请求",msgId);
+                return;
+            }
+            //软删除通道
+            deviceChannelMapper.softDeleteByDeviceIdAndChannelId(deviceId,channelId);
+
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DELETE_SOFT,BusinessErrorEnums.SUCCESS,true);
+
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "软删除通道", e);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DELETE_SOFT,BusinessErrorEnums.UNKNOWN_ERROR,null);
+
+        }
     }
 }

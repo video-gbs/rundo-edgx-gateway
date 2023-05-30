@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@ConditionalOnBean(RabbitMqConfig.class)
+//@ConditionalOnBean(RabbitMqConfig.class)
 public class RabbitMqSender {
 
     @Autowired

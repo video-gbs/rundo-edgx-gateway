@@ -24,6 +24,7 @@ import com.runjian.media.dispatcher.conf.DynamicTask;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
+import com.runjian.media.dispatcher.service.IGatewayDealMsgService;
 import com.runjian.media.dispatcher.service.IOnlineStreamsService;
 import com.runjian.media.dispatcher.zlm.ZLMRESTfulUtils;
 import com.runjian.media.dispatcher.zlm.ZLMRTPServerFactory;
@@ -126,32 +127,12 @@ public class MediaServerServiceImpl implements ImediaServerService {
     @Autowired
     IOnlineStreamsService onlineStreamsService;
 
+    @Autowired
+    IGatewayDealMsgService gatewayDealMsgService;
+
     @Override
-    public SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto,GatewayMsgType gatewayMsgType,String businessSceneKey) {
-        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "调度服务", "创建端口请求", baseRtpServerDto);
-
+    public SsrcInfo openRTPServer(MediaServerItem mediaServerItem, String streamId,String ssrc,Boolean ssrcCheck,Integer port) {
         SsrcInfo ssrcInfo = null;
-        String streamId = baseRtpServerDto.getStreamId();
-        String ssrc = baseRtpServerDto.getSsrc();
-        Boolean ssrcCheck = baseRtpServerDto.getSsrcCheck();
-        Integer port = baseRtpServerDto.getPort();
-
-
-        //流注册成功 回调
-        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.GB28181_APP, baseRtpServerDto.getStreamId(),true, VideoManagerConstants.GB28181_SCHEAM ,mediaServerItem.getId());
-        subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
-            //流注册处理  发送指定mq消息
-            logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm推流注册成功通知", "收到推流订阅消息", json.toJSONString());
-            //拼接拉流的地址
-            String pushStreamId = json.getString("stream");
-            StreamInfo streamInfoByAppAndStream = getStreamInfoByAppAndStream(mediaServerItem, VideoManagerConstants.GB28181_APP, pushStreamId);
-            //发送调度服务的业务队列 通知流实际成功
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.SUCCESS,streamInfoByAppAndStream);
-
-            // hook响应
-            subscribe.removeSubscribe(hookSubscribe);
-        });
-
         int rtpServerPort;
         if (mediaServerItem.isRtpEnable()) {
             rtpServerPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId, 0, port);
@@ -160,7 +141,6 @@ public class MediaServerServiceImpl implements ImediaServerService {
             rtpServerPort = mediaServerItem.getRtpProxyPort();
         }
         if(rtpServerPort <=0 ){
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.MEDIA_ZLM_RTPSERVER_CREATE_ERROR,null);
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_RTPSERVER_CREATE_ERROR);
         }
         ssrcInfo = new SsrcInfo(rtpServerPort,ssrc,streamId,mediaServerItem.getId());
@@ -335,45 +315,9 @@ public class MediaServerServiceImpl implements ImediaServerService {
         dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(serverItem), (serverItem.getHookAliveInterval() + 5) * 1000);
         publisher.zlmOnlineEventPublish(serverItem.getId());
         logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "媒体服务器节点管理服务", String.format("[ZLM] 连接成功: %s -> %s:%s", zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort()));
-        //判断当前流列表数据是否与流媒体中数据一致  主要解决重启和网关异常断开重连播放流的同步问题
-        clearOnlineStream(serverItem);
 
     }
 
-
-    private void clearOnlineStream(MediaServerItem serverItem){
-        List<OnlineStreamsEntity> onlineStreamsEntities = onlineStreamsService.streamList(serverItem.getId());
-        if(!CollectionUtils.isEmpty(onlineStreamsEntities)){
-            //查询当前流媒体中存在的流
-            JSONObject rtspOnlineS = zlmresTfulUtils.getMediaListBySchema(serverItem, VideoManagerConstants.GB28181_APP, "rtsp");
-            if(rtspOnlineS.getInteger("code") == 0){
-                JSONArray dataArray = rtspOnlineS.getJSONArray("data");
-                if(!CollectionUtils.isEmpty(dataArray)){
-                    ArrayList<String> streamIdList = new ArrayList<>();
-                    List<String> streamCollect = onlineStreamsEntities.stream().map(OnlineStreamsEntity::getStreamId).collect(Collectors.toList());
-                    for(Object streamInfo : dataArray){
-                        ZlmStreamDto zlmStreamDto = JSONObject.parseObject(streamInfo.toString(), ZlmStreamDto.class);
-                        if(!streamCollect.contains(zlmStreamDto.getStream())){
-                            streamIdList.add(zlmStreamDto.getStream());
-                        }
-                    }
-                    //已经失效的播放流
-                    if(!CollectionUtils.isEmpty(streamIdList)){
-                        logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "zlm上线清理,已经停止的在线流",streamIdList);
-                        onlineStreamsService.removeByStreamList(streamIdList);
-
-                    }
-                }else {
-                    onlineStreamsService.removeAll();
-                }
-
-            }else {
-                //连接失败  清理全部的流列表
-                onlineStreamsService.removeAll();
-            }
-
-        }
-    }
 
     class KeepAliveTimeoutRunnable implements Runnable{
 
@@ -410,7 +354,6 @@ public class MediaServerServiceImpl implements ImediaServerService {
             logger.warn(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "媒体服务器节点下线管理服务","流媒体zlm不存在",mediaServerId);
             return;
         }
-        clearOnlineStream(serverItem);
     }
 
 
@@ -641,114 +584,13 @@ public class MediaServerServiceImpl implements ImediaServerService {
                 StreamPlayDto streamPlayResult = new StreamPlayDto();
                 streamPlayResult.setStreamId(streamId);
                 streamPlayResult.setIsSuccess(true);
-                String businessSceneKey = GatewayMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.STREAM_PLAY_RESULT,BusinessErrorEnums.SUCCESS,streamPlayResult);
+                String businessSceneKey = StreamBusinessMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_PLAY_RESULT,BusinessErrorEnums.SUCCESS,streamPlayResult);
             }
         }
         return streamInfo;
 
     }
 
-    @Override
-    public void streamBye(String streamId, String msgId) {
-        CustomPlayReq customPlayReq= (CustomPlayReq)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_PUSH_STREAM_REQ+BusinessSceneConstants.SCENE_SEM_KEY+streamId);
 
-        if(ObjectUtils.isEmpty(customPlayReq)){
-            //缓存bye相关的请求参数--1分钟  用作异常断流的判断
-            RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_STREAM_BYE+ BusinessSceneConstants.SCENE_SEM_KEY+streamId,streamId,60);
-            //通知网关进行bye请求的发送
-            BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto)RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
-            if(ObjectUtils.isEmpty(baseRtpServerDto)){
-                logger.error(LogTemplate.ERROR_LOG_TEMPLATE,"流停止请求","停止失败,流的缓存信息不存在",streamId);
-                return;
-            }
-            //通知网关
-            CommonMqDto byeMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STOP_PLAY.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
-            StreamPlayDto streamPlayDto = new StreamPlayDto();
-            streamPlayDto.setStreamId(streamId);
-            byeMqInfo.setData(streamPlayDto);
-            GatewayBindReq gatewayBindReq = baseRtpServerDto.getGatewayBindReq();
-            rabbitMqSender.sendMsgByExchange(gatewayBindReq.getMqExchange(), gatewayBindReq.getMqRouteKey(), UuidUtil.toUuid(),byeMqInfo,true);
-            //关闭端口
-
-            closeRTPServer(baseRtpServerDto.getMediaServerId(),streamId);
-            //释放ssrc
-
-            redisCatchStorageService.ssrcRelease(baseRtpServerDto.getSsrc());
-        }else {
-            //无法控制 直接关闭
-            return;
-        }
-
-    }
-
-    @Override
-    public void streamStop(String streamId, String msgId) {
-        MediaServerItem defaultMediaServer = getDefaultMediaServer();
-        //查看流是否存在
-        JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(defaultMediaServer, streamId);
-        logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "bye之前先获取流是否存在", rtpInfo);
-        CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_PLAY_STOP.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
-        mqInfo.setData(false);
-        if(rtpInfo.getInteger("code") == 0){
-            if (!rtpInfo.getBoolean("exist")) {
-                //流不存在 通知调度中心可以关闭
-                mqInfo.setData(true);
-            }
-        }
-        //查看是否有人观看
-        int i = zlmrtpServerFactory.totalReaderCount(defaultMediaServer, VideoManagerConstants.GB28181_APP, streamId);
-        //通知调度中心 进行bye场景的控制
-        if(i>0){
-            //不允许关闭
-            rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
-            return;
-        }else {
-            mqInfo.setData(true);
-            rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqInfo,true);
-        }
-        streamBye(streamId,msgId);
-
-    }
-
-    @Override
-    public List<OnlineStreamsEntity> streamListByStreamIds(StreamCheckListResp streamCheckListResp, String msgId) {
-        List<String> streamLists = streamCheckListResp.getStreamIdList();
-        if(CollectionUtils.isEmpty(streamLists)){
-            logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "流检查为空", streamCheckListResp);
-            return null;
-        }
-        LocalDateTime checkTime = streamCheckListResp.getCheckTime();
-        //获取数据库中的数据
-        List<OnlineStreamsEntity> onlineStreamsEntities = onlineStreamsService.streamListByCheckTime(streamLists,checkTime);
-        List<String> collect = onlineStreamsEntities.stream().map(OnlineStreamsEntity::getStreamId).collect(Collectors.toList());
-        //获取差集
-        List<String> streamListsBye = new ArrayList<>();
-        collect.forEach(streamId->{
-            if(!streamLists.contains(streamId)){
-                //脏数据或则遗留数据，进行流的bye 关闭
-                streamBye(streamId,null);
-            }
-        });
-        //业务队列发送流的列表
-        CommonMqDto mqinfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CHECK_STREAM.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,msgId);
-        mqinfo.setData(collect);
-        logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "流检查发送", mqinfo);
-        rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), dispatcherSignInConf.getMqSetQueue(), UuidUtil.toUuid(),mqinfo,true);
-
-        return onlineStreamsEntities;
-    }
-
-    @Override
-    public void streamStopAll() {
-        //删除全部的当前的流列表数据
-        List<OnlineStreamsEntity> onlineStreamsEntities = onlineStreamsService.streamAll();
-
-        if(!CollectionUtils.isEmpty(onlineStreamsEntities)){
-            onlineStreamsEntities.forEach(onlineStreamsEntity -> {
-                streamBye(onlineStreamsEntity.getStreamId(),null);
-            });
-        }
-
-    }
 }

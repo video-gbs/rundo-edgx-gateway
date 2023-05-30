@@ -244,6 +244,28 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "getMediaInfo",param, null);
     }
 
+    /**
+     * 查询转推的流是否有其它观看者
+     * @param streamId
+     * @return
+     */
+    public int totalReaderCount(MediaServerItem mediaServerItem, String app, String streamId) {
+        JSONObject mediaInfo = getMediaInfo(mediaServerItem, app, "rtsp", streamId);
+        if (mediaInfo == null) {
+            return 0;
+        }
+        Integer code = mediaInfo.getInteger("code");
+        if ( code < 0) {
+            logger.warn(LogTemplate.PROCESS_LOG_TEMPLATE, "ZLM RTP Server", String.format("查询流(%s/%s)是否有其它观看者时得到： %s", app, streamId, mediaInfo.getString("msg")));
+            return -1;
+        }
+        if ( code == 0 && mediaInfo.getBoolean("online") != null && !mediaInfo.getBoolean("online")) {
+            logger.warn(LogTemplate.PROCESS_LOG_TEMPLATE, "ZLM RTP Server", String.format("查询流(%s/%s)是否有其它观看者时得到： %s", app, streamId, mediaInfo.getString("msg")));
+            return -1;
+        }
+        return mediaInfo.getInteger("totalReaderCount");
+    }
+
     public JSONObject getRtpInfo(MediaServerItem mediaServerItem, String stream_id){
         Map<String, Object> param = new HashMap<>();
         param.put("stream_id",stream_id);

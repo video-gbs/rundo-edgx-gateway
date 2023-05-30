@@ -8,7 +8,6 @@ import com.runjian.common.utils.DateUtils;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.conf.GatewayInfoConf;
 import com.runjian.conf.SipConfig;
-import com.runjian.conf.UserSetting;
 import com.runjian.conf.mq.GatewaySignInConf;
 import com.runjian.mq.gatewayBusiness.GatewayBusinessMqListener;
 import com.runjian.service.IGatewayInfoService;
@@ -57,8 +56,7 @@ public class GatewayInfoServiceImpl implements IGatewayInfoService {
 
     @Autowired
     RedissonClient redissonClient;
-    @Autowired
-    UserSetting userSetting;
+
 
     @Autowired
     RedisTemplate redisTemplate;
@@ -116,7 +114,6 @@ public class GatewayInfoServiceImpl implements IGatewayInfoService {
         config.setGatewayType(GatewayTypeEnum.OTHER.getTypeName());
         config.setProtocol(GatewayProtocalEnum.GB28181.getTypeName());
         config.setOutTime(DateUtils.getExpireTimestamp(expire));
-        gatewayInfoConf.setEdgeGatewayInfoDto(config);
 
         //进行mq消息发送
         String sn = iRedisCatchStorageService.getSn(GatewayCacheConstants.GATEWAY_INFO_SN_INCR);

@@ -40,7 +40,7 @@ public interface DeviceChannelMapper {
      * @param idList
      * @return
      */
-    @Delete(" <script>" +
+    @Update(" <script>" +
             "update  "+DEVICE_CHANNEL_TABLE_NAME+" SET status = 0  WHERE id in "+
             " <foreach collection='idList' item='item' open='(' separator=',' close=')'>#{item}</foreach>" +
             " </script>"
@@ -54,6 +54,33 @@ public interface DeviceChannelMapper {
      */
     @Delete("DELETE FROM "+DEVICE_CHANNEL_TABLE_NAME+" WHERE device_id=#{deviceId}")
     int cleanChannelsByDeviceId(String deviceId);
+
+    /**
+     * 删除设备通道
+     * @param deviceId
+     * @return
+     */
+    @Delete("DELETE FROM "+DEVICE_CHANNEL_TABLE_NAME+" WHERE device_id=#{deviceId} and channel_id = #{channelId}")
+    int hardDeleteByDeviceId(String deviceId,String channelId);
+
+    /**
+     * 删除设备通道
+     * @param deviceId
+     * @return
+     */
+    @Delete("update "+DEVICE_CHANNEL_TABLE_NAME+" set deleted = 0 WHERE device_id=#{deviceId}")
+    int softDeleteByDeviceId(String deviceId);
+
+    /**
+     * 删除通道
+     * @param deviceId
+     * @param channelId
+     * @return
+     */
+    @Delete("update "+DEVICE_CHANNEL_TABLE_NAME+" set deleted = 0 WHERE device_id=#{deviceId} and channel_id = #{channelId}")
+    int softDeleteByDeviceIdAndChannelId(String deviceId,String channelId);
+
+
     /**
      * 批量进行数据添加
      * @param addChannels
@@ -93,7 +120,7 @@ public interface DeviceChannelMapper {
      * @param channelId
      * @return
      */
-    @Select("SELECT * FROM "+DEVICE_CHANNEL_TABLE_NAME+" WHERE device_id=#{deviceId} and channel_id=#{channelId}")
+    @Select("SELECT * FROM "+DEVICE_CHANNEL_TABLE_NAME+" WHERE device_id=#{deviceId} and channel_id=#{channelId} and deleted = 0")
     DeviceChannel queryChannelsByDeviceIdAndChannelId(String deviceId,String channelId);
 
     /**

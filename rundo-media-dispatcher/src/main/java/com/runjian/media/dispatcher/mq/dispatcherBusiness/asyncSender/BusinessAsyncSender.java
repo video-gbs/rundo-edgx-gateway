@@ -1,9 +1,11 @@
 package com.runjian.media.dispatcher.mq.dispatcherBusiness.asyncSender;
 
 import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.common.config.response.StreamBusinessSceneResp;
 import com.runjian.common.constant.GatewayCacheConstants;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.constant.StreamBusinessMsgType;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.UuidUtil;
@@ -39,38 +41,24 @@ public class BusinessAsyncSender {
     @Autowired
     RedisTemplate redisTemplate;
 
-    private ConcurrentLinkedQueue<BusinessSceneResp> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
     //全消息处理
-    public void sendforAllScene(BusinessSceneResp businessSceneResp){
+    public void sendforAllScene(StreamBusinessSceneResp businessSceneResp){
         //先进先出，处理消息队列未能发送失败的场景
-//先进先出，处理消息队列未能发送失败的场景
-        taskQueue.offer(businessSceneResp);
-        String mqGetQueue = dispatcherSignInConf.getMqSetQueue();
-        if(ObjectUtils.isEmpty(mqGetQueue)){
-            //业务队列暂时未创建成功，无法发送消息 todo 后续做补偿机制，顺序进行消息的推送
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送失败，业务队列暂时未初始化", businessSceneResp);
-            return;
-        }
         taskExecutor.execute(()->{
-            while (!taskQueue.isEmpty()) {
-                BusinessSceneResp businessSceneRespPoll = taskQueue.poll();
-                if (ObjectUtils.isEmpty(businessSceneRespPoll)) {
-                    return;
-                }
-                GatewayMsgType gatewayMsgType = businessSceneRespPoll.getGatewayMsgType();
-                String msgId = businessSceneRespPoll.getMsgId();
-                CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix, msgId);
-                mqInfo.setData(businessSceneRespPoll.getData());
-                mqInfo.setCode(businessSceneRespPoll.getCode());
-                mqInfo.setMsg(businessSceneResp.getMsg());
-                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", businessSceneResp);
-                rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
-            }
+            StreamBusinessMsgType gatewayMsgType = businessSceneResp.getMsgType();
+            String msgId = businessSceneResp.getMsgId();
+            CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix, msgId);
+            mqInfo.setData(businessSceneResp.getData());
+            mqInfo.setCode(businessSceneResp.getCode());
+            mqInfo.setMsg(businessSceneResp.getMsg());
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", businessSceneResp);
+             String mqGetQueue = dispatcherSignInConf.getMqSetQueue();
+            rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
         });
     }
 

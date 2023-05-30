@@ -37,4 +37,19 @@ public interface IDeviceChannelService {
      * @param recordInfoReq
      */
     void recordInfo(RecordInfoReq recordInfoReq);
+
+    /**
+     * 通道删除
+     * @param channelId
+     * @param msgId
+     */
+    void channelHardDelete(String deviceId, String channelId, String msgId);
+
+    /**
+     * 软删除通道
+     * @param deviceId
+     * @param channelId
+     * @param msgId
+     */
+    void channelSoftDelete(String deviceId, String channelId, String msgId);
 }

@@ -1,6 +1,7 @@
 package com.runjian.common.utils.redis;
 
 import com.alibaba.fastjson.JSON;
+import com.runjian.common.constant.BusinessSceneConstants;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.MarkConstant;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,9 @@ public class RedisCommonUtil {
         return redisTemplate.opsForValue().increment(key, delta);
     }
 
+    public static Boolean setIfAbsent(RedisTemplate redisTemplate,String redisKey,Object data) {
+        return redisTemplate.opsForValue().setIfAbsent(redisKey, data);
+    }
 	/**
      * 指定缓存失效时间
      * @param key 键
@@ -157,6 +161,14 @@ public class RedisCommonUtil {
         }
     }
 
+    public static Set<String> keys(RedisTemplate redisTemplate,String keyAll) {
+        try {
+            return redisTemplate.keys(keyAll);
+        } catch (Exception e) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "Redis工具", "未知异常", e);
+            return null;
+        }
+    }
 
 //    ============================== String ==============================//    =====================
 
@@ -447,5 +459,23 @@ public class RedisCommonUtil {
      */
     public static Double hdecr(RedisTemplate redisTemplate,String key, String item, Double by) {
         return redisTemplate.opsForHash().increment(key, item, -by);
+    }
+
+    //------------list----------------数据操作---------------------//
+
+
+    public static List rangListAll(RedisTemplate redisTemplate,String key) {
+        return redisTemplate.opsForList().range(key,0,-1);
+    }
+
+
+    public static Object leftPop(RedisTemplate redisTemplate,String key) {
+        return redisTemplate.opsForList().leftPop(key);
+
+    }
+
+    public static Long leftPush(RedisTemplate redisTemplate,String key,Object data) {
+        return redisTemplate.opsForList().leftPush(key,data);
+
     }
 }

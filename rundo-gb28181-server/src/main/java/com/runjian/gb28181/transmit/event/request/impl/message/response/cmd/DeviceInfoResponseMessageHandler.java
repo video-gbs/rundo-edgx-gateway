@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.BusinessSceneConstants;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
@@ -69,7 +69,7 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
         //获取hashmap中相应的缓存
 
 
-        String businessSceneKey = GatewayMsgType.REGISTER.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
+        String businessSceneKey = GatewayBusinessMsgType.REGISTER.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
         //jsonString类型的数据
 
 
@@ -115,7 +115,7 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
         }
         DeviceSendDto deviceSendDto = new DeviceSendDto();
         BeanUtil.copyProperties(device,deviceSendDto);
-        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.REGISTER,BusinessErrorEnums.SUCCESS,deviceSendDto);
+        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.REGISTER,BusinessErrorEnums.SUCCESS,deviceSendDto);
 
     }
 

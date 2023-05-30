@@ -57,6 +57,13 @@ public interface IDeviceService {
      */
     void deviceDelete(String deviceId,String msgId);
 
+
+    /**
+     *
+     * @param deviceId
+     * @return
+     */
+    void deviceSoftDelete(String deviceId,String msgId);
     /**
      * 设备全量数据同步
      * @param msgId

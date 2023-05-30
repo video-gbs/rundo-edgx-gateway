@@ -2,6 +2,7 @@ package com.runjian.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.req.ChannelPtzControlReq;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
@@ -22,7 +23,7 @@ public class ChannelPtzControlMsgServiceImpl implements InitializingBean, IMsgPr
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.PTZ_CONTROL.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.PTZ_CONTROL.getTypeName(),this);
     }
 
     @Override
