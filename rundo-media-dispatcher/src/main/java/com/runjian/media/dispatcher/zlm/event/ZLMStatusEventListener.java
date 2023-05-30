@@ -56,6 +56,6 @@ public class ZLMStatusEventListener {
 		logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ZLM在线事件监听器", "ZLM离线", event.getMediaServerId());
 		// 处理ZLM离线
 		mediaServerService.zlmServerOffline(event.getMediaServerId());
-		mediaPlayService.streamStopAll();
+		mediaPlayService.streamMediaOffline(event.getMediaServerId());
 	}
 }

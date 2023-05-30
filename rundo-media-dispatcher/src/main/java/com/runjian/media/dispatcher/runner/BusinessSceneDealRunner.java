@@ -73,7 +73,7 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                 ConcurrentLinkedQueue<StreamBusinessSceneResp> taskQueue = InfoConf.getTaskQueue();
                 if(!ObjectUtils.isEmpty(taskQueue)){
 
-                    if(ObjectUtils.isEmpty(dispatcherSignInConf)){
+                    if(ObjectUtils.isEmpty(dispatcherSignInConf.getMqExchange())){
                         //业务队列暂时未创建成功，无法发送消息 todo 后续做补偿机制，顺序进行消息的推送
                         log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景处理", "业务队列暂时未初始化", null);
                         Thread.sleep(10);
