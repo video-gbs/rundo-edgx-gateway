@@ -34,7 +34,7 @@ public interface GatewayTaskMapper {
      * @param gatewayTask
      * @return
      */
-    @Update("UPDATE "+TABLE+" (#{gatewayTask}) where id = #{id}")
+    @Update("UPDATE "+TABLE+" (#{gatewayTask}) where  status = 0 and id = #{id}")
     @Lang(SimpleUpdateExtendedLanguageDriver.class)
     int updateById(GatewayTask gatewayTask);
 

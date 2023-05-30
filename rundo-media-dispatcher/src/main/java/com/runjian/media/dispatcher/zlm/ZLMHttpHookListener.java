@@ -184,11 +184,13 @@ public class ZLMHttpHookListener {
 		String app = json.getString("app");
 		String streamId = json.getString("stream");
 		ret.put("code", -1);
-		ret.put("msg", "success");
+		ret.put("msg", "error");
 		ret.put("enable_hls", true);
 
 		OnlineStreamsEntity oneBystreamId = onlineStreamsService.getOneBystreamId(streamId);
 		if(!ObjectUtils.isEmpty(oneBystreamId)){
+			ret.put("code", 0);
+			ret.put("msg", "success");
 			ret.put("enable_audio", oneBystreamId.getEnableAudio());
 			ret.put("enable_mp4", oneBystreamId.getRecordState() != 0);
 		}

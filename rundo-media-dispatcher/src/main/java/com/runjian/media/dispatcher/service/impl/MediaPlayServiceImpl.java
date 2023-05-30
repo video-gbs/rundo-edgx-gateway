@@ -234,6 +234,9 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         OnlineStreamsEntity onlineStreamsEntity = new OnlineStreamsEntity();
         BeanUtil.copyProperties(playReq,onlineStreamsEntity);
         onlineStreamsEntity.setMediaServerId(oneMedia.getId());
+        onlineStreamsEntity.setMqExchange(playReq.getGatewayMqExchange());
+        onlineStreamsEntity.setMqQueueName(playReq.getGatewayMqRouteKey());
+        onlineStreamsEntity.setMqRouteKey(playReq.getGatewayMqRouteKey());
         onlineStreamsService.save(onlineStreamsEntity);
         return ssrcInfo;
 
@@ -283,7 +286,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
     public synchronized void streamBye(String streamId,String msgId){
         //主动管理流的关闭
         OnlineStreamsEntity oneBystreamId = onlineStreamsService.getOneBystreamId(streamId);
-        if(ObjectUtils.isEmpty(oneBystreamId)){
+        if(!ObjectUtils.isEmpty(oneBystreamId)){
             if(oneBystreamId.getStreamType() == 0){
                 //订阅流主销处理
                 //流注销成功 回调

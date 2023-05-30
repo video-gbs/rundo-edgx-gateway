@@ -86,6 +86,9 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
 
                         StreamBusinessSceneResp oneResp = (StreamBusinessSceneResp)RedisCommonUtil.leftPop(redisTemplate, BusinessSceneConstants.STREAM_BUSINESS_LISTS + businessSceneKey);
                         //消息汇聚聚合
+                        oneResp.setCode(businessSceneRespEnd.getCode());
+                        oneResp.setMsg(businessSceneRespEnd.getMsg());
+                        oneResp.setData(businessSceneRespEnd.getData());
                         keyStrings.add(oneResp.getMsgId());
                         businessAsyncSender.sendforAllScene(oneResp);
                     };
