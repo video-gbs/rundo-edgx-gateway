@@ -3,10 +3,11 @@ package com.runjian.media.dispatcher.mq.MqMsgDealService.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.StreamBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMsgProcessorService;
+import com.runjian.media.dispatcher.service.IMediaPlayService;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +25,12 @@ public class StreamCheckStreamMsgServiceImpl implements InitializingBean, IMsgPr
     @Autowired
     ImediaServerService imediaServerService;
 
+    @Autowired
+    IMediaPlayService mediaPlayService;
+
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.STREAM_CHECK_STREAM.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(StreamBusinessMsgType.STREAM_CHECK_STREAM.getTypeName(),this);
     }
 
     @Override
@@ -36,7 +40,7 @@ public class StreamCheckStreamMsgServiceImpl implements InitializingBean, IMsgPr
         if(!ObjectUtils.isEmpty(dataJson)){
             JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
             StreamCheckListResp streamCheckListResp = JSONObject.toJavaObject(dataMapJson, StreamCheckListResp.class);
-            imediaServerService.streamListByStreamIds(streamCheckListResp,commonMqDto.getMsgId());
+            mediaPlayService.streamListByStreamIds(streamCheckListResp,commonMqDto.getMsgId());
         }
 
 

@@ -1,6 +1,7 @@
 package com.runjian.media.dispatcher.zlm.event;
 
 import com.runjian.common.constant.LogTemplate;
+import com.runjian.media.dispatcher.service.IMediaPlayService;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import com.runjian.media.dispatcher.zlm.service.ImediaService;
 import com.runjian.media.dispatcher.zlm.service.IplayService;
@@ -31,6 +32,9 @@ public class ZLMStatusEventListener {
 	@Autowired
 	private IplayService playService;
 
+	@Autowired
+	private IMediaPlayService mediaPlayService;
+
 	/**
 	 * 处理zlm上线
 	 * @param event
@@ -52,6 +56,6 @@ public class ZLMStatusEventListener {
 		logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ZLM在线事件监听器", "ZLM离线", event.getMediaServerId());
 		// 处理ZLM离线
 		mediaServerService.zlmServerOffline(event.getMediaServerId());
-		playService.zlmServerOffline(event.getMediaServerId());
+		mediaPlayService.streamStopAll();
 	}
 }

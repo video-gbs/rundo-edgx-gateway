@@ -1,7 +1,7 @@
 package com.runjian.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
@@ -22,7 +22,7 @@ public class CatalogServiceImpl implements InitializingBean, IMsgProcessorServic
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.CATALOG.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.CATALOG.getTypeName(),this);
     }
 
     @Override

@@ -5,7 +5,7 @@ import com.runjian.common.commonDto.Gb28181Media.req.CustomPlayReq;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayReq;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.constant.GatewayCacheConstants;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.StreamBusinessMsgType;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.UuidUtil;
@@ -37,7 +37,7 @@ public class StreamCustomStartMsgServiceImpl implements InitializingBean, IMsgPr
     RabbitMqSender rabbitMqSender;
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.STREAM_CUSTOM_LIVE_START.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(StreamBusinessMsgType.STREAM_CUSTOM_LIVE_START.getTypeName(),this);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class StreamCustomStartMsgServiceImpl implements InitializingBean, IMsgPr
         StreamInfo streamInfo = iMediaPlayService.playCustom(customPlayReq);
 
         //进行消息返回
-        CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_CUSTOM_LIVE_START.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,commonMqDto.getMsgId());
+        CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(StreamBusinessMsgType.STREAM_CUSTOM_LIVE_START.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,commonMqDto.getMsgId());
         String mqGetQueue = dispatcherSignInConf.getMqSetQueue();
         //通知调度中心成功
         businessMqInfo.setData(streamInfo);

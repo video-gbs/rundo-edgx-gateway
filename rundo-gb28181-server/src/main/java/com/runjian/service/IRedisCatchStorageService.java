@@ -2,15 +2,28 @@ package com.runjian.service;
 
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.config.response.GatewayBusinessSceneResp;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
+import com.runjian.common.utils.CircleArray;
 import com.runjian.conf.SsrcConfig;
+
+import java.util.List;
 
 /**
  * @author chenjialing
  */
 public interface IRedisCatchStorageService {
 
+    /**
+     * 过期时钟
+     */
+    CircleArray<String> msgIdArray = new CircleArray<>(20);
+
+    /**
+     * 心跳
+     */
+    void msgExpireRoutine();
     /**
      * 计数器。为cseq进行计数
      *
@@ -38,22 +51,20 @@ public interface IRedisCatchStorageService {
     /**
      * 操作业务场景的redis修改
      * @param businessSceneKey
-     * @param gatewayMsgType
+     * @param GatewayBusinessMsgType
      * @param data
      */
-    void editBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, BusinessErrorEnums businessErrorEnums, Object data);
+    void editBusinessSceneKey(String businessSceneKey, GatewayBusinessMsgType GatewayBusinessMsgType, BusinessErrorEnums businessErrorEnums, Object data);
 
     /**
      * 新增业务缓存
      * @param businessSceneKey
-     * @param gatewayMsgType
+     * @param GatewayBusinessMsgType
      * @param msgId
      */
-    void addBusinessSceneKey(String businessSceneKey, GatewayMsgType gatewayMsgType, String msgId);
+    Boolean addBusinessSceneKey(String businessSceneKey, GatewayBusinessMsgType GatewayBusinessMsgType, String msgId);
 
-    /**
-     * 获取一个业务缓存
-     * @param businessSceneKey
-     */
-    BusinessSceneResp getOneBusinessSceneKey(String businessSceneKey);
+
+    Boolean businessSceneLogDb(GatewayBusinessSceneResp businessSceneResp, List<String> msgStrings);
+
 }

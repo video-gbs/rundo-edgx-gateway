@@ -38,6 +38,8 @@ public class VideoManagerConstants {
 
 	public static final String GB28181_SCHEAM = "rtsp";
 
+	public static final String RTMP_SCHEAM = "rtmp";
+
 
 
 

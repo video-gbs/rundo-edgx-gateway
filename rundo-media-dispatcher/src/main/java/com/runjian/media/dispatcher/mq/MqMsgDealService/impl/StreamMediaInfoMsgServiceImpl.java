@@ -7,7 +7,7 @@ import com.runjian.common.commonDto.Gb28181Media.resp.StreamMediaInfoResp;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamVideoMediaInfoResp;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.GatewayCacheConstants;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.StreamBusinessMsgType;
 import com.runjian.common.constant.VideoManagerConstants;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
@@ -54,7 +54,7 @@ public class StreamMediaInfoMsgServiceImpl implements InitializingBean, IMsgProc
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.STREAM_MEDIA_INFO.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(StreamBusinessMsgType.STREAM_MEDIA_INFO.getTypeName(),this);
     }
 
 
@@ -103,7 +103,7 @@ public class StreamMediaInfoMsgServiceImpl implements InitializingBean, IMsgProc
                 schema = schema1;
             }
         }
-        CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayMsgType.STREAM_MEDIA_INFO.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,commonMqDto.getMsgId());
+        CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(StreamBusinessMsgType.STREAM_MEDIA_INFO.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,commonMqDto.getMsgId());
         String mqGetQueue = dispatcherSignInConf.getMqSetQueue();
 
         //判断流属于哪个流媒体

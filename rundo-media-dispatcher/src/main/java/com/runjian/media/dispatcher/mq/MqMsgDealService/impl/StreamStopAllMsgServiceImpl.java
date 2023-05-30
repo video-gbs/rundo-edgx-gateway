@@ -1,10 +1,11 @@
 package com.runjian.media.dispatcher.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.StreamBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.media.dispatcher.mq.MqMsgDealService.IMsgProcessorService;
+import com.runjian.media.dispatcher.service.IMediaPlayService;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,18 +18,18 @@ public class StreamStopAllMsgServiceImpl implements InitializingBean, IMsgProces
     IMqMsgDealServer iMqMsgDealServer;
 
     @Autowired
-    ImediaServerService imediaServerService;
+    IMediaPlayService mediaPlayService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.STREAM_STOP_ALL.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(StreamBusinessMsgType.STREAM_STOP_ALL.getTypeName(),this);
     }
 
     @Override
     public void process(CommonMqDto commonMqDto) {
 
 
-        imediaServerService.streamStopAll();
+        mediaPlayService.streamStopAll();
     }
 
 

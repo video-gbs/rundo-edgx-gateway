@@ -6,20 +6,14 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum BusinessSceneStatusEnum {
-    ready("ready"),
-    running("running"),
-    end("end"),
+    ready(0),
+    running(3),
+    end(1),
+    TimeOut(2),
 
     ;
 
-    private final String typeName;
-
-    public static BusinessSceneStatusEnum getTypeByTypeId(String id){
-        id = id.toUpperCase();
-        for (BusinessSceneStatusEnum type : values()){
-            if (type.typeName.equals(id))
-                return type;
-        }
-        return null;
-    }
+    private final int code;
 }
+
+

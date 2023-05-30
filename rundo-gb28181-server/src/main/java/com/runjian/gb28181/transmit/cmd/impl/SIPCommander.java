@@ -1,12 +1,8 @@
 package com.runjian.gb28181.transmit.cmd.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.conf.SipConfig;
-import com.runjian.conf.UserSetting;
-import com.runjian.conf.exception.SsrcTransactionNotFoundException;
-import com.runjian.domain.dto.MediaServerItem;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceAlarm;
 import com.runjian.gb28181.bean.SsrcTransaction;
@@ -17,21 +13,13 @@ import com.runjian.gb28181.transmit.cmd.SIPRequestHeaderProvider;
 import com.runjian.gb28181.utils.SipUtils;
 import com.runjian.utils.DateUtil;
 import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.message.SIPResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.data.redis.connection.stream.StreamInfo;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 
 import javax.sip.InvalidArgumentException;
-import javax.sip.ResponseEvent;
 import javax.sip.SipException;
-import javax.sip.SipFactory;
-import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
 

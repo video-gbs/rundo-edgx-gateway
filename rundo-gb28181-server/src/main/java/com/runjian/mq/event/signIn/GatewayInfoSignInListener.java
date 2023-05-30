@@ -1,7 +1,7 @@
 package com.runjian.mq.event.signIn;
 
 
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.conf.mq.GatewaySignInConf;
 import com.runjian.domain.resp.GatewaySignInRsp;
@@ -45,7 +45,7 @@ public class GatewayInfoSignInListener implements ApplicationListener<GatewayInf
 
         //进行全量的设备数据数据同步，避免出现设备数据差异
         CommonMqDto commonMqDto = new CommonMqDto();
-        commonMqDto.setMsgType(GatewayMsgType.DEVICE_TOTAL_SYNC.getTypeName());
+        commonMqDto.setMsgType(GatewayBusinessMsgType.DEVICE_TOTAL_SYNC.getTypeName());
         mqMsgDealServer.msgProcess(commonMqDto);
     }
 

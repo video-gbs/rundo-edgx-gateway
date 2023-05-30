@@ -8,7 +8,7 @@ import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.BusinessSceneConstants;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.conf.UserSetting;
 import com.runjian.conf.mq.GatewaySignInConf;
@@ -104,10 +104,10 @@ public class PlayServiceImpl implements IplayService {
 
     @Override
     public void play(PlayReq playReq) {
-        String businessSceneKey = GatewayMsgType.PLAY.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+playReq.getStreamId();
+        String businessSceneKey = GatewayBusinessMsgType.PLAY.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+playReq.getStreamId();
         try {
             //阻塞型,默认是30s无返回参数
-            PlayCommonSsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayMsgType.PLAY, playReq,true);
+            PlayCommonSsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayBusinessMsgType.PLAY, playReq,true);
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "端口创建结果", playCommonSsrcInfo);
             if(ObjectUtils.isEmpty(playCommonSsrcInfo)){
                 return;
@@ -128,7 +128,7 @@ public class PlayServiceImpl implements IplayService {
                 //todo 判断ssrc是否匹配
 
                 //传递ssrc进去，出现推流不成功的异常，进行相关逻辑处理
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.SIP_SEND_SUCESS,playReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY,BusinessErrorEnums.COMMDER_SEND_SUCESS,playReq);
                 streamSession.putSsrcTransaction(device.getDeviceId(), playReq.getChannelId(), "play", playReq.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.play,playReq.getDispatchUrl());
             },error->{
                 //失败业务处理
@@ -136,12 +136,12 @@ public class PlayServiceImpl implements IplayService {
                 //关闭推流端口
                 streamSession.removeSsrcTransaction(device.getDeviceId(), playReq.getChannelId(), playReq.getStreamId());
 
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.SIP_SEND_EXCEPTION,playReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY,BusinessErrorEnums.SIP_SEND_EXCEPTION,playReq);
             });
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "点播服务", "点播失败", playReq,e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.UNKNOWN_ERROR,playReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY,BusinessErrorEnums.UNKNOWN_ERROR,playReq);
         }
 
 
@@ -151,9 +151,9 @@ public class PlayServiceImpl implements IplayService {
     @Override
     public void playBack(PlayBackReq playBackReq) {
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播请求进入", playBackReq);
-        String businessSceneKey = GatewayMsgType.PLAY_BACK.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+playBackReq.getStreamId();
+        String businessSceneKey = GatewayBusinessMsgType.PLAY_BACK.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+playBackReq.getStreamId();
         try {
-            PlayCommonSsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayMsgType.PLAY_BACK, playBackReq,false);
+            PlayCommonSsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayBusinessMsgType.PLAY_BACK, playBackReq,false);
             if(ObjectUtils.isEmpty(playCommonSsrcInfo)){
                 return;
             }
@@ -173,7 +173,7 @@ public class PlayServiceImpl implements IplayService {
                 //todo 判断ssrc是否匹配
 
                 //传递ssrc进去，出现推流不成功的异常，进行相关逻辑处理
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY_BACK,BusinessErrorEnums.SIP_SEND_SUCESS,playBackReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY_BACK,BusinessErrorEnums.COMMDER_SEND_SUCESS,playBackReq);
                 streamSession.putSsrcTransaction(device.getDeviceId(), playBackReq.getChannelId(), sipSender.getNewCallIdHeader(device.getTransport()).getCallId(), playBackReq.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.playback,playBackReq.getDispatchUrl());
             },error->{
                 //失败业务处理
@@ -181,15 +181,15 @@ public class PlayServiceImpl implements IplayService {
                 //剔除缓存
                 streamSession.removeSsrcTransaction(device.getDeviceId(), playBackReq.getChannelId(), playBackReq.getStreamId());
 
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY_BACK,BusinessErrorEnums.SIP_SEND_EXCEPTION,playBackReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY_BACK,BusinessErrorEnums.SIP_SEND_EXCEPTION,playBackReq);
             });
         }catch (Exception e){
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播失败", playBackReq);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY_BACK,BusinessErrorEnums.UNKNOWN_ERROR,playBackReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY_BACK,BusinessErrorEnums.UNKNOWN_ERROR,playBackReq);
         }
     }
 
-    private PlayCommonSsrcInfo playCommonProcess(String businessSceneKey, GatewayMsgType gatewayMsgType, PlayReq playReq,boolean isPlay) throws InterruptedException {
+    private PlayCommonSsrcInfo playCommonProcess(String businessSceneKey, GatewayBusinessMsgType gatewayMsgType, PlayReq playReq,boolean isPlay) throws InterruptedException {
         redisCatchStorageService.addBusinessSceneKey(businessSceneKey,gatewayMsgType,playReq.getMsgId());
         //尝试获取锁
         RLock lock = redissonClient.getLock(businessSceneKey);

@@ -2,6 +2,7 @@ package com.runjian.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.gb28181.bean.Device;
@@ -24,7 +25,7 @@ public class DeviceinfoServiceImpl implements InitializingBean, IMsgProcessorSer
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.DEVICEINFO.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.DEVICEINFO.getTypeName(),this);
     }
 
     @Override

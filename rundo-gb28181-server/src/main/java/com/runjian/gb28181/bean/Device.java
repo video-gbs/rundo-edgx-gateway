@@ -126,9 +126,4 @@ public class Device {
 	@Schema(description = "密码")
 	private String password;
 
-	private LocalDateTime createdAt;
-
-
-	private LocalDateTime updatedAt;
-
 }

@@ -6,6 +6,7 @@ import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.StreamBusinessMsgType;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 import com.runjian.media.dispatcher.zlm.ZLMServerConfig;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
@@ -46,10 +47,9 @@ public interface ImediaServerService {
     /**
      * 创建端口
      * @param mediaServerItem
-     * @param baseRtpServerDto
      * @return
      */
-    SsrcInfo openRTPServer(MediaServerItem mediaServerItem, BaseRtpServerDto baseRtpServerDto, GatewayMsgType gatewayMsgType,String businessSceneKey);
+    SsrcInfo openRTPServer(MediaServerItem mediaServerItem,  String streamId,String ssrc,Boolean ssrcCheck,Integer port);
 
 
     Boolean closeRTPServer(MediaServerItem mediaServerItem, String streamId);
@@ -104,30 +104,5 @@ public interface ImediaServerService {
 
     boolean checkRtpServer(MediaServerItem mediaServerItem,String stream);
 
-    /**
-     * 通知网关停止流
-     * @param streamId
-     * @param msgId
-     */
-    void streamBye(String streamId,String msgId);
 
-    /**
-     * 停止通知+网关停止流的判断
-     * @param streamId
-     * @param msgId
-     */
-    void streamStop(String streamId,String msgId);
-
-
-    /**
-     * 获取流列表
-     * @param streamCheckListResp
-     * @return
-     */
-    List<OnlineStreamsEntity> streamListByStreamIds(StreamCheckListResp streamCheckListResp, String msgId);
-
-    /**
-     * 停止对应流媒体中全部的
-     */
-    void streamStopAll();
 }

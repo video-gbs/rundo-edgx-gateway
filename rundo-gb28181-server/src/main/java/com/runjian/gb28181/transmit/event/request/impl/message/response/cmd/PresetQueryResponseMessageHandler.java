@@ -2,7 +2,7 @@ package com.runjian.gb28181.transmit.event.request.impl.message.response.cmd;
 
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.BusinessSceneConstants;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.PtzOperationTypeEnum;
 import com.runjian.gb28181.bean.Device;
@@ -73,7 +73,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
             //该字段可能为通道或则设备的id
             String channelId = getText(rootElement, "DeviceID");
             //预置位查询的key
-            String businessSceneKey = GatewayMsgType.CHANNEL_PTZ_PRESET.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
+            String businessSceneKey = GatewayBusinessMsgType.CHANNEL_PTZ_PRESET.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
 
             int sumNum = Integer.parseInt(presetListNumElement.attributeValue("Num"));
             List<PresetQuerySipReq> presetQuerySipReqList = new ArrayList<>();
@@ -95,7 +95,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                     presetQuerySipReqList.add(presetQuerySipReq);
                 }
             }
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.CHANNEL_PTZ_PRESET, BusinessErrorEnums.SUCCESS,presetQuerySipReqList);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_PTZ_PRESET, BusinessErrorEnums.SUCCESS,presetQuerySipReqList);
             try {
                 responseAck(request, Response.OK);
             } catch (InvalidArgumentException | ParseException | SipException e) {

@@ -2,6 +2,7 @@ package com.runjian.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.req.DeviceControlReq;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
@@ -23,7 +24,7 @@ public class StopPlayMsgServiceImpl implements InitializingBean, IMsgProcessorSe
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.STOP_PLAY.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.STOP_PLAY.getTypeName(),this);
     }
 
     @Override

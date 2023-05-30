@@ -1,6 +1,7 @@
 package com.runjian.common.commonDto.Gb28181Media.req;
 
 import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -15,6 +16,6 @@ public class GatewayStreamNotify {
     String StreamId;
 
     @NotNull(message="业务dto不得为空")
-    BusinessSceneResp businessSceneResp;
+    GatewayBusinessSceneResp businessSceneResp;
 
 }

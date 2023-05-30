@@ -1,5 +1,6 @@
 package com.runjian.media.dispatcher.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 
 import java.time.LocalDateTime;
@@ -15,6 +16,8 @@ public interface IOnlineStreamsService {
      * @return
      */
     int update(OnlineStreamsEntity onlineStreams);
+
+    int save(OnlineStreamsEntity onlineStreams);
 
     /**
      * 获取一个流信息
@@ -41,11 +44,7 @@ public interface IOnlineStreamsService {
      * @return
      */
     int removeByStreamList(List<String> streamIdList);
-    /**
-     * 流注册相关的操作
-     * @param streamId
-     */
-    void streamChangeDeal(String streamId,Boolean regist,String app);
+
 
     /**
      * 获取流媒体中的全部在线播放流列表
