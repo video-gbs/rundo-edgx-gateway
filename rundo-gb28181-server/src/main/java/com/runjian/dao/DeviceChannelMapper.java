@@ -23,6 +23,9 @@ public interface DeviceChannelMapper {
     @Select("SELECT * FROM "+DEVICE_CHANNEL_TABLE_NAME+" WHERE device_id=#{deviceId}")
     List<DeviceChannel> queryChannelsByDeviceId(String deviceId);
 
+
+    @Select("SELECT * FROM "+DEVICE_CHANNEL_TABLE_NAME+" WHERE device_id=#{deviceId} and deleted = 0")
+    List<DeviceChannel> queryUndeletedChannelsByDeviceId(String deviceId);
     /**
      * 根据通道id删除相关通道信息
      * @param deviceIdList

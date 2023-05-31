@@ -155,12 +155,12 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                 if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
                                     //只处理正在执行的通道同步
 
-                                    storager.resetChannelsForcatalog(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
+                                    List<DeviceChannel> deviceChannels = storager.resetChannelsForcatalog(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
 
                                     CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
                                     catalogMqSyncDto.setTotal(catalogData.getTotal());
                                     catalogMqSyncDto.setNum(catalogData.getChannelList().size());
-                                    catalogMqSyncDto.setChannelDetailList(catalogData.getChannelList());
+                                    catalogMqSyncDto.setChannelDetailList(deviceChannels);
                                     //更新redis
 
                                     redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CATALOG,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
@@ -182,12 +182,12 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
                         // 目前支持设备通道上线通知时和设备上线时向上级通知
                         List<DeviceChannel> deviceChannels = catalogDataCatch.get(take.getDevice().getDeviceId());
-                        storager.resetChannelsForcatalog(take.getDevice().getDeviceId(), deviceChannels);
+                        List<DeviceChannel> deviceChannelsNew = storager.resetChannelsForcatalog(take.getDevice().getDeviceId(), deviceChannels);
 
                         CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
                         catalogMqSyncDto.setTotal(sumNum);
                         catalogMqSyncDto.setNum(sumNum);
-                        catalogMqSyncDto.setChannelDetailList(deviceChannels);
+                        catalogMqSyncDto.setChannelDetailList(deviceChannelsNew);
                         redisCatchStorageService.editBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CATALOG,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
                         //该结束状态用于删除之前的本地缓存数据
                         catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);

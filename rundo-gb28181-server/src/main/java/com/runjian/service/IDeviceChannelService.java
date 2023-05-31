@@ -16,7 +16,7 @@ public interface IDeviceChannelService {
      * @param deviceId
      * @param deviceChannelList
      */
-    boolean resetChannelsForcatalog(String deviceId, List<DeviceChannel> deviceChannelList);
+    List<DeviceChannel> resetChannelsForcatalog(String deviceId, List<DeviceChannel> deviceChannelList);
 
     /**
      * 清空通道
