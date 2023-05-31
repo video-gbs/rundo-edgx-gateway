@@ -78,6 +78,7 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
         gatewayPlayBackReq.setStreamId(mediaPlayBackReq.getStreamId());
         gatewayPlayBackReq.setStartTime(mediaPlayBackReq.getStartTime());
         gatewayPlayBackReq.setEndTime(mediaPlayBackReq.getEndTime());
+        businessMqInfo.setData(gatewayPlayBackReq);
         rabbitMqSender.sendMsgByExchange(mediaPlayBackReq.getGatewayMqExchange(), mediaPlayBackReq.getGatewayMqRouteKey(), UuidUtil.toUuid(),businessMqInfo,true);
 //消息链路的数据库记录
 //        GatewayTask gatewayTask = new GatewayTask();
