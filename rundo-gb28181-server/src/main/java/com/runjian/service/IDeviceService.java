@@ -59,7 +59,7 @@ public interface IDeviceService {
 
 
     /**
-     *
+     * 设备软删除
      * @param deviceId
      * @return
      */

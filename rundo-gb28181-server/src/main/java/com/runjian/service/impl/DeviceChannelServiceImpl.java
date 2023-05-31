@@ -122,6 +122,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
             }
         }
+        //从数据库中重新查找 过滤被删除的通道
 
         return true;
     }

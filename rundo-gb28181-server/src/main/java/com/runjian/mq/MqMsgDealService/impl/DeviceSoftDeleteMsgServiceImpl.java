@@ -22,7 +22,7 @@ public class DeviceSoftDeleteMsgServiceImpl implements InitializingBean, IMsgPro
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.CHANNEL_DELETE_HARD.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.DEVICE_DELETE_SOFT.getTypeName(),this);
     }
 
     @Override
@@ -32,7 +32,7 @@ public class DeviceSoftDeleteMsgServiceImpl implements InitializingBean, IMsgPro
         JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
         //设备信息同步  获取设备信息
         String deviceId = dataJson.getString("deviceId");
-        deviceService.deviceDelete(deviceId, commonMqDto.getMsgId());
+        deviceService.deviceSoftDelete(deviceId, commonMqDto.getMsgId());
     }
 
 
