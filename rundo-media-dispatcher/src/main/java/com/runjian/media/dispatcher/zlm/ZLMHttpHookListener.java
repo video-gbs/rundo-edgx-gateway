@@ -310,7 +310,7 @@ public class ZLMHttpHookListener {
 		ret.put("code", 0);
 		//是否关闭推拉流 交给上层业务判断
 		Boolean aBoolean = mediaPlayService.onStreamNoneReader(app, streamId);
-		ret.put("close", aBoolean);
+		ret.put("close", false);
 
 		return ret;
 	}
