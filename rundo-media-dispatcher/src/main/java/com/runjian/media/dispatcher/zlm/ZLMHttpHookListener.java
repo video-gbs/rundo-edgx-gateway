@@ -182,7 +182,7 @@ public class ZLMHttpHookListener {
 		String mediaServerId = json.getString("mediaServerId");
 		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 		String app = json.getString("app");
-		String streamId = json.getString("stream");
+		String streamId = json.getString("stream").trim();
 		ret.put("code", -1);
 		ret.put("msg", "error");
 		ret.put("enable_hls", true);
