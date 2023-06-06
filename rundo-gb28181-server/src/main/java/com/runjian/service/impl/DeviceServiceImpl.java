@@ -253,7 +253,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息删除请求,加锁失败，合并全局的请求",msgId);
                 return;
             }
-            Device deviceDto = deviceMapper.getDeviceByDeviceId(deviceId);
+            Device deviceDto = getDevice(deviceId);
             if(ObjectUtils.isEmpty(deviceDto)){
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE,BusinessErrorEnums.SUCCESS,true);
                 return ;
@@ -291,7 +291,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息删除请求,加锁失败，合并全局的请求",msgId);
                 return;
             }
-            Device deviceDto = deviceMapper.getDeviceByDeviceId(deviceId);
+            Device deviceDto = getDevice(deviceId);
             if(ObjectUtils.isEmpty(deviceDto)){
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_SOFT,BusinessErrorEnums.SUCCESS,true);
                 return ;
