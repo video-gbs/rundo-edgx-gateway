@@ -118,6 +118,9 @@ public enum BusinessErrorEnums {
 
     DB_CHANNEL_NOT_FOUND(500,232014,"通道数据查找失败"),
 
+    //sdk操作失败
+    SDK_OPERATION_FAILURE(500,232015,"网关操作失败,自定义errorCode--"),
+
 
     PTZ_OPERATION_TYPE_NOT_FOUND(500,232015,"ptz操作信息不存在"),
 
@@ -128,8 +131,10 @@ public enum BusinessErrorEnums {
     MEDIA_SERVER_COLLECT_ERROR(500,23302,"流媒体调用服务连接失败"),
     MEDIA_ZLM_RTPSERVER_CREATE_ERROR(500,23303,"流媒体ZLM推流端口创建失败"),
     MEDIA_SERVER_BIND_ERROR(500,23304,"流媒体服务暂未绑定网关"),
+    MEDIA_SERVER_BUSINESS_ERROR(500,23305,"流媒体服务请求业务失败"),
     MEDIA_SERVER_PAUSE_ERROR(500,23305,"流媒体服务暂停失败"),
     MEDIA_SERVER_RESUME_ERROR(500,23306,"流媒体服务恢复失败"),
+    MEDIA_SERVER_SOCKET_ERROR(500,23307,"流媒体服务socket连接失败"),
 
 
     /**************************** 对外api类型异常,PREFIX:模块名 CODE:3xxxx ****************************/

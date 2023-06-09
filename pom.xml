@@ -20,6 +20,8 @@
         <module>rundo-gb28181-server</module>
         <module>rundo-utils-timer</module>
         <module>rundo-media-dispatcher</module>
+        <module>rundo-hik-sdk-server</module>
+        <module>rundo-media-manager</module>
     </modules>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>

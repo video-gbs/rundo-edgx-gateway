@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: rundo-media-manager
+  profiles:
+    active: ${PROFILES_ACTIVE:local}

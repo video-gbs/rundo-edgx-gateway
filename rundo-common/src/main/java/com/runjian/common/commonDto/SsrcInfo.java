@@ -13,6 +13,7 @@ public class SsrcInfo {
     private String sdpIp;
     private String streamId;
     private String mediaServerId;
+    private String ip;
 
     public SsrcInfo(){}
     public SsrcInfo(int port, String ssrc, String streamId,String mediaServerId) {

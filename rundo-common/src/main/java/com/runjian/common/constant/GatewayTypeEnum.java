@@ -15,6 +15,7 @@ import lombok.ToString;
 public enum GatewayTypeEnum {
     //    国标协议
     OTHER("OTHER"),
+    HIK_SDK("HIK_SDK"),
 
 
 
