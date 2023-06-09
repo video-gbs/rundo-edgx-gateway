@@ -12,6 +12,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -430,6 +431,52 @@ public class RestTemplateUtil {
                 httpHeaders.setAll(headers);
             }
             HttpEntity<Object> httpEntity = new HttpEntity<>(httpHeaders);
+            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
+            long endTime = System.currentTimeMillis();
+            log.info("post-string, 请求地址={}, 耗时={} ms, 响应信息={}", url,
+                    (endTime - startTime), responseEntity.getBody());
+            if (responseEntity.getStatusCodeValue() == HttpStatus.OK.value()) {
+                return responseEntity.getBody();
+            }
+        } catch (Exception e) {
+            log.error("post-string error, 请求地址={}, 耗时={} ms, 失败信息={}", url,
+                    (System.currentTimeMillis() - startTime), e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * get请求带请求头
+     *
+     * @param url          请求地址
+     * @param headers      请求头参数
+     * @param restTemplate
+     * @return
+     */
+    public static String getWithParams(String url, Map<String, String> headers,Map<String, String> reqParam, RestTemplate restTemplate) {
+        if (ObjectUtils.isEmpty(url)) {
+            return null;
+        }
+        long startTime = System.currentTimeMillis();
+
+        try {
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+            if (!CollectionUtils.isEmpty(headers)) {
+                httpHeaders.setAll(headers);
+            }
+            HttpEntity<Object> httpEntity = new HttpEntity<>(httpHeaders);
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+            //如果存在參數
+            if(!reqParam.isEmpty()){
+                for (Map.Entry<String,String> e: reqParam.entrySet()) {
+                    //构建查询参数
+                    builder.queryParam(e.getKey(),e.getValue());
+                }
+                //拼接好参数后的URl//test.com/url?param1={param1}&param2={param2};
+                url=builder.build().toString();
+            }
+
             ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
             long endTime = System.currentTimeMillis();
             log.info("post-string, 请求地址={}, 耗时={} ms, 响应信息={}", url,

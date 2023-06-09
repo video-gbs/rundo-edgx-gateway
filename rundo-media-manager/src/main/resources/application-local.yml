@@ -134,9 +134,18 @@ media:
 mediaApi:
     getServerConfig: /index/api/getServerConfig
     setServerConfig: /index/api/setServerConfig
+    #源流列表
     getMediaList: /index/api/getMediaList
-    isMediaOnline: /index/api/isMediaOnline
-    getMediaInfo: /index/api/getMediaInfo
+    ##分发列表
+    getDispatchList: /index/api/getDispatchList
+    openSDKServer: /index/api/openSDKServer
+    closeSDKServer: /index/api/closeSDKServer
+    openRtpServer: /index/api/openRtpServer
+    closeRtpServer: /index/api/openRtpServer
+    #创建国标发送端口
+    startSendRtp: /index/api/startSendRtp
+    #关闭国标发送端口
+    stopSendRtp: /index/api/stopSendRtp
     TokenHeader: secret
 
 # [可选] 日志配置, 一般不需要改
