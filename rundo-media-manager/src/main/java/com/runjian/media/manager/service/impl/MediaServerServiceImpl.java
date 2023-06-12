@@ -7,12 +7,14 @@ import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.media.manager.conf.MediaConfig;
+import com.runjian.media.manager.dto.dto.MediaServerConfigDto;
 import com.runjian.media.manager.dto.entity.MediaServerEntity;
 import com.runjian.media.manager.mapper.MediaServerMapper;
 import com.runjian.media.manager.service.IMediaRestfulApiService;
 import com.runjian.media.manager.service.IMediaServerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -34,6 +36,10 @@ public class MediaServerServiceImpl extends ServiceImpl<MediaServerMapper, Media
 
     @Autowired
     IMediaRestfulApiService iMediaRestfulApiService;
+
+
+    @Value("${server.port}")
+    private Integer serverPort;
 
     @Override
     public void initMeidiaServer() {
@@ -97,13 +103,30 @@ public class MediaServerServiceImpl extends ServiceImpl<MediaServerMapper, Media
     @Override
     public void mediaServerOnline(MediaServerEntity mediaServerEntity,MediaServerEntity mediaServerConfigApi) {
         mediaServerEntity.setOnline(1);
-
-
-
+        String protocol = mediaServerEntity.getEnableHttps() != 0 ? "https" : "http";
+        String hookPrex = String.format("%s://%s:%s/index/hook", protocol, mediaServerEntity.getHookIp(), serverPort);
+        //进行配置文件设置
+        MediaServerConfigDto mediaServerConfigDto = new MediaServerConfigDto();
+        BeanUtil.copyProperties(mediaServerConfigApi,mediaServerConfigDto);
+        mediaServerConfigDto.setHttpIp(mediaServerEntity.getIp());
+        mediaServerConfigDto.setHttpPort(mediaServerEntity.getHttpPort());
+        mediaServerConfigDto.setSchedulerIp(mediaServerEntity.getHookIp());
+        mediaServerConfigDto.setSchedulerPort(serverPort);
+        mediaServerConfigDto.setMediaServerId(mediaServerEntity.getId());
+        mediaServerConfigDto.setMsgPushEnable(1);
+        mediaServerConfigDto.setRegisterMediaNode(String.format("%s/registerMediaNode", hookPrex));
+        mediaServerConfigDto.setUnregisterMediaNode(String.format("%s/unregisterMediaNode", hookPrex));
+        mediaServerConfigDto.setStreamNoneReader(String.format("%s/streamNoneReader", hookPrex));
+        mediaServerConfigDto.setStreamArrive(String.format("%s/streamArrive", hookPrex));
+        mediaServerConfigDto.setStreamArrive(String.format("%s/streamArrive", hookPrex));
+        mediaServerConfigDto.setOnStreamDisconnect(String.format("%s/onStreamDisconnect", hookPrex));
+        mediaServerConfigDto.setServerKeepalive(String.format("%s/serverKeepalive", hookPrex));
+        mediaServerConfigDto.setOnStreamNotFound(String.format("%s/onStreamNotFound", hookPrex));
+        mediaServerConfigDto.setOnPublish(String.format("%s/onPublish", hookPrex));
+        mediaServerConfigDto.setRtpPortRange(mediaServerEntity.getRtpPortRange());
+        Boolean aBoolean = iMediaRestfulApiService.setMediaServerConfigApi(mediaServerConfigDto, mediaServerEntity);
+        log.warn(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务设置","设置结果为:",aBoolean);
         mediaServerMapper.updateById(mediaServerEntity);
-
-        //设置流媒体的信息
-
     }
 
     @Override

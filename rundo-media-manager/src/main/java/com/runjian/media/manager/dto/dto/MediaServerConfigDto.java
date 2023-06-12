@@ -15,14 +15,20 @@ public class MediaServerConfigDto {
     private Integer schedulerPort;
     private String mediaServerId;
     private Integer msgPushEnable;
-    private String serverStarted;
+
+    private String registerMediaNode;
+    private String unregisterMediaNode;
     private String serverKeepalive;
     private String streamChanged;
     private String streamNoneReader;
+    private String streamArrive;
+    private String onStreamDisconnect;
+    private String onStreamNotFound;
+    private String onPublish;
     private Integer httpPort;
     private String httpIp;
     private String rtpPortRange;
-    private Integer keepAliveTTL;
-    
+    private String sdkPortRange;
+
 
 }

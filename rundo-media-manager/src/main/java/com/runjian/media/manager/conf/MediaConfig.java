@@ -78,8 +78,6 @@ public class MediaConfig {
     @Value("${media.rtp.send-port-range}")
     private String sendRtpPortRange;
 
-    @Value("${media.record-assist-port:0}")
-    private Integer recordAssistPort = 0;
 
 
     public String getSdpIp() {
@@ -133,7 +131,6 @@ public class MediaConfig {
         mediaServerItem.setRtpEnable(rtpEnable);
         mediaServerItem.setRtpPortRange(rtpPortRange);
         mediaServerItem.setSendRtpPortRange(sendRtpPortRange);
-        mediaServerItem.setHookAliveInterval(120);
 
         return mediaServerItem;
     }

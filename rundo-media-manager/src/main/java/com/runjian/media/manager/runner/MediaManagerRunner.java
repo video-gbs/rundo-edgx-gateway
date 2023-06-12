@@ -34,5 +34,6 @@ public class MediaManagerRunner implements CommandLineRunner {
         //发送注册
         dispatcherInfoService.sendRegisterInfo();
         //进行流媒体注册
+        mediaServerService.initMeidiaServer();
     }
 }

@@ -1,12 +1,14 @@
 package com.runjian.media.manager.dto.entity;
 
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 /**
  * @author chenjialing
  */
 @Data
+@TableName("rundo_media_server")
 public class MediaServerEntity {
 
     /**
@@ -74,10 +76,7 @@ public class MediaServerEntity {
      *    @Schema(description = "ZLM鉴权参数")
      */
     private String secret;
-    /**
-     *    @Schema(description = "keepalive hook触发间隔,单位秒")
-     */
-    private int hookAliveInterval;
+
 
     /**
      *    @Schema(description = "是否使用多端口模式")
@@ -107,12 +106,12 @@ public class MediaServerEntity {
     /**
      *    @Schema(description = "创建时间")
      */
-    private String createAt;
+    private String createdAt;
 
     /**
      *    @Schema(description = "更新时间")
      */
-    private String updateAt;
+    private String updatedAt;
 
 
 

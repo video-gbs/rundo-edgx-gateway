@@ -22,7 +22,6 @@ public interface IMediaServerService extends IService<MediaServerEntity> {
     /**
      * 在线
      * @param mediaServerEntity
-     * @param mediaServerConfigApi
      */
     void mediaServerOnline(MediaServerEntity mediaServerEntity,MediaServerEntity mediaServerConfigApi);
 
