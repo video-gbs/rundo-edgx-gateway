@@ -453,7 +453,7 @@ public class RestTemplateUtil {
      * @param restTemplate
      * @return
      */
-    public static String getWithParams(String url, Map<String, String> headers,Map<String, String> reqParam, RestTemplate restTemplate) {
+    public static String getWithParams(String url, Map<String, String> headers,Map<String, Object> reqParam, RestTemplate restTemplate) {
         if (ObjectUtils.isEmpty(url)) {
             return null;
         }
@@ -469,7 +469,7 @@ public class RestTemplateUtil {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
             //如果存在參數
             if(!reqParam.isEmpty()){
-                for (Map.Entry<String,String> e: reqParam.entrySet()) {
+                for (Map.Entry<String,Object> e: reqParam.entrySet()) {
                     //构建查询参数
                     builder.queryParam(e.getKey(),e.getValue());
                 }

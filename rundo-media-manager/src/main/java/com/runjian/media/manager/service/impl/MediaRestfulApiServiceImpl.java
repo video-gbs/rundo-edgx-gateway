@@ -9,6 +9,10 @@ import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.RestTemplateUtil;
 import com.runjian.media.manager.dto.dto.MediaServerConfigDto;
 import com.runjian.media.manager.dto.entity.MediaServerEntity;
+import com.runjian.media.manager.dto.req.CreateServerReq;
+import com.runjian.media.manager.dto.req.Gb28181ServerReq;
+import com.runjian.media.manager.dto.resp.CreateServerPortRsp;
+import com.runjian.media.manager.dto.resp.MediaDispatchInfoRsp;
 import com.runjian.media.manager.dto.resp.MediaPlayInfoRsp;
 import com.runjian.media.manager.service.IMediaRestfulApiService;
 import lombok.extern.slf4j.Slf4j;
@@ -75,12 +79,13 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
         String result = RestTemplateUtil.get(url, makeTokenHeader(mediaServerEntity.getSecret()), restTemplate);
         if (ObjectUtils.isEmpty(result)) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",result);
-            return null;
+
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
         }
         CommonResponse commonResponse = JSONObject.parseObject(result, CommonResponse.class);
         if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
-            return null;
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
         }
         return JSONObject.parseObject(JSON.toJSONString(commonResponse.getData()), MediaServerEntity.class);
 
@@ -93,7 +98,13 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
         String result = RestTemplateUtil.postString(url, JSON.toJSONString(mediaServerConfigDto),makeTokenHeader(mediaServerEntity.getSecret()), restTemplate);
         if (ObjectUtils.isEmpty(result)) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",result);
-            return false;
+
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
+        }
+        CommonResponse commonResponse = JSONObject.parseObject(result, CommonResponse.class);
+        if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
         }
         return true;
     }
@@ -102,7 +113,33 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
     public List<MediaPlayInfoRsp> getMediaList(String app, String streamId,MediaServerEntity mediaServerEntity) {
         String url = String.format("http://%s:%s%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), getMediaListApi);
 
-        HashMap<String, String> stringStringHashMap = new HashMap<>();
+        HashMap<String, Object> stringStringHashMap = new HashMap<>();
+        if(!ObjectUtils.isEmpty(app)){
+            stringStringHashMap.put("app",app);
+        }
+        if(!ObjectUtils.isEmpty(streamId)){
+            stringStringHashMap.put("streamId",streamId);
+        }
+
+        String result = RestTemplateUtil.getWithParams(url,makeTokenHeader(mediaServerEntity.getSecret()), stringStringHashMap,restTemplate);
+        if (ObjectUtils.isEmpty(result)) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",result);
+
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
+        }
+        CommonResponse<List<MediaPlayInfoRsp>> commonResponse = (CommonResponse<List<MediaPlayInfoRsp>>)JSONObject.parseObject(result, CommonResponse.class);
+        if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
+        }
+        return commonResponse.getData();
+    }
+
+    @Override
+    public List<MediaDispatchInfoRsp> getDispatchList(String app, String streamId, MediaServerEntity mediaServerEntity) {
+        String url = String.format("http://%s:%s%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), getDispatchListApi);
+
+        HashMap<String, Object> stringStringHashMap = new HashMap<>();
         if(!ObjectUtils.isEmpty(app)){
             stringStringHashMap.put("app",app);
         }
@@ -113,14 +150,90 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
         String result = RestTemplateUtil.getWithParams(url, makeTokenHeader(mediaServerEntity.getSecret()), stringStringHashMap,restTemplate);
         if (ObjectUtils.isEmpty(result)) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",result);
-            return null;
+
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
         }
-        CommonResponse<List<MediaPlayInfoRsp>> commonResponse = (CommonResponse<List<MediaPlayInfoRsp>>)JSONObject.parseObject(result, CommonResponse.class);
+        CommonResponse<List<MediaDispatchInfoRsp>> commonResponse = (CommonResponse<List<MediaDispatchInfoRsp>>)JSONObject.parseObject(result, CommonResponse.class);
         if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
-            return null;
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
         }
         return commonResponse.getData();
+    }
+
+    @Override
+    public CreateServerPortRsp openSDKServer(CreateServerReq createServerReq, MediaServerEntity mediaServerEntity) {
+        String url = String.format("http://%s:%s%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), openSdkServerApi);
+        HashMap<String, Object> stringStringHashMap = new HashMap<>();
+        stringStringHashMap.put("app",createServerReq.getApp());
+        stringStringHashMap.put("streamId",createServerReq.getStreamId());
+        stringStringHashMap.put("port",createServerReq.getPort());
+        stringStringHashMap.put("enableTcp",createServerReq.getEnableTcp());
+        stringStringHashMap.put("enableMp4",createServerReq.getEnableMp4());
+
+
+        String result = RestTemplateUtil.getWithParams(url, makeTokenHeader(mediaServerEntity.getSecret()),stringStringHashMap, restTemplate);
+        if (ObjectUtils.isEmpty(result)) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",result);
+
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
+        }
+        CommonResponse<CreateServerPortRsp> commonResponse = (CommonResponse<CreateServerPortRsp>)JSONObject.parseObject(result, CommonResponse.class);
+        if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
+        }
+        return commonResponse.getData();
+    }
+
+    @Override
+    public Boolean closeSDKServer(String key, MediaServerEntity mediaServerEntity) {
+        String url = String.format("http://%s:%s%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), closeSdkServerApi);
+        HashMap<String, Object> stringStringHashMap = new HashMap<>();
+        stringStringHashMap.put("key",key);
+
+        String result = RestTemplateUtil.getWithParams(url, makeTokenHeader(mediaServerEntity.getSecret()),stringStringHashMap, restTemplate);
+        if (ObjectUtils.isEmpty(result)) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",result);
+
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
+        }
+        CommonResponse<Boolean> commonResponse = (CommonResponse<Boolean>)JSONObject.parseObject(result, CommonResponse.class);
+        if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
+        }
+        return commonResponse.getData();
+    }
+
+    @Override
+    public CreateServerPortRsp openRtpServer(Gb28181ServerReq gb28181ServerReq, MediaServerEntity mediaServerEntity) {
+        String url = String.format("http://%s:%s%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), openSdkServerApi);
+        HashMap<String, Object> stringStringHashMap = new HashMap<>();
+        stringStringHashMap.put("app",gb28181ServerReq.getApp());
+        stringStringHashMap.put("streamId",gb28181ServerReq.getStreamId());
+        stringStringHashMap.put("port",gb28181ServerReq.getPort());
+        stringStringHashMap.put("enableTcp",gb28181ServerReq.getEnableTcp());
+        stringStringHashMap.put("enableMp4",gb28181ServerReq.getEnableMp4());
+
+
+        String result = RestTemplateUtil.getWithParams(url, makeTokenHeader(mediaServerEntity.getSecret()),stringStringHashMap, restTemplate);
+        if (ObjectUtils.isEmpty(result)) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",result);
+
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
+        }
+        CommonResponse<CreateServerPortRsp> commonResponse = (CommonResponse<CreateServerPortRsp>)JSONObject.parseObject(result, CommonResponse.class);
+        if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
+        }
+        return commonResponse.getData();
+    }
+
+    @Override
+    public Boolean closeRtpServer(String key, MediaServerEntity mediaServerEntity) {
+        return null;
     }
 
     public Map<String, String> makeTokenHeader(String secret) {

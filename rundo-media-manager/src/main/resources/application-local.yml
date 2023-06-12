@@ -9,7 +9,7 @@ spring:
         # [可选] 数据库 DB
         database: 1
         # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
-        password:
+        password: rundoredis
         # [可选] 超时时间
         timeout: 10000
         # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
@@ -101,12 +101,12 @@ media:
     # [必须修改] zlm服务器唯一id，用于触发hook时区别是哪台服务器,general.mediaServerId
     id: LORVY158beilorvy
     # [必须修改] zlm服务器的内网IP
-    ip: 192.168.0.132
+    ip: 192.192.192.9
 
     # [可选] 返回流地址时的ip，置空使用 media.ip
-    stream-ip: 192.168.0.132
+    stream-ip: 192.192.192.9
     # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
-    sdp-ip: 192.168.0.132
+    sdp-ip: 192.192.192.9
     # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
     hook-ip: 192.168.0.73
     # [必须修改] zlm服务器的http.port

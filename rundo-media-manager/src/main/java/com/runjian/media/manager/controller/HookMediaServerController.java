@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.media.manager.dto.dto.MediaServerConfigDto;
+import com.runjian.media.manager.dto.dto.hook.StreamChangeDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,6 +49,30 @@ public class HookMediaServerController {
      */
     @PostMapping(value = "/unregisterMediaNode",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> unregisterMediaNode(@RequestBody MediaServerConfigDto req){
+        log.info("请求={}",req);
+        return CommonResponse.success();
+    }
+
+    @PostMapping(value = "/onStreamArrive",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<Boolean> onStreamArrive(@RequestBody StreamChangeDto req){
+        log.info("请求={}",req);
+        return CommonResponse.success();
+    }
+
+    @PostMapping(value = "/onStreamDisconnect",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<Boolean> onStreamDisconnect(@RequestBody StreamChangeDto req){
+        log.info("请求={}",req);
+        return CommonResponse.success();
+    }
+
+    @PostMapping(value = "/onStreamNoneReader",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<Boolean> onStreamNoneReader(@RequestBody StreamChangeDto req){
+        log.info("请求={}",req);
+        return CommonResponse.success();
+    }
+
+    @PostMapping(value = "/onStreamNotFound",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<Boolean> onStreamNotFound(@RequestBody StreamChangeDto req){
         log.info("请求={}",req);
         return CommonResponse.success();
     }

@@ -18,6 +18,7 @@ public interface IMediaServerService extends IService<MediaServerEntity> {
      */
     void mediaServerOffline(MediaServerEntity mediaServerEntity);
 
+    MediaServerEntity getDefaultMediaServer();
     /**
      * 在线
      * @param mediaServerEntity

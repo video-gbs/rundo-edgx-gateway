@@ -8,27 +8,28 @@ import lombok.Data;
  * @author chenjialing
  */
 @Data
-public class MediaPlayInfoRsp {
+public class MediaDispatchInfoRsp {
 
-    /**
-     * 网关序列号
-     */
     private Integer key;;
-
     private String app;;
 
     private String streamId;
 
 
-    private Boolean recordMp4;
 
     private String sourceUrl;
 
     private String sourceType;
 
-    private Integer readerCount;
+    private Integer dispatchCount;
 
     private String videoCodec;
+
+    private String audioCodec;
+
+    private Integer audioChannels;
+
+    private Integer audioSampleRate;
 
     private Integer width;
 
@@ -36,16 +37,12 @@ public class MediaPlayInfoRsp {
 
     private Integer networkType;
 
+    private String dstUrl;
 
-    private String audioCodec;
-
-
-    private Integer audioChannels;
-
-    private Integer audioSampleRate;
+    private Integer dstPort;
 
 
-    private JSONObject url;
+
 
 
 

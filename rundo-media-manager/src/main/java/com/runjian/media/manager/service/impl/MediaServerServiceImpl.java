@@ -58,7 +58,7 @@ public class MediaServerServiceImpl extends ServiceImpl<MediaServerMapper, Media
         //
     }
 
-
+    @Override
     public MediaServerEntity getDefaultMediaServer(){
         LambdaQueryWrapper<MediaServerEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(MediaServerEntity::isDefaultServer,1);

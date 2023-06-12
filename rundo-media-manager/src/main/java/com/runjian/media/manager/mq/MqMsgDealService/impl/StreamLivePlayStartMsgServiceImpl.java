@@ -2,7 +2,7 @@ package com.runjian.media.manager.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayReq;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.StreamBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.media.manager.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.media.manager.mq.MqMsgDealService.IMsgProcessorService;
@@ -22,7 +22,7 @@ public class StreamLivePlayStartMsgServiceImpl implements InitializingBean, IMsg
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.STREAM_LIVE_PLAY_START.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(StreamBusinessMsgType.STREAM_LIVE_PLAY_START.getTypeName(),this);
     }
 
     @Override
