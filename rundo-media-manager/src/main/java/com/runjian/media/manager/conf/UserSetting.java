@@ -1,5 +1,6 @@
 package com.runjian.media.manager.conf;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -9,6 +10,7 @@ import java.util.List;
 /**
  * 配置文件 user-settings 映射的配置信息
  */
+@Data
 @Component
 @ConfigurationProperties(prefix = "user-settings", ignoreInvalidFields = true)
 public class UserSetting {
@@ -24,6 +26,12 @@ public class UserSetting {
      * 业务场景流程超时时间 单位秒
      */
     private Integer businessSceneTimeout = 5000;
+
+    /**
+     * 业务场景流程超时时间 单位秒
+     */
+    private Integer mediaServerKeepaliveInterval = 5000;
+
 
     private int platformPlayTimeout = 60000;
 

@@ -80,12 +80,12 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
         if (ObjectUtils.isEmpty(result)) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",result);
 
-            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
+            return null;
         }
         CommonResponse commonResponse = JSONObject.parseObject(result, CommonResponse.class);
         if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
-            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
+            return null;
         }
         return JSONObject.parseObject(JSON.toJSONString(commonResponse.getData()), MediaServerEntity.class);
 

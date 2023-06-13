@@ -203,3 +203,5 @@ user-settings:
     platform-play-timeout: 60000
     # 设备录像下载最大时间周期 30分钟
     device-download-time-cycle: 1800
+    # 流媒体心跳间隔 30s
+    media-server-keepalive-interval: 30
