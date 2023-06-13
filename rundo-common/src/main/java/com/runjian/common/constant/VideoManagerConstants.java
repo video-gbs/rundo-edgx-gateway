@@ -45,6 +45,13 @@ public class VideoManagerConstants {
 
 	/**zlm相关  end ****/
 
+	/***自研流媒体相关 start  ****/
+	public static final String SELF_MEDIA_SERVER_PREFIX = "SELF_MEDIA_SERVER:";
+
+
+	/***自研流媒体相关 end  ****/
+
+
 	/***ssrc缓存  start****/
 
 	public static final String SSRC_CACHE_KEY = "SSRC_CACHE_KEY_";

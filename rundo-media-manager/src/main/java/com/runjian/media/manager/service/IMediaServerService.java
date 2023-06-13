@@ -1,14 +1,12 @@
 package com.runjian.media.manager.service;
 
-import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.runjian.media.manager.dto.dto.MediaServerConfigDto;
 import com.runjian.media.manager.dto.entity.MediaServerEntity;
 
 /**
  * @author chenjialing
  */
-public interface IMediaServerService extends IService<MediaServerEntity> {
+public interface IMediaServerService {
     /**
      * 初始化流媒体
      */

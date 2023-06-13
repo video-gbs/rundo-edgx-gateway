@@ -31,26 +31,6 @@
             <artifactId>rundo-common</artifactId>
         </dependency>
 
-        <!-- druid数据库连接池 -->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>druid-spring-boot-starter</artifactId>
-            <version>1.2.11</version>
-        </dependency>
-
-        <!-- mysql数据库 -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.30</version>
-        </dependency>
-
-        <!--Mybatis-plus -->
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
-            <version>3.5.2</version>
-        </dependency>
 
         <!--参数校验 -->
         <dependency>

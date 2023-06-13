@@ -41,7 +41,7 @@ public class HookMediaServerController {
      * @param req
      * @return
      */
-    @PostMapping(value = "/updateKeepalive",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/onServerKeepalive",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> updateKeepalive(@RequestBody KeepaliveServerDto req){//获取zlm流媒体配置
         mediaServerService.updateMediaServerKeepalive(req.getMediaServerId());
         return CommonResponse.success();

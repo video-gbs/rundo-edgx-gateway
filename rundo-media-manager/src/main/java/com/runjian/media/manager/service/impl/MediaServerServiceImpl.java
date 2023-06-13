@@ -1,11 +1,6 @@
 package com.runjian.media.manager.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.runjian.common.config.exception.BusinessErrorEnums;
-import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.media.manager.conf.DynamicTask;
 import com.runjian.media.manager.conf.MediaConfig;
@@ -13,9 +8,9 @@ import com.runjian.media.manager.conf.UserSetting;
 import com.runjian.media.manager.dto.dto.MediaServerConfigDto;
 import com.runjian.media.manager.dto.entity.MediaServerEntity;
 import com.runjian.media.manager.event.MediaEventPublisher;
-import com.runjian.media.manager.mapper.MediaServerMapper;
 import com.runjian.media.manager.service.IMediaRestfulApiService;
 import com.runjian.media.manager.service.IMediaServerService;
+import com.runjian.media.manager.storager.MediaServerRedisStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,13 +25,10 @@ import java.util.List;
  */
 @Service
 @Slf4j
-public class MediaServerServiceImpl extends ServiceImpl<MediaServerMapper, MediaServerEntity> implements IMediaServerService {
+public class MediaServerServiceImpl  implements IMediaServerService {
 
     @Autowired
     MediaConfig mediaConfig;
-
-    @Autowired
-    MediaServerMapper mediaServerMapper;
 
     @Autowired
     IMediaRestfulApiService iMediaRestfulApiService;
@@ -53,6 +45,9 @@ public class MediaServerServiceImpl extends ServiceImpl<MediaServerMapper, Media
     @Autowired
     private UserSetting userSetting;
 
+    @Autowired
+    MediaServerRedisStorage mediaServerRedisStorage;
+
     private final String mediaKeepaliveKeyPrefix = "media-keepalive-";
 
     @Override
@@ -62,13 +57,11 @@ public class MediaServerServiceImpl extends ServiceImpl<MediaServerMapper, Media
         MediaServerEntity mediaSerConfig = mediaConfig.getMediaSerConfig();
 
         if(ObjectUtils.isEmpty(defaultMediaServer)){
-            mediaServerMapper.insert(mediaSerConfig);
+            mediaServerRedisStorage.update(mediaSerConfig);
         }else {
             //修改默认节点数据
             BeanUtil.copyProperties(mediaSerConfig,defaultMediaServer);
-            LambdaQueryWrapper<MediaServerEntity> updateWrapper = new LambdaQueryWrapper<>();
-            updateWrapper.eq(MediaServerEntity::isDefaultServer,1);
-            mediaServerMapper.update(defaultMediaServer,updateWrapper);
+            mediaServerRedisStorage.update(defaultMediaServer);
         }
         //进行流媒体的连接
         List<MediaServerEntity> allMediaServer = getAllMediaServer();
@@ -80,15 +73,12 @@ public class MediaServerServiceImpl extends ServiceImpl<MediaServerMapper, Media
 
     @Override
     public MediaServerEntity getDefaultMediaServer(){
-        LambdaQueryWrapper<MediaServerEntity> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MediaServerEntity::isDefaultServer,1);
-        queryWrapper.last("limit 1");
-        return mediaServerMapper.selectOne(queryWrapper);
+        return mediaServerRedisStorage.getDefaultMediaServer();
 
     }
 
     public List<MediaServerEntity> getAllMediaServer(){
-        return mediaServerMapper.selectList(null);
+        return mediaServerRedisStorage.selectAllMediaserver();
 
     }
 
@@ -111,8 +101,7 @@ public class MediaServerServiceImpl extends ServiceImpl<MediaServerMapper, Media
     @Override
     public void mediaServerOffline(MediaServerEntity mediaServerEntity) {
         mediaServerEntity.setOnline(0);
-
-        mediaServerMapper.updateById(mediaServerEntity);
+        mediaServerRedisStorage.update(mediaServerEntity);
     }
 
     @Override
@@ -141,7 +130,7 @@ public class MediaServerServiceImpl extends ServiceImpl<MediaServerMapper, Media
         mediaServerConfigDto.setRtpPortRange(mediaServerEntity.getRtpPortRange());
         Boolean aBoolean = iMediaRestfulApiService.setMediaServerConfigApi(mediaServerConfigDto, mediaServerEntity);
         log.warn(LogTemplate.PROCESS_LOG_TEMPLATE,"流媒体服务设置，设置结果为:",aBoolean);
-        mediaServerMapper.updateById(mediaServerEntity);
+        mediaServerRedisStorage.update(mediaServerEntity);
         //监听事件进行流媒体上线业务处理
         mediaEventPublisher.meidiaOnlineEventPublish(mediaServerEntity);
     }
@@ -192,7 +181,7 @@ public class MediaServerServiceImpl extends ServiceImpl<MediaServerMapper, Media
 
     @Override
     public MediaServerEntity getOneMediaServer(String mediaServerId) {
-        return mediaServerMapper.selectById(mediaServerId);
+        return mediaServerRedisStorage.selectByMediaServerId(mediaServerId);
     }
 
     @Override

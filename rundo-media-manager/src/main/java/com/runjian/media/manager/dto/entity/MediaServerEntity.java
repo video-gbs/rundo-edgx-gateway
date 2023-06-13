@@ -1,14 +1,12 @@
 package com.runjian.media.manager.dto.entity;
 
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 /**
  * @author chenjialing
  */
 @Data
-@TableName("rundo_media_server")
 public class MediaServerEntity {
 
     /**
