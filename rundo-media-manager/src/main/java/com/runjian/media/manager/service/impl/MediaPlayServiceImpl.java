@@ -13,6 +13,7 @@ import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.common.config.response.StreamBusinessSceneResp;
 import com.runjian.common.constant.BusinessSceneConstants;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
@@ -69,13 +70,13 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
     public void streamNotifyServer(GatewayStreamNotify gatewayStreamNotify) {
 
     }
+
     @Async("taskExecutor")
     @Override
-    public void playBusinessErrorScene(String businessKey, BusinessSceneResp businessSceneResp) {
+    public void playBusinessErrorScene(StreamBusinessSceneResp businessSceneResp ) {
         //点播相关的key的组合条件
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "点播失败，异常处理流程", businessSceneResp);
-        //处理sip交互成功，但是流注册未返回的情况
-        String streamId = businessKey.substring(businessKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY)+1);
+        String businessSceneKey = businessSceneResp.getBusinessSceneKey();
 
 
     }

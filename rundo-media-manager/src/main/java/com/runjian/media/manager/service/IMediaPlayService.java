@@ -5,6 +5,7 @@ import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayBackReq;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayReq;
 import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.common.config.response.StreamBusinessSceneResp;
 
 /**
  * 点播处理
@@ -36,6 +37,6 @@ public interface IMediaPlayService {
      * @param businessKey
      * @param businessSceneResp
      */
-    public void playBusinessErrorScene(String businessKey, BusinessSceneResp businessSceneResp);
+    public void playBusinessErrorScene(StreamBusinessSceneResp businessSceneResp );
 
 }
