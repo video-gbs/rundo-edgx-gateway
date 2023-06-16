@@ -127,7 +127,7 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
 
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
         }
-        CommonResponse<List<MediaPlayInfoRsp>> commonResponse = (CommonResponse<List<MediaPlayInfoRsp>>)JSONObject.parseObject(result, CommonResponse.class);
+        CommonResponse<List<MediaPlayInfoRsp>> commonResponse = JSONObject.parseObject(result, CommonResponse.class);
         if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
@@ -153,12 +153,12 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
 
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
         }
-        CommonResponse<List<MediaDispatchInfoRsp>> commonResponse = (CommonResponse<List<MediaDispatchInfoRsp>>)JSONObject.parseObject(result, CommonResponse.class);
+        CommonResponse<List<MediaDispatchInfoRsp>> commonResponse = JSONObject.parseObject(result, CommonResponse.class);
         if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
         }
-        return commonResponse.getData();
+        return  commonResponse.getData();
     }
 
     @Override
@@ -178,12 +178,12 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
 
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
         }
-        CommonResponse<CreateServerPortRsp> commonResponse = (CommonResponse<CreateServerPortRsp>)JSONObject.parseObject(result, CommonResponse.class);
+        CommonResponse commonResponse = JSONObject.parseObject(result, CommonResponse.class);
         if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
         }
-        return commonResponse.getData();
+        return JSONObject.toJavaObject((JSONObject)commonResponse.getData(),CreateServerPortRsp.class);
     }
 
     @Override
@@ -198,7 +198,7 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
 
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
         }
-        CommonResponse<Boolean> commonResponse = (CommonResponse<Boolean>)JSONObject.parseObject(result, CommonResponse.class);
+        CommonResponse<Boolean> commonResponse = JSONObject.parseObject(result, CommonResponse.class);
         if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
@@ -208,13 +208,14 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
 
     @Override
     public CreateServerPortRsp openRtpServer(Gb28181ServerReq gb28181ServerReq, MediaServerEntity mediaServerEntity) {
-        String url = String.format("http://%s:%s%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), openSdkServerApi);
+        String url = String.format("http://%s:%s%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), openRtpServerApi);
         HashMap<String, Object> stringStringHashMap = new HashMap<>();
         stringStringHashMap.put("app",gb28181ServerReq.getApp());
         stringStringHashMap.put("streamId",gb28181ServerReq.getStreamId());
         stringStringHashMap.put("port",gb28181ServerReq.getPort());
         stringStringHashMap.put("enableTcp",gb28181ServerReq.getEnableTcp());
         stringStringHashMap.put("enableMp4",gb28181ServerReq.getEnableMp4());
+        stringStringHashMap.put("payload",96);
 
 
         String result = RestTemplateUtil.getWithParams(url, makeTokenHeader(mediaServerEntity.getSecret()),stringStringHashMap, restTemplate);
@@ -223,12 +224,12 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
 
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
         }
-        CommonResponse<CreateServerPortRsp> commonResponse = (CommonResponse<CreateServerPortRsp>)JSONObject.parseObject(result, CommonResponse.class);
+        CommonResponse commonResponse = JSONObject.parseObject(result, CommonResponse.class);
         if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
         }
-        return commonResponse.getData();
+        return JSONObject.toJavaObject((JSONObject)commonResponse.getData(),CreateServerPortRsp.class);
     }
 
     @Override

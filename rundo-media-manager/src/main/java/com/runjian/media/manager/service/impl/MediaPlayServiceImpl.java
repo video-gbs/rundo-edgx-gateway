@@ -229,7 +229,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         });
         Gb28181ServerReq gb28181ServerReq = new Gb28181ServerReq();
         gb28181ServerReq.setPayload(96);
-        gb28181ServerReq.setApp(VideoManagerConstants.GB28181_APP);
+        gb28181ServerReq.setApp(VideoManagerConstants.GB28181_SELF_APP);
         gb28181ServerReq.setStreamId(streamId);
         gb28181ServerReq.setEnableTcp(1);
         gb28181ServerReq.setEnableMp4(0);
