@@ -44,18 +44,5 @@ public class MediaManagerRunner implements CommandLineRunner {
         dispatcherInfoService.sendRegisterInfo();
         //进行流媒体注册
         mediaServerService.initMeidiaServer();
-
-        Map<String, String> map1 = new HashMap<>();
-        map1.put("orderId", "100");
-        map1.put("remark", "其他信息");
-
-        Map<String, String> map2 = new HashMap<>();
-        map2.put("orderId", "200");
-        map2.put("remark", "其他信息");
-
-
-        Boolean test = redisCatchStorageService.addBusinessSceneKey(StreamBusinessMsgType.STREAM_MEDIA_INFO.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+ "test", StreamBusinessMsgType.STREAM_MEDIA_INFO, "1");
-//        redisCatchStorageService.editBusinessSceneKey("test", BusinessErrorEnums.SUCCESS,null);
-
     }
 }

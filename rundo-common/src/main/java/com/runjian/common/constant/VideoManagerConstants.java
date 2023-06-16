@@ -88,4 +88,8 @@ public class VideoManagerConstants {
 	 * 录像播放目标播放时间
 	 */
 	public static final String RECORD_TARGET_TIME = "targetTime";
+
+	/***************************流相关****************************/
+	public static final String SELF_STREAMS_ONLINE = "SELF_STREAMS_ONLINE:";
+
 }

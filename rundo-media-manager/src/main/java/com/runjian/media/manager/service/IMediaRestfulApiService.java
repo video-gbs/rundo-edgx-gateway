@@ -79,6 +79,6 @@ public interface IMediaRestfulApiService {
      * @param mediaServerEntity
      * @return
      */
-    Boolean closeRtpServer(String key,MediaServerEntity mediaServerEntity);
+    Boolean closeRtpServer(Integer key,MediaServerEntity mediaServerEntity);
 
 }

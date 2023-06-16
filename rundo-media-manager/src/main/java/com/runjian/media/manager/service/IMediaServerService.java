@@ -1,5 +1,6 @@
 package com.runjian.media.manager.service;
 
+import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.media.manager.dto.dto.MediaServerConfigDto;
 import com.runjian.media.manager.dto.entity.MediaServerEntity;
 
@@ -66,4 +67,10 @@ public interface IMediaServerService {
      * @param mediaServerId
      */
     void unRegisterMediaNode(String mediaServerId);
+
+    boolean checkRtpServer(MediaServerEntity mediaServerItem,String stream);
+
+    MediaServerEntity getOne(String generalMediaServerId);
+
+    StreamInfo getStreamInfoByAppAndStream(MediaServerEntity mediaInfo, String app, String stream);
 }

@@ -59,7 +59,7 @@ public class BusinessAsyncSender {
     MqInfoCommonDto mqInfoCommonDto;
     //全消息处理
     @Async("taskExecutor")
-    public synchronized void sendforAllScene(StreamBusinessSceneResp businessSceneResp,BusinessErrorEnums businessErrorEnums,Object data){
+    public  void sendforAllScene(StreamBusinessSceneResp businessSceneResp,BusinessErrorEnums businessErrorEnums,Object data){
         //判断业务网关是否初始化
         taskQueue.offer(businessSceneResp);
         //业务网关未初始化 阻塞进行等待

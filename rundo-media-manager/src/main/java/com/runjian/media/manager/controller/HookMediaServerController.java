@@ -6,6 +6,7 @@ import com.runjian.common.config.response.CommonResponse;
 import com.runjian.media.manager.dto.dto.MediaServerConfigDto;
 import com.runjian.media.manager.dto.dto.hook.KeepaliveServerDto;
 import com.runjian.media.manager.dto.dto.hook.StreamChangeDto;
+import com.runjian.media.manager.service.IMediaPlayService;
 import com.runjian.media.manager.service.IMediaServerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,8 @@ public class HookMediaServerController {
     @Autowired
     IMediaServerService mediaServerService;
 
+    @Autowired
+    IMediaPlayService mediaPlayService;
     /**
      * 注册
      * @param req
@@ -61,12 +64,14 @@ public class HookMediaServerController {
     @PostMapping(value = "/onStreamArrive",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> onStreamArrive(@RequestBody StreamChangeDto req){
         log.info("请求={}",req);
+        mediaPlayService.streamChangeDeal(req,true);
         return CommonResponse.success();
     }
 
     @PostMapping(value = "/onStreamDisconnect",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> onStreamDisconnect(@RequestBody StreamChangeDto req){
         log.info("请求={}",req);
+        mediaPlayService.streamChangeDeal(req,false);
         return CommonResponse.success();
     }
 
@@ -79,6 +84,7 @@ public class HookMediaServerController {
     @PostMapping(value = "/onStreamNotFound",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> onStreamNotFound(@RequestBody StreamChangeDto req){
         log.info("请求={}",req);
+        mediaPlayService.onStreamNoneReader(req.getApp(),req.getStreamId());
         return CommonResponse.success();
     }
 }

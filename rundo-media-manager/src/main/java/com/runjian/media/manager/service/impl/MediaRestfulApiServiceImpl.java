@@ -232,8 +232,19 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
     }
 
     @Override
-    public Boolean closeRtpServer(String key, MediaServerEntity mediaServerEntity) {
-        return null;
+    public Boolean closeRtpServer(Integer key, MediaServerEntity mediaServerEntity) {
+        String url = String.format("http://%s:%s%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), closeRtpServerApi);
+        HashMap<String, Object> stringStringHashMap = new HashMap<>();
+        stringStringHashMap.put("key",key);
+
+        String result = RestTemplateUtil.getWithParams(url, makeTokenHeader(mediaServerEntity.getSecret()),stringStringHashMap, restTemplate);
+        if (ObjectUtils.isEmpty(result)) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",result);
+
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
+        }
+        CommonResponse commonResponse = JSONObject.parseObject(result, CommonResponse.class);
+        return commonResponse.getCode() == BusinessErrorEnums.SUCCESS.getErrCode();
     }
 
     public Map<String, String> makeTokenHeader(String secret) {

@@ -1,5 +1,6 @@
 package com.runjian.media.manager.event;
 
+import com.runjian.media.manager.service.IMediaPlayService;
 import com.runjian.media.manager.service.IMediaServerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,8 @@ public class MediaStatusEventListener {
 	@Autowired
 	private IMediaServerService mediaServerService;
 
+	@Autowired
+	private IMediaPlayService mediaPlayService;
 
 	/**
 	 * 处理zlm上线
@@ -44,6 +47,6 @@ public class MediaStatusEventListener {
 	public void onApplicationEvent(MediaOfflineEvent event) {
 		// 离线
 		mediaServerService.mediaServerOffline(event.getMediaServerEntity());
-
+		mediaPlayService.streamMediaOffline(event.getMediaServerEntity().getId());
 	}
 }

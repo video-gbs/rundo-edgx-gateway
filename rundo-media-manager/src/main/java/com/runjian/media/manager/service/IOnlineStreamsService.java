@@ -15,7 +15,9 @@ public interface IOnlineStreamsService {
      * @param onlineStreams
      * @return
      */
-    int update(OnlineStreamsEntity onlineStreams);
+    Boolean update(OnlineStreamsEntity onlineStreams);
+
+    Boolean save(OnlineStreamsEntity onlineStreams);
 
     /**
      * 获取一个流信息
@@ -28,7 +30,7 @@ public interface IOnlineStreamsService {
      * @param streamId
      * @return
      */
-    int remove(String streamId);
+    Boolean remove(String streamId);
 
     /**
      * 移除流列表
@@ -42,11 +44,7 @@ public interface IOnlineStreamsService {
      * @return
      */
     int removeByStreamList(List<String> streamIdList);
-    /**
-     * 流注册相关的操作
-     * @param streamId
-     */
-    void streamChangeDeal(String streamId,Boolean regist,String app);
+
 
     /**
      * 获取流媒体中的全部在线播放流列表

@@ -10,6 +10,7 @@ import com.runjian.media.manager.mq.dispatcherBusiness.asyncSender.BusinessAsync
 import com.runjian.media.manager.service.IMediaPlayService;
 import com.runjian.media.manager.utils.RedisDelayQueuesUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -64,6 +65,10 @@ public class BusinessSceneExpireDealRunner implements CommandLineRunner {
                                 if(!ObjectUtils.isEmpty(delayQueue)){
                                     StreamBusinessSceneResp streamBusinessSceneResp = (StreamBusinessSceneResp) delayQueue;
                                     businessAsyncSender.sendforAllScene(streamBusinessSceneResp, BusinessErrorEnums.MSG_OPERATION_TIMEOUT,null);
+                                    RLock lock = redissonClient.getLock( BusinessSceneConstants.SELF_BUSINESS_LOCK_KEY+streamBusinessSceneResp.getBusinessSceneKey());
+                                    if(!ObjectUtils.isEmpty(lock)){
+                                        lock.unlockAsync(streamBusinessSceneResp.getThreadId());
+                                    }
                                 }
                             }
 
