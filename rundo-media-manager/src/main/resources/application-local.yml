@@ -85,7 +85,7 @@ media:
     http-port: 18083
 
     # [必须修改] zlm服务器的http.port
-    http-play-port: 18083
+    http-play-port: 8080
 
     # [必须修改] zlm服务器的https.port--外网端口
     http-ssl-port: ${ZLM_PLAY-SSL-PORT:443}
