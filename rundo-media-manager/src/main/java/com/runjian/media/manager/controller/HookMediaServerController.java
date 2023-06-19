@@ -63,14 +63,14 @@ public class HookMediaServerController {
 
     @PostMapping(value = "/onStreamArrive",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> onStreamArrive(@RequestBody StreamChangeDto req){
-        log.info("请求={}",req);
+        log.info("流通知--到达，请求={}",req);
         mediaPlayService.streamChangeDeal(req,true);
         return CommonResponse.success();
     }
 
     @PostMapping(value = "/onStreamNoneArrive",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> onStreamNoneArrive(@RequestBody StreamChangeDto req){
-        log.info("请求={}",req);
+        log.info("流通知--未到达，请求={}",req);
 //        mediaPlayService.streamChangeDeal(req,true);
         return CommonResponse.success();
     }
@@ -78,7 +78,7 @@ public class HookMediaServerController {
 
     @PostMapping(value = "/onStreamDisconnect",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> onStreamDisconnect(@RequestBody StreamChangeDto req){
-        log.info("请求={}",req);
+        log.info("流通知--断开，请求={}",req);
         mediaPlayService.streamChangeDeal(req,false);
         return CommonResponse.success();
     }

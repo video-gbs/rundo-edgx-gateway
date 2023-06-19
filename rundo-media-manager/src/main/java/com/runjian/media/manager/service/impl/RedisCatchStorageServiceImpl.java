@@ -195,7 +195,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
             }
             StreamBusinessSceneResp<Object> objectStreamBusinessSceneResp = StreamBusinessSceneResp.addSceneReady(msgType, msgId, businessSceneKey,null);
             RedisCommonUtil.leftPush(redisTemplate,BusinessSceneConstants.SELF_STREAM_BUSINESS_LISTS+businessSceneKey,objectStreamBusinessSceneResp);
-            redisDelayQueuesUtil.addDelayQueue(objectStreamBusinessSceneResp, userSetting.getBusinessSceneTimeout(), TimeUnit.MILLISECONDS,businessSceneKey);
+            redisDelayQueuesUtil.addDelayQueue(objectStreamBusinessSceneResp, 30, TimeUnit.SECONDS,businessSceneKey);
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE,"处理网关业务状态","缓存添加执行失败",businessSceneKey,e);

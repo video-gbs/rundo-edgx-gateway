@@ -66,30 +66,34 @@ public class BusinessAsyncSender {
         while (!ObjectUtils.isEmpty(dispatcherSignInConf.getMqExchange())){
             StreamBusinessSceneResp businessSceneKeyPoll = taskQueue.poll();
             if(!ObjectUtils.isEmpty(businessSceneKeyPoll)){
+                try {
+                    //针对点播异常请求通知网关进行bye指令的发送
+                    if(businessSceneResp.getMsgType().equals(StreamBusinessMsgType.STREAM_LIVE_PLAY_START) || businessSceneResp.getMsgType().equals(StreamBusinessMsgType.STREAM_RECORD_PLAY_START)){
+                        if(!businessErrorEnums.getErrCode().equals(BusinessErrorEnums.SUCCESS.getErrCode())){
+                            //异常点播处理
+                            mediaPlayService.playBusinessErrorScene(businessSceneResp);
 
-                //针对点播异常请求通知网关进行bye指令的发送
-                if(businessSceneResp.getMsgType().equals(StreamBusinessMsgType.STREAM_LIVE_PLAY_START) || businessSceneResp.getMsgType().equals(StreamBusinessMsgType.STREAM_RECORD_PLAY_START)){
-                    if(businessSceneResp.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
-                        //异常点播处理
-                        mediaPlayService.playBusinessErrorScene(businessSceneResp);
-
+                        }
                     }
-                }
-                String businessSceneKey = businessSceneResp.getBusinessSceneKey();
-                while (!ObjectUtils.isEmpty(RedisCommonUtil.rangListAll(redisTemplate,BusinessSceneConstants.SELF_STREAM_BUSINESS_LISTS + businessSceneKey))){
+                    String businessSceneKey = businessSceneResp.getBusinessSceneKey();
+                    while (!ObjectUtils.isEmpty(RedisCommonUtil.rangListAll(redisTemplate,BusinessSceneConstants.SELF_STREAM_BUSINESS_LISTS + businessSceneKey))){
 
-                    StreamBusinessSceneResp oneResp = (StreamBusinessSceneResp)RedisCommonUtil.leftPop(redisTemplate, BusinessSceneConstants.SELF_STREAM_BUSINESS_LISTS + businessSceneKey);
-                    //进行消息通知
-                    StreamBusinessMsgType gatewayMsgType = oneResp.getMsgType();
-                    String msgId = oneResp.getMsgId();
-                    CommonMqDto mqInfo = mqInfoCommonDto.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix, msgId);
-                    mqInfo.setData(data);
-                    mqInfo.setCode(businessErrorEnums.getErrCode());
-                    mqInfo.setMsg(businessErrorEnums.getErrMsg());
-                    String mqGetQueue = dispatcherSignInConf.getMqSetQueue();
-                    log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", businessSceneResp);
-                    rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
-                };
+                        StreamBusinessSceneResp oneResp = (StreamBusinessSceneResp)RedisCommonUtil.leftPop(redisTemplate, BusinessSceneConstants.SELF_STREAM_BUSINESS_LISTS + businessSceneKey);
+                        //进行消息通知
+                        StreamBusinessMsgType gatewayMsgType = oneResp.getMsgType();
+                        String msgId = oneResp.getMsgId();
+                        CommonMqDto mqInfo = mqInfoCommonDto.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix, msgId);
+                        mqInfo.setData(data);
+                        mqInfo.setCode(businessErrorEnums.getErrCode());
+                        mqInfo.setMsg(businessErrorEnums.getErrMsg());
+                        String mqGetQueue = dispatcherSignInConf.getMqSetQueue();
+                        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", businessSceneResp);
+                        rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
+                    };
+
+                }catch (Exception e){
+                    log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理--异常", "业务场景处理-mq信令发送处理", businessSceneResp);
+                }
 
 
             }else {

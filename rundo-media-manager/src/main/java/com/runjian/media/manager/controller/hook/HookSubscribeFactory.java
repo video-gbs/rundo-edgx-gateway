@@ -13,7 +13,7 @@ public class HookSubscribeFactory {
         HookSubscribeForStreamChange hookSubscribe = new HookSubscribeForStreamChange();
         JSONObject subscribeKey = new JSONObject();
         subscribeKey.put("app", app);
-        subscribeKey.put("stream", stream);
+        subscribeKey.put("streamId", stream);
         subscribeKey.put("mediaServerId", mediaServerId);
         hookSubscribe.setContent(subscribeKey);
 
@@ -24,7 +24,7 @@ public class HookSubscribeFactory {
         HookSubscribeForStreamDisconnect hookSubscribe = new HookSubscribeForStreamDisconnect();
         JSONObject subscribeKey = new JSONObject();
         subscribeKey.put("app", app);
-        subscribeKey.put("stream", stream);
+        subscribeKey.put("streamId", stream);
         subscribeKey.put("mediaServerId", mediaServerId);
         hookSubscribe.setContent(subscribeKey);
 

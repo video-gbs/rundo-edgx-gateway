@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * 网关注册上线订阅
+ * @author chenjialing
  */
 @Component
 @Slf4j

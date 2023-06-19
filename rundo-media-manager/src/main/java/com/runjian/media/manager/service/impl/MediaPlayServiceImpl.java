@@ -213,14 +213,14 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             redisCatchStorageService.setSsrcConfig(ssrcConfig);
         }
         //流注册成功 回调
-        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.onStreamArrive(VideoManagerConstants.GB28181_APP, playReq.getStreamId(),oneMedia.getId());
+        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.onStreamArrive(VideoManagerConstants.GB28181_SELF_APP, playReq.getStreamId(),oneMedia.getId());
         MediaServerEntity finalOneMedia = oneMedia;
         subscribe.addSubscribe(hookSubscribe, (MediaServerEntity mediaServerItemInUse, JSONObject json) -> {
             //流注册处理  发送指定mq消息
-            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm推流注册成功通知", "收到推流订阅消息", json.toJSONString());
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "推流注册成功通知", "收到推流订阅消息", json.toJSONString());
             //拼接拉流的地址
-            String pushStreamId = json.getString("stream");
-            StreamInfo streamInfoByAppAndStream = mediaServerService.getStreamInfoByAppAndStream(finalOneMedia, VideoManagerConstants.GB28181_APP, pushStreamId);
+            String pushStreamId = json.getString("streamId");
+            StreamInfo streamInfoByAppAndStream = mediaServerService.getStreamInfoByAppAndStream(finalOneMedia, VideoManagerConstants.GB28181_SELF_APP, pushStreamId);
             //发送调度服务的业务队列 通知流实际成功
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,streamInfoByAppAndStream);
             //流状态修改为成功
@@ -304,13 +304,14 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 //订阅流主销处理
                 //流注销成功 回调
                 if(oneBystreamId.getStatus() == 0){
-
-                    //流准备中 未成功点流
-                    mediaRestfulApiService.closeRtpServer(oneBystreamId.getKey(),oneMedia);
-                    //释放ssrc
-                    redisCatchStorageService.ssrcRelease(oneBystreamId.getSsrc());
                     //清除点播请求
                     onlineStreamsService.remove(streamId);
+                    //释放ssrc
+                    redisCatchStorageService.ssrcRelease(oneBystreamId.getSsrc());
+                    //流准备中 未成功点流
+                    mediaRestfulApiService.closeRtpServer(oneBystreamId.getKey(),oneMedia);
+
+
                 }else {
                     HookSubscribeForStreamDisconnect hookSubscribe = HookSubscribeFactory.onStreamDisconnect(VideoManagerConstants.GB28181_APP, oneBystreamId.getStreamId(),oneBystreamId.getMediaServerId());
                     subscribe.addSubscribe(hookSubscribe, (MediaServerEntity mediaServerItemInUse, JSONObject json) -> {
@@ -353,7 +354,10 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             //异常推流，暂不处理
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "zlm推流注册异常", "非正常请求点播流", streamId);
         }else {
-            JSONObject json = (JSONObject) JSON.toJSON(req);
+            JSONObject json = new JSONObject();
+            json.put("app", app);
+            json.put("streamId", streamId);
+            json.put("mediaServerId", mediaServerId);
             if(!regist){
                 //注销
                 if(oneBystreamId.getStreamType() == 0){

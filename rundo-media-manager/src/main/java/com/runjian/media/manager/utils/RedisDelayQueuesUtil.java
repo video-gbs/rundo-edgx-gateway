@@ -1,5 +1,6 @@
 package com.runjian.media.manager.utils;
 
+import com.runjian.common.config.response.StreamBusinessSceneResp;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBlockingDeque;
@@ -68,6 +69,7 @@ public class RedisDelayQueuesUtil {
      */
     public <T> T getDelayQueue(String queueCode) throws InterruptedException {
         RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
+        RDelayedQueue<Object> delayedQueue = redissonClient.getDelayedQueue(blockingDeque);
         T value = (T) blockingDeque.poll();
         return value;
     }
@@ -79,9 +81,10 @@ public class RedisDelayQueuesUtil {
      * @throws InterruptedException
      */
     public Object remove(String queueCode) throws InterruptedException {
+        log.info("移除延时队列数据，req={}", queueCode);
         RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
+        RDelayedQueue<Object> delayedQueue = redissonClient.getDelayedQueue(blockingDeque);
 
-        return blockingDeque.remove();
-
+        return delayedQueue.remove();
     }
 }
