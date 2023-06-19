@@ -85,7 +85,7 @@ public class PlayServiceImpl implements IplayService {
             return CommonResponse.failure(BusinessErrorEnums.getOneBusinessNum(commonResponse1.getCode()));
         }
         PlayCommonDto data = commonResponse.getData();
-        int streamMode = "TCP".equals(playReq.getStreamMode())?0:1;
+        int streamMode = playReq.getStreamMode();
         PlayInfoDto play = iSdkCommderService.play(data.getLUserId(), data.getChannelNum(), 1, streamMode);
         int errorCode = play.getErrorCode();
         if(errorCode != 0){

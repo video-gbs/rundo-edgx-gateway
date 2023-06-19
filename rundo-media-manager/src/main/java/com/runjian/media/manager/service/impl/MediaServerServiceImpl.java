@@ -89,15 +89,22 @@ public class MediaServerServiceImpl  implements IMediaServerService {
     @Override
     public void connectMediaServer(MediaServerEntity mediaServerEntity){
         //获取连接的配置信息
-        MediaServerEntity mediaServerConfigApi = iMediaRestfulApiService.getMediaServerConfigApi(mediaServerEntity);
-        if(ObjectUtils.isEmpty(mediaServerConfigApi)){
+        try {
+            MediaServerEntity mediaServerConfigApi = iMediaRestfulApiService.getMediaServerConfigApi(mediaServerEntity);
+            if(ObjectUtils.isEmpty(mediaServerConfigApi)){
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","数据返回异常为空",mediaServerEntity);
+                //下线
+                mediaServerOffline(mediaServerEntity);
+                return;
+            }
+            //上线
+            mediaServerOnline(mediaServerEntity,mediaServerConfigApi);
+        }catch (Exception e){
+            //连接失败
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","数据返回异常为空",mediaServerEntity);
-            //下线
             mediaServerOffline(mediaServerEntity);
-            return;
         }
-        //上线
-        mediaServerOnline(mediaServerEntity,mediaServerConfigApi);
+
     }
 
 
@@ -121,16 +128,19 @@ public class MediaServerServiceImpl  implements IMediaServerService {
         mediaServerConfigDto.setSchedulerPort(serverPort);
         mediaServerConfigDto.setMediaServerId(mediaServerEntity.getId());
         mediaServerConfigDto.setMsgPushEnable(1);
-        mediaServerConfigDto.setRegisterMediaNode(String.format("%s/registerMediaNode", hookPrex));
-        mediaServerConfigDto.setUnregisterMediaNode(String.format("%s/unregisterMediaNode", hookPrex));
-        mediaServerConfigDto.setStreamNoneReader(String.format("%s/streamNoneReader", hookPrex));
-        mediaServerConfigDto.setStreamArrive(String.format("%s/streamArrive", hookPrex));
-        mediaServerConfigDto.setStreamArrive(String.format("%s/streamArrive", hookPrex));
+        mediaServerConfigDto.setOnRegisterMediaNode(String.format("%s/onRegisterMediaNode", hookPrex));
+        mediaServerConfigDto.setOnUnregisterMediaNode(String.format("%s/onUnregisterMediaNode", hookPrex));
+        mediaServerConfigDto.setOnStreamNoneReader(String.format("%s/onStreamNoneReader", hookPrex));
+        mediaServerConfigDto.setOnStreamArrive(String.format("%s/onStreamArrive", hookPrex));
+        mediaServerConfigDto.setOnStreamNoneArrive(String.format("%s/onStreamNoneArrive", hookPrex));
         mediaServerConfigDto.setOnStreamDisconnect(String.format("%s/onStreamDisconnect", hookPrex));
-        mediaServerConfigDto.setServerKeepalive(String.format("%s/serverKeepalive", hookPrex));
+        mediaServerConfigDto.setOnServerKeepalive(String.format("%s/onServerKeepalive", hookPrex));
         mediaServerConfigDto.setOnStreamNotFound(String.format("%s/onStreamNotFound", hookPrex));
         mediaServerConfigDto.setOnPublish(String.format("%s/onPublish", hookPrex));
         mediaServerConfigDto.setRtpPortRange(mediaServerEntity.getRtpPortRange());
+        mediaServerConfigDto.setSdkPortRange(mediaServerEntity.getRtpPortRange());
+        mediaServerConfigDto.setStreamNoneReaderDelayMS(10);
+
         Boolean aBoolean = iMediaRestfulApiService.setMediaServerConfigApi(mediaServerConfigDto, mediaServerEntity);
         log.warn(LogTemplate.PROCESS_LOG_TEMPLATE,"流媒体服务设置，设置结果为:",aBoolean);
         mediaServerRedisStorage.update(mediaServerEntity);

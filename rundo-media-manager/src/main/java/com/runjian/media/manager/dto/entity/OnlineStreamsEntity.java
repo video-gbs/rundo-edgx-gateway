@@ -54,12 +54,12 @@ public class OnlineStreamsEntity {
     /**
      * 录像状态
      */
-    private Integer recordState;
+    private int recordState;
 
     /**
      * 0准备中，1流在线状态
      */
-    private Integer status;
+    private int status;
 
     /**
      * 流媒体id
@@ -87,5 +87,5 @@ public class OnlineStreamsEntity {
     /**
      * 0点播，1.自定义推流
      */
-    private Integer streamType;
+    private int streamType;
 }

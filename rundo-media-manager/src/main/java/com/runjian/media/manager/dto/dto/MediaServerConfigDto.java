@@ -16,12 +16,13 @@ public class MediaServerConfigDto {
     private String mediaServerId;
     private Integer msgPushEnable;
 
-    private String registerMediaNode;
-    private String unregisterMediaNode;
-    private String serverKeepalive;
+    private String onRegisterMediaNode;
+    private String onUnregisterMediaNode;
+    private String onServerKeepalive;
     private String streamChanged;
-    private String streamNoneReader;
-    private String streamArrive;
+    private String onStreamNoneReader;
+    private String onStreamArrive;
+    private String onStreamNoneArrive;
     private String onStreamDisconnect;
     private String onStreamNotFound;
     private String onPublish;

@@ -33,7 +33,7 @@ public class HookMediaServerController {
      * @param req
      * @return
      */
-    @PostMapping(value = "/registerMediaNode",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/onRegisterMediaNode",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> registerMediaNode(@RequestBody MediaServerConfigDto req){//获取zlm流媒体配置
         mediaServerService.registerMediaNode(req);
         return CommonResponse.success();
@@ -55,7 +55,7 @@ public class HookMediaServerController {
      * @param req
      * @return
      */
-    @PostMapping(value = "/unregisterMediaNode",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/onUnregisterMediaNode",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> unregisterMediaNode(@RequestBody KeepaliveServerDto req){
         mediaServerService.updateMediaServerKeepalive(req.getMediaServerId());
         return CommonResponse.success();
@@ -67,6 +67,14 @@ public class HookMediaServerController {
         mediaPlayService.streamChangeDeal(req,true);
         return CommonResponse.success();
     }
+
+    @PostMapping(value = "/onStreamNoneArrive",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<Boolean> onStreamNoneArrive(@RequestBody StreamChangeDto req){
+        log.info("请求={}",req);
+//        mediaPlayService.streamChangeDeal(req,true);
+        return CommonResponse.success();
+    }
+
 
     @PostMapping(value = "/onStreamDisconnect",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> onStreamDisconnect(@RequestBody StreamChangeDto req){

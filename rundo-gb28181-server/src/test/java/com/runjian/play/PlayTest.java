@@ -40,7 +40,7 @@ public class PlayTest {
         playReq.setChannelId("34020000001310000001");
         playReq.setDeviceId("34020000001110000001");
         playReq.setMsgId("12345678");
-        playReq.setStreamMode("UDP");
+        playReq.setStreamMode(0);
 
         playService.play(playReq);
     }

@@ -14,7 +14,7 @@ public class MediaPlayReq {
     /**
      * 流传输模式
      */
-    String streamMode;
+    Integer streamMode;
     /**
      * 设备id
      */

@@ -112,7 +112,7 @@ mediaApi:
     openSDKServer: /index/api/openSDKServer
     closeSDKServer: /index/api/closeSDKServer
     openRtpServer: /index/api/openRtpServer
-    closeRtpServer: /index/api/openRtpServer
+    closeRtpServer: /index/api/closeRtpServer
     #创建国标发送端口
     startSendRtp: /index/api/startSendRtp
     #关闭国标发送端口

@@ -34,7 +34,7 @@ public class VideoManagerConstants {
 
 	public static final String GB28181_APP = "rtp";
 
-	public static final String GB28181_SELF_APP = "GB28181";
+	public static final String GB28181_SELF_APP = "gb28181";
 
 	public static final String PUSH_LIVE_APP = "live";
 

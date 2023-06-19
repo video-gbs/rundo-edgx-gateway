@@ -231,7 +231,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         gb28181ServerReq.setPayload(96);
         gb28181ServerReq.setApp(VideoManagerConstants.GB28181_SELF_APP);
         gb28181ServerReq.setStreamId(streamId);
-        gb28181ServerReq.setEnableTcp(1);
+        gb28181ServerReq.setEnableTcp(playReq.getStreamMode());
         gb28181ServerReq.setEnableMp4(0);
         gb28181ServerReq.setPort(0);
 
@@ -250,6 +250,8 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         onlineStreamsEntity.setSsrc(ssrcInfo.getSsrc());
         onlineStreamsEntity.setApp(VideoManagerConstants.GB28181_APP);
         onlineStreamsEntity.setKey(createServerPortRsp.getKey());
+        onlineStreamsEntity.setStreamType(0);
+        onlineStreamsEntity.setStatus(0);
         onlineStreamsService.save(onlineStreamsEntity);
         return ssrcInfo;
 
