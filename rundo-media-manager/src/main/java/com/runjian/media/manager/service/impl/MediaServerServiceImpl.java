@@ -45,6 +45,10 @@ public class MediaServerServiceImpl  implements IMediaServerService {
     @Value("${server.port}")
     private Integer serverPort;
 
+
+    @Value("${media.play-protocal-type:0}")
+    private Integer playProtocalType;
+
     @Autowired
     private UserSetting userSetting;
 
@@ -268,7 +272,7 @@ public class MediaServerServiceImpl  implements IMediaServerService {
             streamInfoResult.setWssTs(String.format("wss://%s:%s/%s/%s.ts", addr, mediaInfo.getHttpSslPort(), app,  stream));
             streamInfoResult.setRtcs(String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play", mediaInfo.getStreamIp(), mediaInfo.getHttpSslPort(), app,  stream));
         }
-
+        streamInfoResult.setPlayProtocalType(playProtocalType);
         return streamInfoResult;
     }
 }
