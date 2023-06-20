@@ -14,6 +14,7 @@ import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamCloseDto;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.config.response.StreamBusinessSceneResp;
@@ -183,6 +184,9 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             if(!ObjectUtils.isEmpty(oneBystreamId)){
                 //判断流复用
                 oneMedia = mediaServerService.getOne(oneBystreamId.getMediaServerId());
+                if(oneMedia.getOnline()!=1){
+                    throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
+                }
                 if(!mediaServerService.checkRtpServer(oneMedia, streamId)){
                     //流其实不存在
                     onlineStreamsService.remove(streamId);
@@ -200,7 +204,9 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         }
         //获取默认的zlm流媒体
         oneMedia =  mediaServerService.getDefaultMediaServer();
-
+        if(oneMedia.getOnline()!=1){
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
+        }
         String ssrc = "";
         if(playReq.getSsrcCheck()){
             SsrcConfig ssrcConfig = redisCatchStorageService.getSsrcConfig();

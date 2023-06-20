@@ -2,6 +2,8 @@ package com.runjian.media.manager.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.runjian.common.commonDto.StreamInfo;
+import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.media.manager.conf.DynamicTask;
 import com.runjian.media.manager.conf.MediaConfig;
@@ -97,16 +99,15 @@ public class MediaServerServiceImpl  implements IMediaServerService {
             MediaServerEntity mediaServerConfigApi = iMediaRestfulApiService.getMediaServerConfigApi(mediaServerEntity);
             if(ObjectUtils.isEmpty(mediaServerConfigApi)){
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","数据返回异常为空",mediaServerEntity);
-                //下线
-                mediaServerOffline(mediaServerEntity);
-                return;
+                throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
             }
             //上线
             mediaServerOnline(mediaServerEntity,mediaServerConfigApi);
         }catch (Exception e){
-            //连接失败
+            //连接失败 下线
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","数据返回异常为空",mediaServerEntity);
-            mediaServerOffline(mediaServerEntity);
+//            mediaServerOffline(mediaServerEntity);
+            mediaEventPublisher.meidiaOfflineEventPublish(mediaServerEntity);
         }
 
     }
