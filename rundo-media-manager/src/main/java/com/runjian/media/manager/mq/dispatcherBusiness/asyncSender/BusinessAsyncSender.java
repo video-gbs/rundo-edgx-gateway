@@ -87,7 +87,7 @@ public class BusinessAsyncSender {
                         mqInfo.setCode(businessErrorEnums.getErrCode());
                         mqInfo.setMsg(businessErrorEnums.getErrMsg());
                         String mqGetQueue = dispatcherSignInConf.getMqSetQueue();
-                        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", businessSceneResp);
+                        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", mqInfo);
                         rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
                     };
 

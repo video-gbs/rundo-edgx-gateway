@@ -85,13 +85,14 @@ public class HookMediaServerController {
 
     @PostMapping(value = "/onStreamNoneReader",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> onStreamNoneReader(@RequestBody StreamChangeDto req){
-        log.info("请求={}",req);
+        log.info("流通知--无人观看，请求={}",req);
+        mediaPlayService.onStreamNoneReader(req.getApp(),req.getStreamId());
         return CommonResponse.success();
     }
 
     @PostMapping(value = "/onStreamNotFound",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> onStreamNotFound(@RequestBody StreamChangeDto req){
-        log.info("请求={}",req);
+        log.info("流通知--流地址不存在，请求={}",req);
         mediaPlayService.onStreamNoneReader(req.getApp(),req.getStreamId());
         return CommonResponse.success();
     }

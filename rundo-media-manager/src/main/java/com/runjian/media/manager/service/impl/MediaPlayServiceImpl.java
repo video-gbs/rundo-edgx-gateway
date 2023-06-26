@@ -254,7 +254,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         onlineStreamsEntity.setMqQueueName(playReq.getGatewayMqRouteKey());
         onlineStreamsEntity.setMqRouteKey(playReq.getGatewayMqRouteKey());
         onlineStreamsEntity.setSsrc(ssrcInfo.getSsrc());
-        onlineStreamsEntity.setApp(VideoManagerConstants.GB28181_APP);
+        onlineStreamsEntity.setApp(VideoManagerConstants.GB28181_SELF_APP);
         onlineStreamsEntity.setKey(createServerPortRsp.getKey());
         onlineStreamsEntity.setStreamType(0);
         onlineStreamsEntity.setStatus(0);

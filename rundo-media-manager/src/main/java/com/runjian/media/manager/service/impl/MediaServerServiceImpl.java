@@ -144,7 +144,7 @@ public class MediaServerServiceImpl  implements IMediaServerService {
         mediaServerConfigDto.setOnPublish(String.format("%s/onPublish", hookPrex));
         mediaServerConfigDto.setRtpPortRange(mediaServerEntity.getRtpPortRange());
         mediaServerConfigDto.setSdkPortRange(mediaServerEntity.getRtpPortRange());
-        mediaServerConfigDto.setStreamNoneReaderDelayMS(10);
+        mediaServerConfigDto.setStreamNoneReaderDelayMS(10000);
 
         Boolean aBoolean = iMediaRestfulApiService.setMediaServerConfigApi(mediaServerConfigDto, mediaServerEntity);
         log.warn(LogTemplate.PROCESS_LOG_TEMPLATE,"流媒体服务设置，设置结果为:",aBoolean);
@@ -186,13 +186,14 @@ public class MediaServerServiceImpl  implements IMediaServerService {
 
             // 发起http请求验证zlm是否确实无法连接，如果确实无法连接则发送离线事件，否则不作处理
             MediaServerEntity mediaServerConfigApi = iMediaRestfulApiService.getMediaServerConfigApi(serverItem);
-            if (ObjectUtils.isEmpty(mediaServerConfigApi)) {
+            if (!ObjectUtils.isEmpty(mediaServerConfigApi)) {
                 log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "媒体服务器节点管理服务", "心跳到期,验证后仍在线，恢复心跳信息,请检查六每日提是否可以正常发送心跳", serverItem.getId());
                 // 添加zlm信息
                 updateMediaServerKeepalive(serverItem.getId());
             }else {
                 //进行流媒体离线通知
-                mediaEventPublisher.meidiaOfflineEventPublish(mediaServerConfigApi);
+                MediaServerEntity oneMediaServer = getOneMediaServer(serverItem.getId());
+                mediaEventPublisher.meidiaOfflineEventPublish(oneMediaServer);
             }
         }
     }
