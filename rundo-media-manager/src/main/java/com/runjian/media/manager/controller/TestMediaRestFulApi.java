@@ -71,7 +71,7 @@ public class TestMediaRestFulApi {
      * @return
      */
     @PostMapping(value = "/closeSDKServer",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    public CommonResponse<Boolean> closeSDKServer(@RequestParam String key){//获取zlm流媒体配置
+    public CommonResponse<Boolean> closeSDKServer(@RequestParam Integer key){//获取zlm流媒体配置
         MediaServerEntity defaultMediaServer = mediaServerService.getDefaultMediaServer();
         return CommonResponse.success(mediaRestfulApiService.closeSDKServer(key, defaultMediaServer));
     }

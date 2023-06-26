@@ -36,6 +36,8 @@ public class VideoManagerConstants {
 
 	public static final String GB28181_SELF_APP = "gb28181";
 
+	public static final String HKSDK_APP = "HKSDK";
+
 	public static final String PUSH_LIVE_APP = "live";
 
 	public static final String GB28181_SCHEAM = "rtsp";

@@ -56,7 +56,17 @@ public class MediaPlayReq {
      * 路由
      */
     private String gatewayMqRouteKey;
-
+    /**
+     * 子码流
+     */
+    Integer bitStreamId;
+    /**
+     * 协议类型
+     */
+    String gatewayProtocol;
+    /**
+     *
+     */
     /**
      * 业务消息id
      */

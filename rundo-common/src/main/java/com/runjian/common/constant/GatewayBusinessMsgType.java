@@ -19,6 +19,7 @@ public enum GatewayBusinessMsgType {
     REGISTER("DEVICE_SIGN_IN"),
 //    设备信息
     DEVICEINFO("DEVICE_SYNC"),
+    DEVICE_ADD("DEVICE_ADD"),
     //设备删除     //设备软删除
     DEVICE_DELETE("DEVICE_DELETE"),
     DEVICE_DELETE_SOFT("DEVICE_DELETE_SOFT"),

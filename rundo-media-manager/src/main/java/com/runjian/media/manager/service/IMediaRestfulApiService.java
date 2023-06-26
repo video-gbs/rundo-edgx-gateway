@@ -63,7 +63,7 @@ public interface IMediaRestfulApiService {
      * @param mediaServerEntity
      * @return
      */
-    Boolean closeSDKServer(String key,MediaServerEntity mediaServerEntity);
+    Boolean closeSDKServer(Integer key,MediaServerEntity mediaServerEntity);
 
     /**
      * 创建国标端口

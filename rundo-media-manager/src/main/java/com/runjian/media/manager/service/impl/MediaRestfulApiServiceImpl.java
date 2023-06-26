@@ -187,7 +187,7 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
     }
 
     @Override
-    public Boolean closeSDKServer(String key, MediaServerEntity mediaServerEntity) {
+    public Boolean closeSDKServer(Integer key, MediaServerEntity mediaServerEntity) {
         String url = String.format("http://%s:%s%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), closeSdkServerApi);
         HashMap<String, Object> stringStringHashMap = new HashMap<>();
         stringStringHashMap.put("key",key);
