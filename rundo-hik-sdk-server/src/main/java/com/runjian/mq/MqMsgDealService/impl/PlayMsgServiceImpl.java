@@ -3,10 +3,12 @@ package com.runjian.mq.MqMsgDealService.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
+import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.CommonResponse;
+import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.constant.BusinessSceneConstants;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.RestTemplateUtil;
@@ -41,7 +43,7 @@ public class PlayMsgServiceImpl implements InitializingBean, IMsgProcessorServic
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.PLAY.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.PLAY.getTypeName(),this);
     }
 
     @Override
@@ -51,14 +53,20 @@ public class PlayMsgServiceImpl implements InitializingBean, IMsgProcessorServic
         JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
         //设备信息同步  获取设备信息
         PlayReq playReq = JSONObject.toJavaObject(dataJson, PlayReq.class);
-        CommonResponse<Integer> play = iplayService.play(playReq);
+        CommonResponse<Integer> play = CommonResponse.failure(BusinessErrorEnums.UNKNOWN_ERROR);
+        try{
+            play = iplayService.play(playReq);
+
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", e.getMessage());
+        }
 
         //restfulapi请求 分离请求中的streamId
         String streamId = playReq.getStreamId();
-        BusinessSceneResp businessSceneResp = new BusinessSceneResp();
+        GatewayBusinessSceneResp businessSceneResp = new GatewayBusinessSceneResp();
         businessSceneResp.setCode(play.getCode());
         businessSceneResp.setMsg(play.getMsg());
-        businessSceneResp.setGatewayMsgType(GatewayMsgType.PLAY);
+        businessSceneResp.setGatewayMsgType(GatewayBusinessMsgType.PLAY);
 
         GatewayStreamNotify gatewayStreamNotify = new GatewayStreamNotify();
         gatewayStreamNotify.setStreamId(streamId);

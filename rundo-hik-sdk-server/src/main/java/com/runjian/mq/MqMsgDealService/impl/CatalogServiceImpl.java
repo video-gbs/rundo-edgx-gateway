@@ -2,7 +2,7 @@ package com.runjian.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.config.response.CommonResponse;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.domain.dto.CatalogSyncDto;
 import com.runjian.domain.dto.Device;
@@ -31,7 +31,7 @@ public class CatalogServiceImpl implements InitializingBean, IMsgProcessorServic
     GatewayBusinessAsyncSender gatewayBusinessAsyncSender;
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.CATALOG.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.CATALOG.getTypeName(),this);
     }
 
     @Override
@@ -48,7 +48,7 @@ public class CatalogServiceImpl implements InitializingBean, IMsgProcessorServic
         CommonResponse<CatalogSyncDto> listCommonResponse = deviceChannelService.channelSync(encodeId);
 
         //mq消息发送
-        gatewayBusinessAsyncSender.sendforAllScene(listCommonResponse, commonMqDto.getMsgId(), GatewayMsgType.CATALOG);
+        gatewayBusinessAsyncSender.sendforAllScene(listCommonResponse, commonMqDto.getMsgId(), GatewayBusinessMsgType.CATALOG);
     }
 
 

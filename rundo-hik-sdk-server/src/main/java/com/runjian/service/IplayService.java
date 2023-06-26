@@ -8,13 +8,15 @@ import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.domain.req.PlaySdkReq;
 
+import java.io.IOException;
+
 public interface IplayService {
 
     /**
      * 点播接口处理
      * @param playReq
      */
-    CommonResponse<Integer> play(PlayReq playReq);
+    CommonResponse<Integer> play(PlayReq playReq) ;
 
     /**
      *回放

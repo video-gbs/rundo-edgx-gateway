@@ -2,7 +2,7 @@ package com.runjian.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.config.response.CommonResponse;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.mq.MqMsgDealService.IMsgProcessorService;
@@ -28,7 +28,7 @@ public class DeviceAddMqServiceImpl implements InitializingBean, IMsgProcessorSe
     GatewayBusinessAsyncSender gatewayBusinessAsyncSender;
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.DEVICE_ADD.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.DEVICE_ADD.getTypeName(),this);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class DeviceAddMqServiceImpl implements InitializingBean, IMsgProcessorSe
         CommonResponse<Long> add = deviceService.add(ip, port, user, pwd);
         //消息回复
 
-        gatewayBusinessAsyncSender.sendforAllScene(add, commonMqDto.getMsgId(), GatewayMsgType.DEVICE_ADD);
+        gatewayBusinessAsyncSender.sendforAllScene(add, commonMqDto.getMsgId(), GatewayBusinessMsgType.DEVICE_ADD);
     }
 
 

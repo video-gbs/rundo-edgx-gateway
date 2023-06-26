@@ -64,7 +64,7 @@ public class ApiTestServer {
 
     @PostMapping(value = "/test/play",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<List<DeviceChannelEntity>> play(@RequestBody PlaySdkReq playSdkReq){
-        iplayService.play(null);
+//        iplayService.play(null);
         return CommonResponse.success();
 
     }

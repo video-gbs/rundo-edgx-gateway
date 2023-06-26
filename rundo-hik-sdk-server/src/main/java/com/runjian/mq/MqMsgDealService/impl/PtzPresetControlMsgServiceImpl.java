@@ -1,7 +1,7 @@
 package com.runjian.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.mq.MqMsgDealService.IMsgProcessorService;
@@ -21,7 +21,7 @@ public class PtzPresetControlMsgServiceImpl implements InitializingBean, IMsgPro
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.CHANNEL_PTZ_PRESET.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.CHANNEL_PTZ_PRESET.getTypeName(),this);
     }
 
     @Override

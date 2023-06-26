@@ -1,7 +1,7 @@
 package com.runjian.mq.MqMsgDealService.impl;
 
 import com.runjian.common.config.response.CommonResponse;
-import com.runjian.common.constant.GatewayMsgType;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.entity.DeviceEntity;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
@@ -26,14 +26,14 @@ public class DeviceTotalSyncMsgServiceImpl implements InitializingBean, IMsgProc
     GatewayBusinessAsyncSender gatewayBusinessAsyncSender;
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayMsgType.DEVICE_TOTAL_SYNC.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.DEVICE_TOTAL_SYNC.getTypeName(),this);
     }
 
     @Override
     public void process(CommonMqDto commonMqDto) {
         CommonResponse<List<DeviceEntity>> listCommonResponse = deviceService.deviceList();
         //mq消息发送
-        gatewayBusinessAsyncSender.sendforAllScene(listCommonResponse, commonMqDto.getMsgId(), GatewayMsgType.DEVICE_TOTAL_SYNC);
+        gatewayBusinessAsyncSender.sendforAllScene(listCommonResponse, commonMqDto.getMsgId(), GatewayBusinessMsgType.DEVICE_TOTAL_SYNC);
 
     }
 

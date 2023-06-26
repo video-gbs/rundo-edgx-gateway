@@ -44,10 +44,6 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
     public DeviceOnlineDto online(String ip, short port, String user, String psw) {
 
         DeviceLoginDto login = iSdkCommderService.login(ip, port, user, psw);
-        if(login.getErrorCode() != 0){
-            //登陆失败
-            return  null;
-        }
         int lUserId = login.getLUserId();
         LambdaQueryWrapper<DeviceEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DeviceEntity::getIp,ip);
@@ -63,8 +59,9 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
         deviceEntity.setManufacturer(MarkConstant.HIK_MANUFACTURER);
         HCNetSDK.NET_DVR_DEVICEINFO_V40 deviceinfoV40 = login.getDeviceinfoV40();
 
-
-        deviceEntity.setCharset(DeviceUtils.getCharset(deviceinfoV40.byCharEncodeType));
+        if(!ObjectUtils.isEmpty(deviceinfoV40)){
+            deviceEntity.setCharset(DeviceUtils.getCharset(deviceinfoV40.byCharEncodeType));
+        }
         if(ObjectUtils.isEmpty(one)){
 
             deviceMapper.insert(deviceEntity);

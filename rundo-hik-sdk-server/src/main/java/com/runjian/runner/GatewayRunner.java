@@ -1,5 +1,6 @@
 package com.runjian.runner;
 
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
@@ -71,7 +72,7 @@ public class GatewayRunner implements CommandLineRunner {
 
         //进行全量的设备数据数据同步，避免出现设备数据差异
         CommonMqDto commonMqDto = new CommonMqDto();
-        commonMqDto.setMsgType(GatewayMsgType.DEVICE_TOTAL_SYNC.getTypeName());
+        commonMqDto.setMsgType(GatewayBusinessMsgType.DEVICE_TOTAL_SYNC.getTypeName());
         mqMsgDealServer.msgProcess(commonMqDto);
     }
 }

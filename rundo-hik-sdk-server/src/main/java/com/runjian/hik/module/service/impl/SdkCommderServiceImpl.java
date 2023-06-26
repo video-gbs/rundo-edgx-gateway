@@ -28,10 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedWriter;
-import java.io.DataOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -136,7 +133,6 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                             ByteBuffer byteBuffer = pBuffer.getPointer().getByteBuffer(0, dwBufSize);
                             byte[] bytes = new byte[byteBuffer.remaining()];
                             byteBuffer.get(bytes, 0, bytes.length);
-
                             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                             dataOutputStream.write(bytes);
                             FileUtil.save2File("./test.es",bytes);
@@ -376,10 +372,10 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         strClientInfo.lChannel = channelNum;
         strClientInfo.hPlayWnd = null;
         //0-主码流，1-子码流，2-三码流，3-虚拟码流，以此类推
-        strClientInfo.dwStreamType= 0;
+        strClientInfo.dwStreamType= dwStreamType;
         //连接方式：0- TCP方式，1- UDP方式，2- 多播方式，3- RTP方式，4- RTP/RTSP，5- RTP/HTTP，6- HRUDP（可靠传输） ，7- RTSP/HTTPS，8- NPQ
         strClientInfo.dwLinkMode=4;
-        strClientInfo.bBlocked=1;
+        strClientInfo.bBlocked=dwLinkMode;
         strClientInfo.write();
         lPreviewHandle = hCNetSDK.NET_DVR_RealPlay_V40(lUserId, strClientInfo, fRealDataCallBack , null);
         PlayInfoDto playInfoDto = new PlayInfoDto();

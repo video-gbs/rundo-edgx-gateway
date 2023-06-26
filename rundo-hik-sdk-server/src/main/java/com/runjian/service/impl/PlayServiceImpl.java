@@ -7,6 +7,7 @@ import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.LogTemplate;
@@ -28,12 +29,14 @@ import com.runjian.service.IplayService;
 import com.sun.jna.Memory;
 import com.sun.jna.Pointer;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.parallel.Execution;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -72,25 +75,18 @@ public class PlayServiceImpl implements IplayService {
 
 
     @Override
-    public CommonResponse<Integer> play(PlayReq playReq) {
+    public CommonResponse<Integer> play(PlayReq playReq)  {
         CommonResponse<PlayCommonDto> commonResponse = playCommonCheck(playReq);
-        if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
-            return CommonResponse.failure(BusinessErrorEnums.getOneBusinessNum(commonResponse.getCode()));
+        //建立socke连接
+        CommonResponse<String> commonResponse1 = streamMediaDeal(playReq);
+        if(commonResponse1.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
+            throw new BusinessException(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
         }
-
-        CommonResponse commonResponse1 = streamMediaDeal(playReq);
-        if(commonResponse1.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
-            //关闭sdk的流
-            streamBye(playReq.getStreamId());
-            return CommonResponse.failure(BusinessErrorEnums.getOneBusinessNum(commonResponse1.getCode()));
-        }
+        String socketHandle = commonResponse1.getData();
         PlayCommonDto data = commonResponse.getData();
         int streamMode = playReq.getStreamMode();
         PlayInfoDto play = iSdkCommderService.play(data.getLUserId(), data.getChannelNum(), 1, streamMode);
         int errorCode = play.getErrorCode();
-        if(errorCode != 0){
-            //关闭
-        }
 
         int playStatus = errorCode==0?0:-1;
         PlayListLogEntity playListLogEntity = new PlayListLogEntity();
@@ -98,45 +94,27 @@ public class PlayServiceImpl implements IplayService {
         playListLogEntity.setPlayErrorCode(errorCode);
         playListLogEntity.setPlayHandle(play.getLPreviewHandle());
         playListLogEntity.setPlayStatus(playStatus);
+        playListLogEntity.setSocketHandle(socketHandle);
         playListLogMapper.insert(playListLogEntity);
         return errorCode==0?CommonResponse.success(errorCode):CommonResponse.failure(BusinessErrorEnums.SDK_OPERATION_FAILURE,BusinessErrorEnums.SDK_OPERATION_FAILURE.getErrMsg()+errorCode);
 
     }
 
-    private CommonResponse streamMediaDeal(PlayReq playReq){
+    private synchronized CommonResponse<String> streamMediaDeal(PlayReq playReq) {
         String ip = playReq.getSsrcInfo().getIp();
         int port = playReq.getSsrcInfo().getPort();
-        int streamMode = 1;
-        String streamId = playReq.getStreamId();
-
-        String url = openSdkServerApi.replace("{ip}", ip).replace("{port}", String.valueOf(port)).replace("{tcpMode}", String.valueOf(streamMode)).replace("{streamId}", streamId);
-
-        String result = RestTemplateUtil.get(url, null, restTemplate);
-        if (ObjectUtils.isEmpty(result)) {
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接","连接业务异常",result);
-            return CommonResponse.failure(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
-        }
-        CommonResponse commonResponse = JSONObject.parseObject(result, CommonResponse.class);
-        if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
-            return CommonResponse.failure(BusinessErrorEnums.MEDIA_SERVER_COLLECT_ERROR);
-        }
-        Integer mediaPort = (Integer)commonResponse.getData();
-
-        try{
-            Socket socket = new Socket(serverIp, mediaPort);
+        String socketHandle =  UuidUtil.toUuid();
+        try {
+            Socket socket = new Socket(ip, port);
             ConcurrentHashMap<String, Object> socketHanderMap = playHandleConf.getSocketHanderMap();
             SocketPointer socketPointer = new SocketPointer();
-            socketPointer.socketHandle = UuidUtil.toUuid();
+            socketPointer.socketHandle = socketHandle;
             socketHanderMap.put(socketPointer.socketHandle,socket);
         }catch (Exception e){
-            String closeUrl = closeSdkServerApi.replace("{streamId}", playReq.getStreamId());
-            String closeResult = RestTemplateUtil.get(closeUrl, null, restTemplate);
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接-socket-连接业务异常",closeResult,e);
             return CommonResponse.failure(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
         }
+        return CommonResponse.success(socketHandle);
 
-        return CommonResponse.success();
     }
 
 
@@ -146,10 +124,9 @@ public class PlayServiceImpl implements IplayService {
         DeviceEntity deviceEntity = deviceService.getById(encodeId);
         if(ObjectUtils.isEmpty(deviceEntity)){
 
-            return CommonResponse.failure(BusinessErrorEnums.DB_DEVICE_NOT_FOUND);
         }else {
             if(deviceEntity.getOnline() != 1){
-                return CommonResponse.failure(BusinessErrorEnums.DB_DEVICE_NOT_FOUND);
+                throw new BusinessException(BusinessErrorEnums.DB_DEVICE_NOT_FOUND);
             }
         }
         //获取通道信息
@@ -157,10 +134,10 @@ public class PlayServiceImpl implements IplayService {
         long channelId = Long.parseLong(playReq.getChannelId());
         DeviceChannelEntity deviceChannelEntity = deviceChannelService.getById(channelId);
         if(ObjectUtils.isEmpty(deviceChannelEntity)){
-            return CommonResponse.failure(BusinessErrorEnums.DB_CHANNEL_NOT_FOUND);
+            throw new BusinessException(BusinessErrorEnums.DB_CHANNEL_NOT_FOUND);
         }else {
             if(deviceChannelEntity.getOnline() != 1){
-                return CommonResponse.failure(BusinessErrorEnums.CHANNEL_OFFLINE);
+                throw new BusinessException(BusinessErrorEnums.CHANNEL_OFFLINE);
 
             }
         }
@@ -182,7 +159,7 @@ public class PlayServiceImpl implements IplayService {
 
     @Override
     public Boolean streamBye(String streamId) {
-        log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流bye操作","bye进入",streamId);
+        log.info(LogTemplate.ERROR_LOG_TEMPLATE,"流bye操作","bye进入",streamId);
         LambdaQueryWrapper<PlayListLogEntity> playListLogEntityLambdaQueryWrapper = new LambdaQueryWrapper<>();
         playListLogEntityLambdaQueryWrapper.eq(PlayListLogEntity::getPlayStatus,0);
         playListLogEntityLambdaQueryWrapper.eq(PlayListLogEntity::getStreamId,streamId).last("limit 1");
@@ -194,13 +171,15 @@ public class PlayServiceImpl implements IplayService {
         playListLogEntity.setPlayStatus(playStatus);
         playListLogEntity.setPlayErrorCode(errorCode);
         playListLogMapper.updateById(playListLogEntity);
-        //关闭自研流媒体
-        String url = closeSdkServerApi.replace("{streamId}", streamId);
-        String result = RestTemplateUtil.get(url, null, restTemplate);
-        if (ObjectUtils.isEmpty(result)) {
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接","连接业务异常",result);
-            return false;
+        //关闭流传输
+        try{
+            Socket socket = (Socket)playHandleConf.getSocketHanderMap().get(playListLogEntity.getSocketHandle());
+
+            socket.shutdownOutput();
+        }catch (Exception e){
+            log.info(LogTemplate.ERROR_LOG_TEMPLATE,"流bye操作","关闭socket失败",e.getMessage());
         }
+
         return errorCode == 0;
 
     }

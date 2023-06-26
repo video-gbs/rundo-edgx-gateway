@@ -26,6 +26,10 @@ public class PlayListLogEntity {
 
     private String streamId;
 
+    /**
+     * tcpsocket连接句柄
+     */
+    private String socketHandle;
 
     /**
      * 点播句柄
