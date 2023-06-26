@@ -593,7 +593,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
     @Override
     public Boolean onStreamNoneReader(String app,String streamId) {
 
-        if (VideoManagerConstants.GB28181_APP.equals(app)){
+        if (VideoManagerConstants.GB28181_SELF_APP.equals(app) || VideoManagerConstants.HKSDK_APP.equals(app)){
             // 国标流， 点播/录像回放/录像下载
             streamCloseSend(streamId,true);
             return true;
