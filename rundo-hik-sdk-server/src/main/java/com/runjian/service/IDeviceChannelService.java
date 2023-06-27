@@ -48,4 +48,16 @@ public interface IDeviceChannelService extends IService<DeviceChannelEntity> {
      * @return
      */
     CommonResponse<CatalogSyncDto> channelSync(Long id);
+
+    /**
+     * 通道删除
+     * channelDbId
+     */
+    void channelHardDelete(long channelDbId);
+
+    /**
+     * 软删除通道
+     * channelDbId
+     */
+    void channelSoftDelete(long channelDbId);
 }

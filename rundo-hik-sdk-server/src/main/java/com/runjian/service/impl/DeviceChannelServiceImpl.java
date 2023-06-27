@@ -5,6 +5,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.CommonResponse;
+import com.runjian.common.constant.BusinessSceneConstants;
+import com.runjian.common.constant.GatewayBusinessMsgType;
+import com.runjian.common.constant.LogTemplate;
 import com.runjian.conf.constant.DeviceTypeEnum;
 import com.runjian.domain.dto.CatalogSyncDto;
 import com.runjian.domain.dto.DeviceChannel;
@@ -19,11 +22,14 @@ import com.runjian.mapper.DeviceChannelMapper;
 import com.runjian.mapper.DeviceMapper;
 import com.runjian.service.IDeviceChannelService;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import javax.annotation.Resource;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,11 +38,11 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
     @Autowired
     ISdkCommderService iSdkCommderService;
 
-    @Autowired
+    @Resource
     DeviceMapper deviceMapper;
 
 
-    @Autowired
+    @Resource
     DeviceChannelMapper deviceChannelMapper;
 
     @Override
@@ -160,6 +166,31 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
         catalogSyncDto.setTotal(channelList.size());
         catalogSyncDto.setChannelDetailList(channelList);
         return CommonResponse.success(catalogSyncDto);
+
+    }
+
+    @Override
+    public void channelHardDelete(long channelDbId) {
+            //进行设备离线推出
+
+
+        //删除通道
+        deviceChannelMapper.deleteById(channelDbId);
+
+    }
+
+    @Override
+    public void channelSoftDelete(long channelDbId){
+        LambdaQueryWrapper<DeviceChannelEntity> deviceChannelEntityLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        deviceChannelEntityLambdaQueryWrapper.eq(DeviceChannelEntity::getId,channelDbId);
+        deviceChannelEntityLambdaQueryWrapper.eq(DeviceChannelEntity::getDeleted,1);
+
+        DeviceChannelEntity deviceChannelEntity = new DeviceChannelEntity();
+        deviceChannelEntity.setId(channelDbId);
+        deviceChannelEntity.setDeleted(1);
+        //软删除通道
+        deviceChannelMapper.updateById(deviceChannelEntity);
+
 
     }
 }

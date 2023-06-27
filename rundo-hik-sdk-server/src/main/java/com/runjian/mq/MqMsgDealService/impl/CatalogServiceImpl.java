@@ -5,8 +5,6 @@ import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.domain.dto.CatalogSyncDto;
-import com.runjian.domain.dto.Device;
-import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.mq.MqMsgDealService.IMsgProcessorService;
 import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;

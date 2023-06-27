@@ -105,6 +105,7 @@ public class DeviceChannelEntity {
 
 	private int online;
 
+	private int deleted;
 
 
 	private Date createdAt;

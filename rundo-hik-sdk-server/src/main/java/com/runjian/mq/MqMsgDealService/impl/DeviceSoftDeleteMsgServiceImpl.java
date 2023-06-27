@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DeviceDeleteMsgServiceImpl implements InitializingBean, IMsgProcessorService {
+public class DeviceSoftDeleteMsgServiceImpl implements InitializingBean, IMsgProcessorService {
 
     @Autowired
     IMqMsgDealServer iMqMsgDealServer;
@@ -27,26 +27,24 @@ public class DeviceDeleteMsgServiceImpl implements InitializingBean, IMsgProcess
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.DEVICE_DELETE.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.DEVICE_DELETE_SOFT.getTypeName(),this);
     }
 
     @Override
     public void process(CommonMqDto commonMqDto) {
         JSONObject dataJson = (JSONObject) commonMqDto.getData();
-        //实际的请求参数
-        JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
         //设备信息同步  获取设备信息
         String deviceId = dataJson.getString("deviceId");
         long encodeId = Long.parseLong(deviceId);
         CommonResponse<Object> response = CommonResponse.success(true);
         try {
-            deviceService.deviceDelete(encodeId);
+            deviceService.deviceSoftDelete(encodeId);
 
         }catch (Exception e){
             response = CommonResponse.failure(BusinessErrorEnums.UNKNOWN_ERROR,e.getMessage());
         }
         //mq消息发送
-        gatewayBusinessAsyncSender.sendforAllScene(response, commonMqDto.getMsgId(), GatewayBusinessMsgType.DEVICE_DELETE);
+        gatewayBusinessAsyncSender.sendforAllScene(response, commonMqDto.getMsgId(), GatewayBusinessMsgType.DEVICE_DELETE_SOFT);
     }
 
 

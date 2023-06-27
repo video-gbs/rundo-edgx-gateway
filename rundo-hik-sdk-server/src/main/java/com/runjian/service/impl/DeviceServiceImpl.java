@@ -3,14 +3,14 @@ package com.runjian.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.MarkConstant;
 import com.runjian.conf.constant.DeviceTypeEnum;
-import com.runjian.domain.dto.commder.ChannelInfoDto;
-import com.runjian.domain.dto.commder.DeviceConfigDto;
-import com.runjian.domain.dto.commder.DeviceLoginDto;
-import com.runjian.domain.dto.commder.DeviceOnlineDto;
+import com.runjian.domain.dto.DeviceChannel;
+import com.runjian.domain.dto.commder.*;
+import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.entity.DeviceEntity;
 import com.runjian.hik.module.service.ISdkCommderService;
 import com.runjian.hik.module.service.SdkInitService;
@@ -22,8 +22,10 @@ import com.runjian.service.IDeviceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 @Service
@@ -32,11 +34,11 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
     private static HCNetSDK hCNetSDK ;
     @Autowired
     ISdkCommderService iSdkCommderService;
-    @Autowired
+    @Resource
     DeviceMapper deviceMapper;
 
 
-    @Autowired
+    @Resource
     DeviceChannelMapper deviceChannelMapper;
     static int lDChannel;  //预览通道号
 
@@ -126,9 +128,17 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
     }
 
     @Override
-    public void offline(int lUserId) {
-        boolean b = hCNetSDK.NET_DVR_Logout(lUserId);
-        if(b){
+    public Boolean offline(long encodeId) {
+        //查找对应的登陆luserid
+        DeviceEntity deviceEntityOne = deviceMapper.selectById(encodeId);
+        if(ObjectUtils.isEmpty(deviceEntityOne)){
+            throw new BusinessException(BusinessErrorEnums.DB_NOT_FOUND);
+        }
+        Integer lUserId = deviceEntityOne.getLUserId();
+
+        DeviceLoginOutDto logout = iSdkCommderService.logout(lUserId);
+        boolean result = logout.isResult();
+        if(result){
             LambdaQueryWrapper<DeviceEntity> updateWrapper = new LambdaQueryWrapper<>();
             updateWrapper.eq(DeviceEntity::getLUserId,lUserId);
             DeviceEntity deviceEntity = new DeviceEntity();
@@ -136,8 +146,9 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
             deviceMapper.update(deviceEntity,updateWrapper);
         }else {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"sdk注销失败",lUserId,hCNetSDK.NET_DVR_GetLastError());
+            return false;
         }
-
+        return true;
     }
 
     @Override
@@ -164,5 +175,37 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
     @Override
     public CommonResponse<List<DeviceEntity>> deviceList() {
         return CommonResponse.success(deviceMapper.selectList(null));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deviceDelete(long encodeId) {
+
+        //可以删除
+        Boolean offline = offline(encodeId);
+        if(offline){
+            //退出正常 进行设备和通道的删除
+            deviceMapper.deleteById(encodeId);
+
+            LambdaQueryWrapper<DeviceChannelEntity> deviceChannelEntityLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            deviceChannelEntityLambdaQueryWrapper.eq(DeviceChannelEntity::getEncodeId,encodeId);
+            deviceChannelMapper.delete(deviceChannelEntityLambdaQueryWrapper);
+
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deviceSoftDelete(long encodeId) {
+        //可以删除
+        DeviceEntity deviceEntity = new DeviceEntity();
+        deviceEntity.setId(encodeId);
+        deviceEntity.setDeleted(1);
+        deviceMapper.updateById(deviceEntity);
+
+        DeviceChannelEntity deviceChannel = new DeviceChannelEntity();
+        deviceChannel.setEncodeId(encodeId);
+        deviceChannel.setDeleted(1);
+        deviceChannelMapper.updateById(deviceChannel);
     }
 }

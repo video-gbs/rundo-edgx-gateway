@@ -35,7 +35,7 @@ public interface IDeviceService extends IService<DeviceEntity> {
      * 设备下线
      * @param lUserId 登录句柄
      */
-    void offline(int lUserId);
+    Boolean offline(long encodeId);
 
 
     /**
@@ -51,6 +51,20 @@ public interface IDeviceService extends IService<DeviceEntity> {
      * @return
      */
     CommonResponse<List<DeviceEntity>> deviceList();
+
+    /**
+     *
+     * @param deviceId
+     * @return
+     */
+    void deviceDelete(long encodeId);
+
+
+    /**
+     * 设备软删除
+     * @return
+     */
+    void deviceSoftDelete(long encodeId);
 
 
 }

@@ -72,6 +72,9 @@ public class DeviceEntity {
 	private int deviceType;
 
 
+	private int deleted;
+
+
 
 	private String password;
 

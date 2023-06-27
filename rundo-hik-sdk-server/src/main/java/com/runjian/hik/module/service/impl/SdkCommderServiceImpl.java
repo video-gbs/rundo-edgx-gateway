@@ -1,16 +1,15 @@
 package com.runjian.hik.module.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.MarkConstant;
 import com.runjian.common.utils.FileUtil;
 import com.runjian.common.utils.StringUtils;
 import com.runjian.conf.PlayHandleConf;
 import com.runjian.domain.dto.DeviceChannel;
-import com.runjian.domain.dto.commder.ChannelInfoDto;
-import com.runjian.domain.dto.commder.DeviceConfigDto;
-import com.runjian.domain.dto.commder.DeviceLoginDto;
-import com.runjian.domain.dto.commder.PlayInfoDto;
+import com.runjian.domain.dto.commder.*;
 import com.runjian.entity.DeviceChannelEntity;
+import com.runjian.entity.DeviceEntity;
 import com.runjian.hik.module.service.ISdkCommderService;
 import com.runjian.hik.module.service.SdkInitService;
 //import com.runjian.hik.module.service.impl.callBack.FRealDataCallBack;
@@ -193,6 +192,19 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         deviceLoginDto.setDeviceinfoV40(m_strDeviceInfo);
         return  deviceLoginDto;
 
+    }
+
+
+    @Override
+    public DeviceLoginOutDto logout(int lUserId) {
+        boolean b = hCNetSDK.NET_DVR_Logout(lUserId);
+        DeviceLoginOutDto deviceLoginOutDto = new DeviceLoginOutDto();
+        deviceLoginOutDto.setResult(b);
+        if(!b){
+            int errorCode = hCNetSDK.NET_DVR_GetLastError();
+            deviceLoginOutDto.setErrorCode(errorCode);
+        }
+        return deviceLoginOutDto;
     }
 
     @Override

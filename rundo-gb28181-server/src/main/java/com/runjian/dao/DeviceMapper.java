@@ -42,7 +42,7 @@ public interface DeviceMapper {
     @Delete("DELETE FROM "+DEVICE_TABLE_NAME+" WHERE device_id=#{deviceId}")
     int remove(String deviceId);
 
-    @Update("UPDATE "+DEVICE_TABLE_NAME+" set deleted = 1 where id= #{id}")
+    @Update("UPDATE "+DEVICE_TABLE_NAME+" set deleted = 1 where device_id= #{id}")
     int softRemove(String deviceId);
 
     /**

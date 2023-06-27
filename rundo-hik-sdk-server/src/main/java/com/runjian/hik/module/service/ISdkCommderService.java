@@ -1,9 +1,6 @@
 package com.runjian.hik.module.service;
 
-import com.runjian.domain.dto.commder.ChannelInfoDto;
-import com.runjian.domain.dto.commder.DeviceConfigDto;
-import com.runjian.domain.dto.commder.DeviceLoginDto;
-import com.runjian.domain.dto.commder.PlayInfoDto;
+import com.runjian.domain.dto.commder.*;
 import com.runjian.hik.sdklib.HCNetSDK;
 
 public interface ISdkCommderService {
@@ -17,6 +14,14 @@ public interface ISdkCommderService {
      * @return
      */
     DeviceLoginDto login(String ip, short port, String user, String psw);
+
+    /**
+     *
+     * @param lUserId
+     * @return
+     */
+    DeviceLoginOutDto logout(int lUserId);
+
 
 
     /**
