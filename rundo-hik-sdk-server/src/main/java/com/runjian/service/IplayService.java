@@ -22,7 +22,7 @@ public interface IplayService {
      *回放
      * @param playBackReq
      */
-    void playBack(PlayBackReq playBackReq);
+    CommonResponse<Integer> playBack(PlayBackReq playBackReq);
 
     /**
      * 网关的bye指令场景

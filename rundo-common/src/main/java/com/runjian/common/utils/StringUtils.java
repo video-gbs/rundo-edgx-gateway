@@ -51,6 +51,17 @@ public class StringUtils {
         }
     }
 
+
+    public static String getUtf8StringFromByte(byte[] strByte) {
+
+        try {
+            return new String(strByte, "UTF-8").trim();
+        } catch (UnsupportedEncodingException e) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "编码转换失败", "编码转换utf8失败", e.getMessage());
+        }
+        return "";
+    }
+
       public static byte[] getUTF8BytesFromGBKString(String gbkStr) {
          int n = gbkStr.length();
          byte[] utfBytes = new byte[3 * n];

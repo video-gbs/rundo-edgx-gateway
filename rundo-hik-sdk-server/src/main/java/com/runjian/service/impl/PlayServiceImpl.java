@@ -147,11 +147,30 @@ public class PlayServiceImpl implements IplayService {
         playCommonDto.setChannelNum(deviceChannelEntity.getChannelNum());
         return CommonResponse.success(playCommonDto);
 
-
     }
     @Override
-    public void playBack(PlayBackReq playBackReq) {
+    public CommonResponse<Integer> playBack(PlayBackReq playBackReq) {
+        CommonResponse<PlayCommonDto> commonResponse = playCommonCheck(playBackReq);
+        //建立socke连接
+        CommonResponse<String> commonResponse1 = streamMediaDeal(playBackReq);
+        if(commonResponse1.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
+            throw new BusinessException(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
+        }
+        String socketHandle = commonResponse1.getData();
+        PlayCommonDto data = commonResponse.getData();
+        int streamMode = playBackReq.getStreamMode();
+        PlayInfoDto play = iSdkCommderService.play(data.getLUserId(), data.getChannelNum(), 1, streamMode);
+        int errorCode = play.getErrorCode();
 
+        int playStatus = errorCode==0?0:-1;
+        PlayListLogEntity playListLogEntity = new PlayListLogEntity();
+        playListLogEntity.setStreamId(playBackReq.getStreamId());
+        playListLogEntity.setPlayErrorCode(errorCode);
+        playListLogEntity.setPlayHandle(play.getLPreviewHandle());
+        playListLogEntity.setPlayStatus(playStatus);
+        playListLogEntity.setSocketHandle(socketHandle);
+        playListLogMapper.insert(playListLogEntity);
+        return errorCode==0?CommonResponse.success(errorCode):CommonResponse.failure(BusinessErrorEnums.SDK_OPERATION_FAILURE,BusinessErrorEnums.SDK_OPERATION_FAILURE.getErrMsg()+errorCode);
     }
 
 
@@ -178,6 +197,7 @@ public class PlayServiceImpl implements IplayService {
             socket.shutdownOutput();
         }catch (Exception e){
             log.info(LogTemplate.ERROR_LOG_TEMPLATE,"流bye操作","关闭socket失败",e.getMessage());
+            throw new BusinessException(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
         }
 
         return errorCode == 0;

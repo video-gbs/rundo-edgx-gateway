@@ -241,7 +241,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 gb28181ServerReq.setEnableMp4(0);
                 gb28181ServerReq.setPort(0);
 
-                createServerPortRsp = mediaRestfulApiService.openSDKServer(gb28181ServerReq, oneMedia);
+                createServerPortRsp = mediaRestfulApiService.openRtpServer(gb28181ServerReq, oneMedia);
                 ssrcInfo = new SsrcInfo(createServerPortRsp.getPort(),ssrc,streamId,oneMedia.getId());
                 ssrcInfo.setSdpIp(oneMedia.getSdpIp());
                 ssrcInfo.setIp(oneMedia.getIp());

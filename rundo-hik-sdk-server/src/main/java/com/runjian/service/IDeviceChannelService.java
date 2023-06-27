@@ -5,6 +5,7 @@ import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.domain.dto.CatalogSyncDto;
 import com.runjian.domain.dto.DeviceChannel;
+import com.runjian.domain.dto.commder.RecordAllItem;
 import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.entity.DeviceEntity;
 
@@ -40,7 +41,7 @@ public interface IDeviceChannelService extends IService<DeviceChannelEntity> {
      * 录像列表
      * @param recordInfoReq
      */
-    void recordInfo(RecordInfoReq recordInfoReq);
+    RecordAllItem recordInfo(RecordInfoReq recordInfoReq);
 
     /**
      * 通道同步

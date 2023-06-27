@@ -74,5 +74,15 @@ public interface ISdkCommderService {
      */
     PlayInfoDto stopPlay(int lPreviewHandle);
 
+    /**
+     * 获取录像信息
+     * @param lUserId
+     * @param lChannel
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    RecordInfoDto recordList(int lUserId,int lChannel,String startTime,String endTime);
+
 
 }

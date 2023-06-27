@@ -3,6 +3,7 @@ package com.runjian.hik.module.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.MarkConstant;
+import com.runjian.common.utils.DateUtils;
 import com.runjian.common.utils.FileUtil;
 import com.runjian.common.utils.StringUtils;
 import com.runjian.conf.PlayHandleConf;
@@ -31,6 +32,7 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.runjian.hik.sdklib.HCNetSDK.NET_DVR_GET_PICCFG_V30;
 
@@ -422,5 +424,118 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         int errorCode = b?0: hCNetSDK.NET_DVR_GetLastError();
         playInfoDto.setErrorCode(errorCode);
         return playInfoDto;
+    }
+
+    @Override
+    public RecordInfoDto recordList(int lUserId, int lChannel, String startTime, String endTime) {
+        RecordInfoDto recordInfoDto = new RecordInfoDto();
+        HCNetSDK.NET_DVR_FILECOND_V40 struFileCond = new HCNetSDK.NET_DVR_FILECOND_V40();
+        struFileCond.read();
+        struFileCond.lChannel= lChannel; //通道号 NVR设备路数小于32路的起始通道号从33开始，依次增加
+        struFileCond.byFindType=0;  //录象文件类型 0=定时录像
+        //起始时间
+        struFileCond.struStartTime.dwYear= DateUtils.stringToYear(startTime);
+        struFileCond.struStartTime.dwMonth=DateUtils.stringToMonth(startTime);
+        struFileCond.struStartTime.dwDay=DateUtils.stringToDay(startTime);
+        struFileCond.struStartTime.dwHour=DateUtils.stringToHour(startTime);
+        struFileCond.struStartTime.dwMinute=DateUtils.stringToMinuts(startTime);
+        struFileCond.struStartTime.dwSecond=DateUtils.stringToSeconds(startTime);
+        //停止时间
+        struFileCond.struStopTime.dwYear=DateUtils.stringToYear(endTime);
+        struFileCond.struStopTime.dwMonth=DateUtils.stringToMonth(endTime);
+        struFileCond.struStopTime.dwDay=DateUtils.stringToDay(endTime);
+        struFileCond.struStopTime.dwHour=DateUtils.stringToHour(endTime);
+        struFileCond.struStopTime.dwMinute=DateUtils.stringToMinuts(endTime);
+        struFileCond.struStopTime.dwSecond=DateUtils.stringToSeconds(endTime);
+        struFileCond.write();
+        int  FindFileHandle=hCNetSDK.NET_DVR_FindFile_V40(lUserId,struFileCond);
+        if (FindFileHandle<=-1)
+        {
+            int errorCode = hCNetSDK.NET_DVR_GetLastError();
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "录像查找失败", "录像查找失败", errorCode);
+            recordInfoDto.setErrorCode(errorCode);
+            return recordInfoDto;
+        }
+
+        List<HCNetSDK.NET_DVR_FINDDATA_V40> netDvrFindDataV40List = new ArrayList<>();
+
+        ArrayList<RecordItem> recordItems = new ArrayList<>();
+        RecordAllItem recordAllItem = new RecordAllItem();
+        int sum = 0;
+        while (true) {
+            HCNetSDK.NET_DVR_FINDDATA_V40 struFindData = new HCNetSDK.NET_DVR_FINDDATA_V40();
+            long State = hCNetSDK.NET_DVR_FindNextFile_V40(FindFileHandle, struFindData);
+            if (State <= -1) {
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "查找失败，错误码为", "录像查找失败", hCNetSDK.NET_DVR_GetLastError());
+                break;
+
+            }else if (State==1000){
+                sum++;
+                //获取文件信息成功
+                struFindData.read();
+                RecordItem recordItem = new RecordItem();
+                String strFileName= StringUtils.getUtf8StringFromByte(struFindData.sFileName);
+                //起始时间
+                String struStartTime = struFindData.struStartTime.toStringStandardTime();
+                String struStopTime = struFindData.struStopTime.toStringStandardTime();
+                recordItem.setName(strFileName);
+                recordItem.setStartTime(struStartTime);
+                recordItem.setEndTime(struStopTime);
+                recordItem.setFileSize(String.valueOf(struFindData.dwFileSize));
+                recordItems.add(recordItem);
+                continue;
+
+            }else if (State==1001) {
+                //未查找到文件
+                System.out.println("未查找到文件");
+                break;
+
+            }
+            else if (State==1002) {
+                //正在查找请等待
+                System.out.println("正在查找，请等待");
+                continue;
+
+            }
+
+            else if (State==1003)
+            {
+                //没有更多的文件，查找结束
+                System.out.println("没有更多的文件，查找结束");
+                break;
+
+            }
+            else if (State==1004)
+            {
+                //查找文件时异常
+                System.out.println("没有更多的文件，查找结束");
+                break;
+
+            }
+            else if (State==1005)
+            {
+                //查找文件超时
+
+                System.out.println("没有更多的文件，查找结束");
+                break;
+
+            }else {
+                break;
+            }
+        }
+
+        recordAllItem.setSumNum(sum);
+        recordAllItem.setRecordList(recordItems);
+        recordAllItem.setName("");
+        boolean b_CloseHandle=hCNetSDK.NET_DVR_FindClose_V30(FindFileHandle);
+        if (!b_CloseHandle) {
+            int errorCode = hCNetSDK.NET_DVR_GetLastError();
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "录像关闭失败", "录像查找失败", errorCode);
+            recordInfoDto.setErrorCode(errorCode);
+            return recordInfoDto;
+        }
+        recordInfoDto.setRecordAllItem(recordAllItem);
+
+        return recordInfoDto;
     }
 }

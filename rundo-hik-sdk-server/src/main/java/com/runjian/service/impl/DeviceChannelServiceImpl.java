@@ -2,8 +2,10 @@ package com.runjian.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
 import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.BusinessSceneConstants;
 import com.runjian.common.constant.GatewayBusinessMsgType;
@@ -11,8 +13,11 @@ import com.runjian.common.constant.LogTemplate;
 import com.runjian.conf.constant.DeviceTypeEnum;
 import com.runjian.domain.dto.CatalogSyncDto;
 import com.runjian.domain.dto.DeviceChannel;
+import com.runjian.domain.dto.PlayCommonDto;
 import com.runjian.domain.dto.commder.ChannelInfoDto;
 import com.runjian.domain.dto.commder.DeviceConfigDto;
+import com.runjian.domain.dto.commder.RecordAllItem;
+import com.runjian.domain.dto.commder.RecordInfoDto;
 import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.entity.DeviceEntity;
 import com.runjian.hik.module.service.ISdkCommderService;
@@ -61,7 +66,48 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
     }
 
     @Override
-    public void recordInfo(RecordInfoReq recordInfoReq) {
+    public RecordAllItem recordInfo(RecordInfoReq recordInfoReq) {
+
+        CommonResponse<PlayCommonDto> playCommonDtoCommonResponse = playCommonCheck(recordInfoReq);
+        PlayCommonDto data = playCommonDtoCommonResponse.getData();
+        //获取设备配置信息
+        RecordInfoDto recordInfoDto = iSdkCommderService.recordList(data.getLUserId(), data.getChannelNum(), recordInfoReq.getStartTime(), recordInfoReq.getEndTime());
+        if(recordInfoDto.getErrorCode() <= 0){
+            //获取失败
+            throw new BusinessException(BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,String.valueOf(recordInfoDto.getErrorCode()));
+        }
+        return recordInfoDto.getRecordAllItem();
+
+    }
+
+    private CommonResponse<PlayCommonDto> playCommonCheck(RecordInfoReq recordInfoReq){
+        //获取设备信息luserId
+        long encodeId = Long.parseLong(recordInfoReq.getDeviceId());
+        DeviceEntity deviceEntity = deviceMapper.selectById(encodeId);
+        if(ObjectUtils.isEmpty(deviceEntity)){
+
+        }else {
+            if(deviceEntity.getOnline() != 1){
+                throw new BusinessException(BusinessErrorEnums.DB_DEVICE_NOT_FOUND);
+            }
+        }
+        //获取通道信息
+
+        long channelId = Long.parseLong(recordInfoReq.getChannelId());
+        DeviceChannelEntity deviceChannelEntity = deviceChannelMapper.selectById(channelId);
+        if(ObjectUtils.isEmpty(deviceChannelEntity)){
+            throw new BusinessException(BusinessErrorEnums.DB_CHANNEL_NOT_FOUND);
+        }else {
+            if(deviceChannelEntity.getOnline() != 1){
+                throw new BusinessException(BusinessErrorEnums.CHANNEL_OFFLINE);
+
+            }
+        }
+
+        PlayCommonDto playCommonDto = new PlayCommonDto();
+        playCommonDto.setLUserId(deviceEntity.getLUserId());
+        playCommonDto.setChannelNum(deviceChannelEntity.getChannelNum());
+        return CommonResponse.success(playCommonDto);
 
     }
 

@@ -396,7 +396,7 @@ public class SIPCommander implements ISIPCommander {
         content.append("s=Play\r\n");
         content.append("c=IN IP4 " + ssrcInfo.getSdpIp() + "\r\n");
         content.append("t=0 0\r\n");
-        if (streamMode == 1) {
+        if (streamMode == 2) {
             content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 97 98 99\r\n");
             content.append("a=setup:passive\r\n");
             content.append("a=connection:new\r\n");
@@ -437,7 +437,7 @@ public class SIPCommander implements ISIPCommander {
         content.append("t=" + DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime) + " "
                 + DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) + "\r\n");
 
-        if (streamMode == 1) {
+        if (streamMode == 2) {
             content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 97 98 99\r\n");
             content.append("a=setup:passive\r\n");
             content.append("a=connection:new\r\n");
