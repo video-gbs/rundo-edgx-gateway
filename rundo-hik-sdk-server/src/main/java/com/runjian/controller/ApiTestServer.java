@@ -4,8 +4,11 @@ import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.validator.ValidatorService;
 import com.runjian.domain.dto.CatalogSyncDto;
 import com.runjian.domain.dto.commder.DeviceOnlineDto;
+import com.runjian.domain.dto.commder.PlayInfoDto;
+import com.runjian.domain.dto.commder.RecordInfoDto;
 import com.runjian.domain.req.DeviceReq;
 import com.runjian.domain.req.PlaySdkReq;
+import com.runjian.domain.req.RecordInfoSdkReq;
 import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.hik.module.service.ISdkCommderService;
 import com.runjian.service.IDeviceChannelService;
@@ -73,6 +76,22 @@ public class ApiTestServer {
     public CommonResponse<Boolean> play(@RequestParam String streamId){
 
         return CommonResponse.success(iplayService.streamBye(streamId));
+
+    }
+
+    @PostMapping(value = "/test/recordInfo",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<RecordInfoDto> recordInfo(@RequestBody RecordInfoSdkReq recordInfoSdkReq){
+
+        RecordInfoDto recordInfoDto = sdkCommderService.recordList(recordInfoSdkReq.getLUserId(),recordInfoSdkReq.getLChannel(),recordInfoSdkReq.getStartTime(), recordInfoSdkReq.getEndTime());
+        return CommonResponse.success(recordInfoDto);
+
+    }
+
+    @PostMapping(value = "/test/playBack")
+    public CommonResponse<PlayInfoDto> playBack(@RequestBody RecordInfoSdkReq recordInfoSdkReq){
+
+        PlayInfoDto playInfoDto = sdkCommderService.playBack(recordInfoSdkReq.getLUserId(),recordInfoSdkReq.getLChannel(),recordInfoSdkReq.getStartTime(), recordInfoSdkReq.getEndTime());
+        return CommonResponse.success(playInfoDto);
 
     }
 }

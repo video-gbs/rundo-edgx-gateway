@@ -85,4 +85,13 @@ public interface ISdkCommderService {
     RecordInfoDto recordList(int lUserId,int lChannel,String startTime,String endTime);
 
 
+    /**
+     * 回放
+     * @param lUserId
+     * @param channelNum
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    PlayInfoDto playBack(int lUserId, int channelNum, String startTime,String endTime);
 }

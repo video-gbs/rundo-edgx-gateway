@@ -54,6 +54,9 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     private FRealDataCallBack fRealDataCallBack;
 
 
+    private PlayBackCallBack playBackCallBack;
+
+
 
     @Autowired
     private PlayHandleConf playHandleConf;
@@ -62,7 +65,16 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     public void init(){
         hCNetSDK = sdkInitService.getHCNetSDK();
         fRealDataCallBack = new FRealDataCallBack();
+        playBackCallBack = new PlayBackCallBack();
     }
+    public class PlayBackCallBack implements HCNetSDK.FPlayDataCallBack{
+
+        @Override
+        public void invoke(int lPlayHandle, int dwDataType, Pointer pBuffer, int dwBufSize, int dwUser) {
+
+        }
+    }
+
     public class FRealDataCallBack implements HCNetSDK.FRealDataCallBack_V30{
 
         /**
@@ -384,12 +396,12 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         strClientInfo.read();
         //通道号
         strClientInfo.lChannel = channelNum;
-        strClientInfo.hPlayWnd = null;
+        strClientInfo.hPlayWnd = 0;
         //0-主码流，1-子码流，2-三码流，3-虚拟码流，以此类推
         strClientInfo.dwStreamType= dwStreamType;
         //连接方式：0- TCP方式，1- UDP方式，2- 多播方式，3- RTP方式，4- RTP/RTSP，5- RTP/HTTP，6- HRUDP（可靠传输） ，7- RTSP/HTTPS，8- NPQ
         strClientInfo.dwLinkMode=4;
-        strClientInfo.bBlocked=dwLinkMode;
+        strClientInfo.bBlocked=1;
         strClientInfo.write();
         lPreviewHandle = hCNetSDK.NET_DVR_RealPlay_V40(lUserId, strClientInfo, fRealDataCallBack , null);
         PlayInfoDto playInfoDto = new PlayInfoDto();
@@ -537,5 +549,59 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         recordInfoDto.setRecordAllItem(recordAllItem);
 
         return recordInfoDto;
+    }
+
+    @Override
+    public PlayInfoDto playBack(int lUserId, int channelNum, String startTime, String endTime) {
+        HCNetSDK.NET_DVR_VOD_PARA net_dvr_vod_para = new HCNetSDK.NET_DVR_VOD_PARA();
+        net_dvr_vod_para.dwSize=net_dvr_vod_para.size();
+        //通道号
+        net_dvr_vod_para.struIDInfo.dwChannel=channelNum;
+        //起始时间
+        net_dvr_vod_para.struBeginTime.dwYear= DateUtils.stringToYear(startTime);
+        net_dvr_vod_para.struBeginTime.dwMonth=DateUtils.stringToMonth(startTime);
+        net_dvr_vod_para.struBeginTime.dwDay=DateUtils.stringToDay(startTime);
+        net_dvr_vod_para.struBeginTime.dwHour=DateUtils.stringToHour(startTime);
+        net_dvr_vod_para.struBeginTime.dwMinute=DateUtils.stringToMinuts(startTime);
+        net_dvr_vod_para.struBeginTime.dwSecond=DateUtils.stringToSeconds(startTime);
+        //停止时间
+        net_dvr_vod_para.struEndTime.dwYear=DateUtils.stringToYear(endTime);
+        net_dvr_vod_para.struEndTime.dwMonth=DateUtils.stringToMonth(endTime);
+        net_dvr_vod_para.struEndTime.dwDay=DateUtils.stringToDay(endTime);
+        net_dvr_vod_para.struEndTime.dwHour=DateUtils.stringToHour(endTime);
+        net_dvr_vod_para.struEndTime.dwMinute=DateUtils.stringToMinuts(endTime);
+        net_dvr_vod_para.struEndTime.dwSecond=DateUtils.stringToSeconds(endTime);
+        net_dvr_vod_para.hWnd=null; // 回放的窗口句柄，若置为空，SDK仍能收到码流数据，但不解码显示
+        net_dvr_vod_para.write();
+
+        int iPlayBack=hCNetSDK.NET_DVR_PlayBackByTime_V40(lUserId,net_dvr_vod_para);
+        PlayInfoDto playInfoDto = new PlayInfoDto();
+        playInfoDto.setLPreviewHandle(iPlayBack);
+        if (iPlayBack<=-1)
+        {
+            int errorCode = hCNetSDK.NET_DVR_GetLastError();
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "录像回放", "按时间回放失败", errorCode);
+            playInfoDto.setErrorCode(errorCode);
+            return playInfoDto;
+        }
+
+        //开启取流
+        boolean bCrtl=hCNetSDK.NET_DVR_PlayBackControl(iPlayBack, HCNetSDK.NET_DVR_PLAYSTART, 0, null);
+        if(!bCrtl){
+            int errorCode = hCNetSDK.NET_DVR_GetLastError();
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "录像回放", "开始播放失败", errorCode);
+            playInfoDto.setErrorCode(errorCode);
+            return playInfoDto;
+        }
+        //设置回调
+        boolean bRet=hCNetSDK.NET_DVR_SetPlayDataCallBack_V40(iPlayBack,playBackCallBack,Pointer.NULL);
+        if(!bRet){
+            int errorCode = hCNetSDK.NET_DVR_GetLastError();
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "录像回放", "设置回调失败", errorCode);
+            playInfoDto.setErrorCode(errorCode);
+            return playInfoDto;
+        }
+        return playInfoDto;
+
     }
 }

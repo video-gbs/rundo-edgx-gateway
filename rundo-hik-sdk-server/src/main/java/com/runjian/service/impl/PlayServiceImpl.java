@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,7 +50,7 @@ public class PlayServiceImpl implements IplayService {
     @Autowired
     ISdkCommderService iSdkCommderService;
 
-    @Autowired
+    @Resource
     PlayListLogMapper playListLogMapper;
 
     @Autowired
@@ -85,7 +86,7 @@ public class PlayServiceImpl implements IplayService {
         String socketHandle = commonResponse1.getData();
         PlayCommonDto data = commonResponse.getData();
         int streamMode = playReq.getStreamMode();
-        PlayInfoDto play = iSdkCommderService.play(data.getLUserId(), data.getChannelNum(), 1, streamMode);
+        PlayInfoDto play = iSdkCommderService.play(data.getLUserId(), data.getChannelNum(), streamMode, 1);
         int errorCode = play.getErrorCode();
 
         int playStatus = errorCode==0?0:-1;
@@ -159,7 +160,7 @@ public class PlayServiceImpl implements IplayService {
         String socketHandle = commonResponse1.getData();
         PlayCommonDto data = commonResponse.getData();
         int streamMode = playBackReq.getStreamMode();
-        PlayInfoDto play = iSdkCommderService.play(data.getLUserId(), data.getChannelNum(), 1, streamMode);
+        PlayInfoDto play = iSdkCommderService.playBack(data.getLUserId(), data.getChannelNum(), playBackReq.getStartTime(), playBackReq.getEndTime());
         int errorCode = play.getErrorCode();
 
         int playStatus = errorCode==0?0:-1;
