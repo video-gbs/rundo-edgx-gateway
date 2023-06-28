@@ -1,6 +1,7 @@
 package com.runjian.controller;
 
 import com.runjian.common.config.response.CommonResponse;
+import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.validator.ValidatorService;
 import com.runjian.domain.dto.CatalogSyncDto;
 import com.runjian.domain.dto.commder.DeviceOnlineDto;
@@ -11,6 +12,7 @@ import com.runjian.domain.req.PlaySdkReq;
 import com.runjian.domain.req.RecordInfoSdkReq;
 import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.hik.module.service.ISdkCommderService;
+import com.runjian.hik.sdklib.SocketPointer;
 import com.runjian.service.IDeviceChannelService;
 import com.runjian.service.IDeviceService;
 import com.runjian.service.IplayService;
@@ -89,8 +91,10 @@ public class ApiTestServer {
 
     @PostMapping(value = "/test/playBack")
     public CommonResponse<PlayInfoDto> playBack(@RequestBody RecordInfoSdkReq recordInfoSdkReq){
-
-        PlayInfoDto playInfoDto = sdkCommderService.playBack(recordInfoSdkReq.getLUserId(),recordInfoSdkReq.getLChannel(),recordInfoSdkReq.getStartTime(), recordInfoSdkReq.getEndTime());
+        String socketHandle =  "123456";
+        SocketPointer socketPointer = new SocketPointer();
+        socketPointer.socketHandle = socketHandle;
+        PlayInfoDto playInfoDto = sdkCommderService.playBack(recordInfoSdkReq.getLUserId(),recordInfoSdkReq.getLChannel(),recordInfoSdkReq.getStartTime(), recordInfoSdkReq.getEndTime(),socketPointer);
         return CommonResponse.success(playInfoDto);
 
     }

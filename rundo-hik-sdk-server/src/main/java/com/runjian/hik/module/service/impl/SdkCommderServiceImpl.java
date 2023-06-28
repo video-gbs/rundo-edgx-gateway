@@ -16,6 +16,7 @@ import com.runjian.hik.module.service.SdkInitService;
 //import com.runjian.hik.module.service.impl.callBack.FRealDataCallBack;
 import com.runjian.hik.sdklib.HCNetSDK;
 import com.runjian.hik.sdklib.SocketPointer;
+import com.sun.jna.Memory;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.examples.win32.W32API;
@@ -70,8 +71,26 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     public class PlayBackCallBack implements HCNetSDK.FPlayDataCallBack{
 
         @Override
-        public void invoke(int lPlayHandle, int dwDataType, Pointer pBuffer, int dwBufSize, int dwUser) {
+        public void invoke(int lPlayHandle, int dwDataType, Pointer pBuffer, int dwBufSize, Pointer dwUser) {
+            switch (dwDataType) {
+                case HCNetSDK.NET_DVR_SYSHEAD: //系统头
 
+                    break;
+                case HCNetSDK.NET_DVR_STREAMDATA:   //码流数据
+                    if (dwBufSize > 0) {
+                        ByteBuffer byteBuffer = pBuffer.getByteBuffer(0, dwBufSize);
+                        byte[] bytes = new byte[byteBuffer.remaining()];
+                        byteBuffer.get(bytes, 0, bytes.length);
+
+                        SocketPointer socketPointer = new SocketPointer();
+                        Pointer pointer = socketPointer.getPointer();
+                        pointer.write(0, dwUser.getByteArray(0, socketPointer.size()), 0, socketPointer.size());
+                        socketPointer.read();
+                        String socketHandle = socketPointer.socketHandle;
+                        System.out.println(socketHandle);
+
+                    }
+            }
         }
     }
 
@@ -390,7 +409,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     }
 
     @Override
-    public PlayInfoDto play(int lUserId, int channelNum, int dwStreamType, int dwLinkMode) {
+    public PlayInfoDto play(int lUserId, int channelNum, int dwStreamType, int dwLinkMode,SocketPointer socketPointer) {
 
         HCNetSDK.NET_DVR_PREVIEWINFO strClientInfo = new HCNetSDK.NET_DVR_PREVIEWINFO();
         strClientInfo.read();
@@ -403,7 +422,11 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         strClientInfo.dwLinkMode=4;
         strClientInfo.bBlocked=1;
         strClientInfo.write();
-        lPreviewHandle = hCNetSDK.NET_DVR_RealPlay_V40(lUserId, strClientInfo, fRealDataCallBack , null);
+
+        Pointer pointer = socketPointer.getPointer();
+        socketPointer.write();
+
+        lPreviewHandle = hCNetSDK.NET_DVR_RealPlay_V40(lUserId, strClientInfo, fRealDataCallBack , pointer);
         PlayInfoDto playInfoDto = new PlayInfoDto();
         playInfoDto.setLPreviewHandle(lPreviewHandle);
         if(lPreviewHandle <= -1){
@@ -552,7 +575,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     }
 
     @Override
-    public PlayInfoDto playBack(int lUserId, int channelNum, String startTime, String endTime) {
+    public PlayInfoDto playBack(int lUserId, int channelNum, String startTime, String endTime, SocketPointer socketPointer) {
         HCNetSDK.NET_DVR_VOD_PARA net_dvr_vod_para = new HCNetSDK.NET_DVR_VOD_PARA();
         net_dvr_vod_para.dwSize=net_dvr_vod_para.size();
         //通道号
@@ -594,7 +617,9 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
             return playInfoDto;
         }
         //设置回调
-        boolean bRet=hCNetSDK.NET_DVR_SetPlayDataCallBack_V40(iPlayBack,playBackCallBack,Pointer.NULL);
+        Pointer pointer = socketPointer.getPointer();
+        socketPointer.write();
+        boolean bRet=hCNetSDK.NET_DVR_SetPlayDataCallBack_V40(iPlayBack,playBackCallBack,pointer);
         if(!bRet){
             int errorCode = hCNetSDK.NET_DVR_GetLastError();
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "录像回放", "设置回调失败", errorCode);

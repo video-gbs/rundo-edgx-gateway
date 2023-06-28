@@ -79,14 +79,15 @@ public class PlayServiceImpl implements IplayService {
     public CommonResponse<Integer> play(PlayReq playReq)  {
         CommonResponse<PlayCommonDto> commonResponse = playCommonCheck(playReq);
         //建立socke连接
-        CommonResponse<String> commonResponse1 = streamMediaDeal(playReq);
+        CommonResponse<SocketPointer> commonResponse1 = streamMediaDeal(playReq);
         if(commonResponse1.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
             throw new BusinessException(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
         }
-        String socketHandle = commonResponse1.getData();
+        SocketPointer socketPointer = commonResponse1.getData();
+        String socketHandle = socketPointer.socketHandle;
         PlayCommonDto data = commonResponse.getData();
         int streamMode = playReq.getStreamMode();
-        PlayInfoDto play = iSdkCommderService.play(data.getLUserId(), data.getChannelNum(), streamMode, 1);
+        PlayInfoDto play = iSdkCommderService.play(data.getLUserId(), data.getChannelNum(), streamMode, 1,socketPointer);
         int errorCode = play.getErrorCode();
 
         int playStatus = errorCode==0?0:-1;
@@ -101,20 +102,20 @@ public class PlayServiceImpl implements IplayService {
 
     }
 
-    private synchronized CommonResponse<String> streamMediaDeal(PlayReq playReq) {
+    private synchronized CommonResponse<SocketPointer> streamMediaDeal(PlayReq playReq) {
         String ip = playReq.getSsrcInfo().getIp();
         int port = playReq.getSsrcInfo().getPort();
         String socketHandle =  UuidUtil.toUuid();
+        SocketPointer socketPointer = new SocketPointer();
+        socketPointer.socketHandle = socketHandle;
         try {
             Socket socket = new Socket(ip, port);
             ConcurrentHashMap<String, Object> socketHanderMap = playHandleConf.getSocketHanderMap();
-            SocketPointer socketPointer = new SocketPointer();
-            socketPointer.socketHandle = socketHandle;
             socketHanderMap.put(socketPointer.socketHandle,socket);
         }catch (Exception e){
             return CommonResponse.failure(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
         }
-        return CommonResponse.success(socketHandle);
+        return CommonResponse.success(socketPointer);
 
     }
 
@@ -153,14 +154,14 @@ public class PlayServiceImpl implements IplayService {
     public CommonResponse<Integer> playBack(PlayBackReq playBackReq) {
         CommonResponse<PlayCommonDto> commonResponse = playCommonCheck(playBackReq);
         //建立socke连接
-        CommonResponse<String> commonResponse1 = streamMediaDeal(playBackReq);
+        CommonResponse<SocketPointer> commonResponse1 = streamMediaDeal(playBackReq);
         if(commonResponse1.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
             throw new BusinessException(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
         }
-        String socketHandle = commonResponse1.getData();
+        SocketPointer socketPointer = commonResponse1.getData();
+        String socketHandle = socketPointer.socketHandle;
         PlayCommonDto data = commonResponse.getData();
-        int streamMode = playBackReq.getStreamMode();
-        PlayInfoDto play = iSdkCommderService.playBack(data.getLUserId(), data.getChannelNum(), playBackReq.getStartTime(), playBackReq.getEndTime());
+        PlayInfoDto play = iSdkCommderService.playBack(data.getLUserId(), data.getChannelNum(), playBackReq.getStartTime(), playBackReq.getEndTime(),socketPointer);
         int errorCode = play.getErrorCode();
 
         int playStatus = errorCode==0?0:-1;

@@ -9391,7 +9391,7 @@ public class NET_DVR_PIC_PARAM extends Structure {
     }
 
     public static interface FPlayDataCallBack extends Callback {
-        public void invoke(int lPlayHandle, int dwDataType, Pointer pBuffer, int dwBufSize, int dwUser);
+        public void invoke(int lPlayHandle, int dwDataType, Pointer pBuffer, int dwBufSize, Pointer dwUser);
     }
 
     public static interface FPlayESCallBack extends Callback {

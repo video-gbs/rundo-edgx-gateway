@@ -2,6 +2,7 @@ package com.runjian.hik.module.service;
 
 import com.runjian.domain.dto.commder.*;
 import com.runjian.hik.sdklib.HCNetSDK;
+import com.runjian.hik.sdklib.SocketPointer;
 
 public interface ISdkCommderService {
 
@@ -60,7 +61,7 @@ public interface ISdkCommderService {
      * 直播
      * @return
      */
-    PlayInfoDto play(int lUserId, int channelNum, int dwStreamType, int dwLinkMode);
+    PlayInfoDto play(int lUserId, int channelNum, int dwStreamType, int dwLinkMode, SocketPointer socketPointer);
 
     /**
      * 预览回调码流信息
@@ -93,5 +94,5 @@ public interface ISdkCommderService {
      * @param endTime
      * @return
      */
-    PlayInfoDto playBack(int lUserId, int channelNum, String startTime,String endTime);
+    PlayInfoDto playBack(int lUserId, int channelNum, String startTime,String endTime, SocketPointer socketPointer);
 }
