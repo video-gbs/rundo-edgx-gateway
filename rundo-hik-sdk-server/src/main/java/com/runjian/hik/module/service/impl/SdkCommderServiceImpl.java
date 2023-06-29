@@ -629,4 +629,18 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         return playInfoDto;
 
     }
+
+    @Override
+    public Integer ptzControl(int lUserId, int lChannel, int dwPTZCommand, int dwStop,int dwSpeed) {
+
+        //dwSpeed 取值1至7
+        boolean b = hCNetSDK.NET_DVR_PTZControlWithSpeed_Other(lUserId, lChannel, dwPTZCommand, dwStop,dwSpeed);
+        if(!b){
+            int error = hCNetSDK.NET_DVR_GetLastError();
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "ptz操作", "ptz操作失败", hCNetSDK.NET_DVR_GetLastError());
+            return error;
+        }
+
+        return 0;
+    }
 }

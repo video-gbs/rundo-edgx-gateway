@@ -125,6 +125,7 @@ public enum BusinessErrorEnums {
     PTZ_OPERATION_TYPE_NOT_FOUND(500,232015,"ptz操作信息不存在"),
 
     MSG_OPERATION_TIMEOUT(500,232016,"消息处理超时"),
+    PTZ_OPERATION_ERROR(500,232017,"ptz操作失败"),
     /************************** media异常 CODE:233xx ****************************/
     MEDIA_ZLM_EXSITED_ERROR(500,23300,"流媒体服务已存在"),
     MEDIA_ZLM_COLLECT_ERROR(500,23301,"流媒体服务连接失败"),

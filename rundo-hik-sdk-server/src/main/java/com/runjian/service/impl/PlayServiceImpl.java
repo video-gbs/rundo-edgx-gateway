@@ -198,8 +198,7 @@ public class PlayServiceImpl implements IplayService {
 
             socket.shutdownOutput();
         }catch (Exception e){
-            log.info(LogTemplate.ERROR_LOG_TEMPLATE,"流bye操作","关闭socket失败",e.getMessage());
-            throw new BusinessException(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流bye操作","关闭socket失败",e.getMessage());
         }
 
         return errorCode == 0;

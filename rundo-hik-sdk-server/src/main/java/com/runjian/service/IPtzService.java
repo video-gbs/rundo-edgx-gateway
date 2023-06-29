@@ -15,7 +15,7 @@ public interface IPtzService {
      * 预置位控制
      * @param channelPtzControlReq
      */
-    void ptzControl(ChannelPtzControlReq channelPtzControlReq);
+    Integer ptzControl(ChannelPtzControlReq channelPtzControlReq);
 
     /**
      * 预置位查询

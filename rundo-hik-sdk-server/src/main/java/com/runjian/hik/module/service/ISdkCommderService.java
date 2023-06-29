@@ -95,4 +95,15 @@ public interface ISdkCommderService {
      * @return
      */
     PlayInfoDto playBack(int lUserId, int channelNum, String startTime,String endTime, SocketPointer socketPointer);
+
+    /**
+     * ptz操作
+     * @param lUserId
+     * @param lChannel
+     * @param dwPTZCommand
+     * @param dwStop
+     * @param dwSpeed
+     * @return
+     */
+    Integer ptzControl(int lUserId,int lChannel,int dwPTZCommand, int dwStop,int dwSpeed);
 }

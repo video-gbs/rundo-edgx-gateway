@@ -98,4 +98,12 @@ public class ApiTestServer {
         return CommonResponse.success(playInfoDto);
 
     }
+
+    @GetMapping(value = "/test/ptz")
+    public CommonResponse<Integer> ptz(@RequestParam int lUserId,@RequestParam int lChannel,@RequestParam int dwPTZCommand, @RequestParam int dwStop,@RequestParam int dwSpeed){
+
+
+        return CommonResponse.success(sdkCommderService.ptzControl(lUserId,lChannel,dwPTZCommand,dwStop,dwSpeed));
+
+    }
 }
