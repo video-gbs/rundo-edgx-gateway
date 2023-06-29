@@ -643,4 +643,38 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
 
         return 0;
     }
+
+    @Override
+    public PresetQueryDto presetList(int lUserId, int lChannel) {
+        PresetQueryDto presetQueryDto = new PresetQueryDto();
+
+        IntByReference ibrBytesReturned = new IntByReference(0);//获取IP接入配置参数
+        HCNetSDK.NET_DVR_PRESET_NAME presetObj = new HCNetSDK.NET_DVR_PRESET_NAME();
+        presetObj.write();
+
+        boolean bRet = hCNetSDK.NET_DVR_GetDVRConfig(lUserId, HCNetSDK.NET_DVR_GET_PRESET_NAME, lChannel, presetObj.getPointer(), presetObj.size(), ibrBytesReturned);
+        presetObj.read();
+        if(!bRet){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "预置位操作", "预置位操作失败", hCNetSDK.NET_DVR_GetLastError());
+        }
+        short wPresetNum = presetObj.wPresetNum;
+
+
+        return presetQueryDto;
+    }
+
+    @Override
+    public Integer presetControl(int lUserId, int lChannel, int commond, int presetNum) {
+
+
+        boolean b = hCNetSDK.NET_DVR_PTZPreset_Other(lUserId, lChannel, commond, presetNum);
+
+        if(!b){
+            int error = hCNetSDK.NET_DVR_GetLastError();
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "预置位操作", "预置位操作失败", hCNetSDK.NET_DVR_GetLastError());
+            return error;
+        }
+
+        return 0;
+    }
 }

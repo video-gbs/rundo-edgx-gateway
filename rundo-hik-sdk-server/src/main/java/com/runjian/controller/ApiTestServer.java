@@ -6,6 +6,7 @@ import com.runjian.common.validator.ValidatorService;
 import com.runjian.domain.dto.CatalogSyncDto;
 import com.runjian.domain.dto.commder.DeviceOnlineDto;
 import com.runjian.domain.dto.commder.PlayInfoDto;
+import com.runjian.domain.dto.commder.PresetQueryDto;
 import com.runjian.domain.dto.commder.RecordInfoDto;
 import com.runjian.domain.req.DeviceReq;
 import com.runjian.domain.req.PlaySdkReq;
@@ -104,6 +105,15 @@ public class ApiTestServer {
 
 
         return CommonResponse.success(sdkCommderService.ptzControl(lUserId,lChannel,dwPTZCommand,dwStop,dwSpeed));
+
+    }
+
+
+    @GetMapping(value = "/test/preset")
+    public CommonResponse<PresetQueryDto> preset(@RequestParam int lUserId, @RequestParam int lChannel){
+
+
+        return CommonResponse.success(sdkCommderService.presetList(lUserId,lChannel));
 
     }
 }

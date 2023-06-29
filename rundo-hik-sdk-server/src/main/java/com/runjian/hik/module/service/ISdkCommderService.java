@@ -106,4 +106,26 @@ public interface ISdkCommderService {
      * @return
      */
     Integer ptzControl(int lUserId,int lChannel,int dwPTZCommand, int dwStop,int dwSpeed);
+
+
+    /**
+     * ptz操作
+     * @param lUserId
+     * @param lChannel
+     * @return
+     */
+    PresetQueryDto presetList(int lUserId,int lChannel);
+
+
+    /**
+     * 预置位设置
+     * @param lUserId
+     * @param lChannel
+     * @param commond
+     * @param presetNum
+     * @return
+     */
+    Integer presetControl(int lUserId,int lChannel,int commond, int presetNum);
+
+
 }

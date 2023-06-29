@@ -52,12 +52,9 @@ public class PtzServiceImpl implements IPtzService {
         //进行数据的获取
         //通用的值
         int oldOperationValue = channelPtzControlReq.getCmdValue();
-        if(oldOperationValue<=0){
-            oldOperationValue = 1;
-        }
+
         //255 与[1,7]的转化
         int operationValue = (int)Math.ceil(oldOperationValue/ degreeValue);
-
         //云台方向值
         int horizonSpeedValue = (int) channelPtzControlReq.getHorizonSpeed();
         int verticalSpeedValue = (int)channelPtzControlReq.getVerticalSpeed();
@@ -71,20 +68,21 @@ public class PtzServiceImpl implements IPtzService {
         switch (ptzOperationTypeEnum){
             case PRESET_SET:
                 //预置位设置
-
+                aBoolean = sdkCommderService.presetControl(lUserId, channelNum, 8, oldOperationValue);
                 break;
             case PRESET_INVOKE:
                 //预置位调用
 
-
+                aBoolean = sdkCommderService.presetControl(lUserId, channelNum, 39, oldOperationValue);
                 break;
             case PRESET_DEL:
                 //预置位删除
 
-
+                aBoolean = sdkCommderService.presetControl(lUserId, channelNum, 9, oldOperationValue);
                 break;
             case PTZ_LEFT:
                 //左转
+
 
                 aBoolean = sdkCommderService.ptzControl(lUserId, channelNum, 23, 0, operationValue);
                 channelCommonderMap.put(channelNum,23);
@@ -92,12 +90,14 @@ public class PtzServiceImpl implements IPtzService {
                 break;
             case PTZ_RIGHT:
                 //右转
+
                 aBoolean = sdkCommderService.ptzControl(lUserId, channelNum, 24, 0, operationValue);
                 channelCommonderMap.put(channelNum,24);
 
                 break;
             case PTZ_UP:
                 //上
+
                 aBoolean = sdkCommderService.ptzControl(lUserId, channelNum, 21, 0, operationValue);
                 channelCommonderMap.put(channelNum,21);
 
