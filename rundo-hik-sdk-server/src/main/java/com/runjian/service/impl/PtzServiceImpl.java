@@ -205,8 +205,13 @@ public class PtzServiceImpl implements IPtzService {
     }
 
     @Override
-    public void dragZoomControl(DragZoomControlReq dragZoomControlReq) {
+    public Integer dragZoomControl(DragZoomControlReq dragZoomControlReq) {
+        CommonResponse<PlayCommonDto> playCommonDtoCommonResponse = playCommonCheck(dragZoomControlReq.getDeviceId(), dragZoomControlReq.getChannelId());
+        PlayCommonDto commonData = playCommonDtoCommonResponse.getData();
+        int channelNum = commonData.getChannelNum();
+        int lUserId = commonData.getLUserId();
 
+        return sdkCommderService.Zoom3DControl(lUserId, channelNum, dragZoomControlReq.getLengthx(), dragZoomControlReq.getLengthy(), dragZoomControlReq.getMidpointx(), dragZoomControlReq.getMidpointy(), dragZoomControlReq.getDragType());
     }
 
 

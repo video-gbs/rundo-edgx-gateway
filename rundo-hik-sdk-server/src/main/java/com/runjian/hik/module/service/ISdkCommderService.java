@@ -127,5 +127,5 @@ public interface ISdkCommderService {
      */
     Integer presetControl(int lUserId,int lChannel,int commond, int presetNum);
 
-
+    Integer Zoom3DControl(int lUserId, int lChannel, int xTop, int yTop,int xBottom,int yBottom,int dragType);
 }

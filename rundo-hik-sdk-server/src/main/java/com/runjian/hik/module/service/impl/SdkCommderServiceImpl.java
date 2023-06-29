@@ -677,4 +677,34 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
 
         return 0;
     }
+
+    @Override
+    public Integer Zoom3DControl(int lUserId, int lChannel, int xTop, int yTop,int xBottom,int yBottom,int dragType) {
+
+        HCNetSDK.NET_DVR_POINT_FRAME struPtzPos;
+        //放大-1 缩小-2
+        if(dragType == 1){
+            // 开始放大
+            struPtzPos = new HCNetSDK.NET_DVR_POINT_FRAME();
+            struPtzPos.xTop = xTop;
+            struPtzPos.yTop = yTop;
+            struPtzPos.xBottom = xBottom;
+            struPtzPos.yBottom = yBottom;
+        }else {
+            //缩小
+            struPtzPos = new HCNetSDK.NET_DVR_POINT_FRAME();
+        }
+
+
+        boolean bRet = hCNetSDK.NET_DVR_PTZSelZoomIn_EX(lUserId, lChannel,struPtzPos);
+        if (!bRet)
+        {
+            int error = hCNetSDK.NET_DVR_GetLastError();
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "预置位操作", "预置位操作失败", hCNetSDK.NET_DVR_GetLastError());
+            return error;
+        }
+
+
+        return 0;
+    }
 }

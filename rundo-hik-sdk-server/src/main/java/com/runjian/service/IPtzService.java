@@ -30,5 +30,5 @@ public interface IPtzService {
      * 拉框放大缩小
      * @param dragZoomControlReq
      */
-    void dragZoomControl(DragZoomControlReq dragZoomControlReq);
+    Integer dragZoomControl(DragZoomControlReq dragZoomControlReq);
 }
