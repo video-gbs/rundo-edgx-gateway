@@ -707,4 +707,31 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
 
         return 0;
     }
+
+    @Override
+    public Integer playBackControl(int lPlayHandle, int dwControlCode, int value) {
+        Boolean res = false;
+
+        if(dwControlCode == HCNetSDK.NET_DVR_PLAYPAUSE){
+            //暂停
+            res = hCNetSDK.NET_DVR_PlayBackControl(lPlayHandle, HCNetSDK.NET_DVR_PLAYPAUSE, 0,null);
+        }else if(dwControlCode == HCNetSDK.NET_DVR_PLAYRESTART){
+            //恢复
+            res = hCNetSDK.NET_DVR_PlayBackControl(lPlayHandle, HCNetSDK.NET_DVR_PLAYRESTART, 0,null);
+        }else if(dwControlCode == HCNetSDK.NET_DVR_PLAYFAST){
+            //快放
+            res = hCNetSDK.NET_DVR_PlayBackControl(lPlayHandle, HCNetSDK.NET_DVR_PLAYFAST, value,null);
+        }else if(dwControlCode == HCNetSDK.NET_DVR_PLAYNORMAL){
+
+            //正常放
+            res = hCNetSDK.NET_DVR_PlayBackControl(lPlayHandle, HCNetSDK.NET_DVR_PLAYNORMAL, 0,null);
+        }
+
+        if(!res){
+            int error = hCNetSDK.NET_DVR_GetLastError();
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "回放控制操作", "回放控制操作，类型："+dwControlCode, error);
+            return error;
+        }
+        return 0;
+    }
 }

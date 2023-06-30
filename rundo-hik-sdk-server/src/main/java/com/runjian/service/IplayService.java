@@ -27,7 +27,6 @@ public interface IplayService {
     /**
      * 网关的bye指令场景
      * @param streamId
-     * @param msgId
      */
     Boolean streamBye(String streamId);
 
@@ -35,24 +34,21 @@ public interface IplayService {
      * 录像回放倍速
      * @param streamId
      * @param speed
-     * @param msgId
      */
-    void playSpeedControl(String streamId,Double speed,String msgId);
+    Integer playSpeedControl(String streamId,Double speed);
 
     /**
      * 录像回放暂停
      * @param streamId
-     * @param msgId
      */
-    void playPauseControl(String streamId,String msgId);
+    Integer playPauseControl(String streamId);
 
 
     /**
      * 录像回放恢复
      * @param streamId
-     * @param msgId
      */
-    void playResumeControl(String streamId,String msgId);
+    Integer playResumeControl(String streamId);
 
     /**
      * 录像回放拖拉

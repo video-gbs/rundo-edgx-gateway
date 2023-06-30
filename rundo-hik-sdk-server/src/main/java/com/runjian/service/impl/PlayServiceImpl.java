@@ -21,6 +21,7 @@ import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.entity.DeviceEntity;
 import com.runjian.entity.PlayListLogEntity;
 import com.runjian.hik.module.service.ISdkCommderService;
+import com.runjian.hik.sdklib.HCNetSDK;
 import com.runjian.hik.sdklib.SocketPointer;
 import com.runjian.mapper.PlayListLogMapper;
 import com.runjian.service.IDeviceChannelService;
@@ -206,23 +207,40 @@ public class PlayServiceImpl implements IplayService {
     }
 
     @Override
-    public void playSpeedControl(String streamId, Double speed, String msgId) {
-
+    public Integer  playSpeedControl(String streamId, Double speed) {
+        PlayListLogEntity playListLogEntity = playControlCommon(streamId);
+        Integer playHandle = playListLogEntity.getPlayHandle();
+        return iSdkCommderService.playBackControl(playHandle, HCNetSDK.NET_DVR_PLAYFAST, speed.intValue());
     }
 
     @Override
-    public void playPauseControl(String streamId, String msgId) {
-
+    public Integer playPauseControl(String streamId) {
+        PlayListLogEntity playListLogEntity = playControlCommon(streamId);
+        Integer playHandle = playListLogEntity.getPlayHandle();
+        return iSdkCommderService.playBackControl(playHandle, HCNetSDK.NET_DVR_PLAYPAUSE, 0);
     }
 
     @Override
-    public void playResumeControl(String streamId, String msgId) {
+    public Integer playResumeControl(String streamId) {
+        PlayListLogEntity playListLogEntity = playControlCommon(streamId);
+        Integer playHandle = playListLogEntity.getPlayHandle();
+        return iSdkCommderService.playBackControl(playHandle, HCNetSDK.NET_DVR_PLAYRESTART, 0);
+    }
 
+    private PlayListLogEntity playControlCommon(String streamId){
+        LambdaQueryWrapper<PlayListLogEntity> playListLogEntityLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        playListLogEntityLambdaQueryWrapper.eq(PlayListLogEntity::getPlayStatus,0);
+        playListLogEntityLambdaQueryWrapper.eq(PlayListLogEntity::getStreamId,streamId).last("limit 1");
+        PlayListLogEntity playListLogEntity = playListLogMapper.selectOne(playListLogEntityLambdaQueryWrapper);
+        if(ObjectUtils.isEmpty(playListLogEntity)){
+            throw new BusinessException(BusinessErrorEnums.STREAM_NOT_FOUND);
+        }
+        return playListLogEntity;
     }
 
     @Override
     public void playSeekControl(String streamId, long seekTime, String msgId) {
-
+        //暂时不考虑这种方式，使用录像回放开始结束的方式
     }
 
     /**

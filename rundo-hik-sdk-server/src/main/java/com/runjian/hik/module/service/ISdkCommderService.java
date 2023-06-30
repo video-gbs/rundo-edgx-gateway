@@ -3,6 +3,8 @@ package com.runjian.hik.module.service;
 import com.runjian.domain.dto.commder.*;
 import com.runjian.hik.sdklib.HCNetSDK;
 import com.runjian.hik.sdklib.SocketPointer;
+import com.sun.jna.Pointer;
+import com.sun.jna.ptr.IntByReference;
 
 public interface ISdkCommderService {
 
@@ -127,5 +129,25 @@ public interface ISdkCommderService {
      */
     Integer presetControl(int lUserId,int lChannel,int commond, int presetNum);
 
+    /**
+     * 3d放大功能
+     * @param lUserId
+     * @param lChannel
+     * @param xTop
+     * @param yTop
+     * @param xBottom
+     * @param yBottom
+     * @param dragType
+     * @return
+     */
     Integer Zoom3DControl(int lUserId, int lChannel, int xTop, int yTop,int xBottom,int yBottom,int dragType);
+
+    /**
+     * 回放控制
+     * @param lPlayHandle
+     * @param dwControlCode
+     * @param value
+     * @return
+     */
+    Integer playBackControl(int lPlayHandle, int dwControlCode, int value);
 }
