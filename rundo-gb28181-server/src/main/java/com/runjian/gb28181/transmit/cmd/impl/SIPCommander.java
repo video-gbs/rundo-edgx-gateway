@@ -389,19 +389,18 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public void playStreamCmd(String streamMode, SsrcInfo ssrcInfo, Device device, String channelId, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void playStreamCmd(Integer streamMode, SsrcInfo ssrcInfo, Device device, String channelId, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
         content.append("o=" + channelId + " 0 0 IN IP4 " + ssrcInfo.getSdpIp() + "\r\n");
         content.append("s=Play\r\n");
         content.append("c=IN IP4 " + ssrcInfo.getSdpIp() + "\r\n");
         content.append("t=0 0\r\n");
-
-        if ("TCP".equalsIgnoreCase(streamMode)) {
+        if (streamMode == 2) {
             content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 97 98 99\r\n");
             content.append("a=setup:passive\r\n");
             content.append("a=connection:new\r\n");
-        }  else if ("UDP".equalsIgnoreCase(streamMode)) {
+        }  else  {
             content.append("m=video " + ssrcInfo.getPort() + " RTP/AVP 96 97 98 99\r\n");
         }
         content.append("a=recvonly\r\n");
@@ -428,7 +427,7 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public void playbackStreamCmd(String streamMode, SsrcInfo ssrcInfo, Device device, String channelId, String startTime, String endTime, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void playbackStreamCmd(Integer streamMode, SsrcInfo ssrcInfo, Device device, String channelId, String startTime, String endTime, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
         content.append("o=" + channelId + " 0 0 IN IP4 " + ssrcInfo.getSdpIp() + "\r\n");
@@ -438,11 +437,11 @@ public class SIPCommander implements ISIPCommander {
         content.append("t=" + DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime) + " "
                 + DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) + "\r\n");
 
-        if ("TCP".equalsIgnoreCase(streamMode)) {
+        if (streamMode == 2) {
             content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 96 97 98 99\r\n");
             content.append("a=setup:passive\r\n");
             content.append("a=connection:new\r\n");
-        }  else if ("UDP".equalsIgnoreCase(streamMode)) {
+        }  else  {
             content.append("m=video " + ssrcInfo.getPort() + " RTP/AVP 96 97 98 99\r\n");
         }
         content.append("a=recvonly\r\n");

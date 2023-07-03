@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
 import javax.sip.*;
-import java.util.Properties;
 import java.util.TooManyListenersException;
 
 /**

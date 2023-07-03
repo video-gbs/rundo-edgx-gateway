@@ -255,50 +255,7 @@ public class PlayServiceImpl implements IplayService {
 
     }
 
-    @Override
-    public void onStreamNoneReader(NoneStreamReaderReq noneStreamReaderReq) {
-        //todo 获取无人观看的信息，暂时全部进行设备的推流关闭,不进行平台能力层信息上报
-//        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"无人观看请求进入",noneStreamReaderReq);
-//        if(VideoManagerConstants.GB28181_APP.equals(noneStreamReaderReq.getApp())){
-//            //进行国标流程的处理
-//            String streamId = noneStreamReaderReq.getStreamId();
-//            SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamId);
-//            if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
-//                //todo 重要，缓存异常，点播失败需要人工介入
-//                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,点播缓存异常", streamId);
-//                return;
-//            }
-//
-//            Device device = deviceService.getDevice(streamSessionSsrcTransaction.getDeviceId());
-//            if(ObjectUtils.isEmpty(device)){
-//                //todo 重要，缓存异常，点播失败需要人工介入
-//                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,设备信息未找到", streamId);
-//                return;
-//
-//            }
-//            try {
-//                sipCommander.streamByeCmd(streamSessionSsrcTransaction,device,streamSessionSsrcTransaction.getChannelId(),error->{
-//                    //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
-//                    ResponseEvent responseEvent = (ResponseEvent) error.event;
-//                    SIPResponse response = (SIPResponse) responseEvent.getResponse();
-//                    log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "bye指令点播失败", response);
-//
-//                },ok->{
-//
-//                    //剔除缓存
-//                    streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
-//                });
-//            } catch (InvalidArgumentException | SipException | ParseException e) {
-//                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "国标设备点播", "[命令发送失败] 停止点播， 发送BYE", e);
-//
-//            }
-//
-//
-//        }else {
-//            //非国标的无人观看 暂时不处理
-//        }
 
-    }
 
     @Async("taskExecutor")
     @Override

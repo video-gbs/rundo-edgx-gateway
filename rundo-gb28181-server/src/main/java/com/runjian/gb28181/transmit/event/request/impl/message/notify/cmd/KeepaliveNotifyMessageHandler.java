@@ -1,9 +1,7 @@
 package com.runjian.gb28181.transmit.event.request.impl.message.notify.cmd;
 
-import com.runjian.common.constant.DeviceCompatibleEnum;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.VideoManagerConstants;
-import com.runjian.common.utils.BeanUtil;
 import com.runjian.conf.DynamicTask;
 import com.runjian.dao.DeviceCompatibleMapper;
 import com.runjian.gb28181.bean.Device;

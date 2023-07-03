@@ -1,0 +1,7 @@
+# Compiled class file
+/target/
+./logs/
+/hikvision/
+./hikvision/
+/logs/
+/rundo-hik-sdk-server.iml

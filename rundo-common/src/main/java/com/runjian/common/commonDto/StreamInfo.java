@@ -8,6 +8,10 @@ import lombok.Data;
 @Data
 public class StreamInfo {
 
+    /**
+     * 0：ws-flv,1:http-flv;
+     */
+    private Integer playProtocalType = 0;
 
     private String streamId;
 

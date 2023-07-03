@@ -34,6 +34,10 @@ public class VideoManagerConstants {
 
 	public static final String GB28181_APP = "rtp";
 
+	public static final String GB28181_SELF_APP = "gb28181";
+
+	public static final String HKSDK_APP = "HKSDK";
+
 	public static final String PUSH_LIVE_APP = "live";
 
 	public static final String GB28181_SCHEAM = "rtsp";
@@ -44,6 +48,13 @@ public class VideoManagerConstants {
 
 
 	/**zlm相关  end ****/
+
+	/***自研流媒体相关 start  ****/
+	public static final String SELF_MEDIA_SERVER_PREFIX = "SELF_MEDIA_SERVER:";
+
+
+	/***自研流媒体相关 end  ****/
+
 
 	/***ssrc缓存  start****/
 
@@ -81,4 +92,8 @@ public class VideoManagerConstants {
 	 * 录像播放目标播放时间
 	 */
 	public static final String RECORD_TARGET_TIME = "targetTime";
+
+	/***************************流相关****************************/
+	public static final String SELF_STREAMS_ONLINE = "SELF_STREAMS_ONLINE:";
+
 }

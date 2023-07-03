@@ -204,6 +204,69 @@ public class DateUtils {
         return LocalDateTime.now().plusSeconds(expire).toInstant(ZoneOffset.of("+8")).toEpochMilli();
 
     }
+
+    /**
+     * 时间字符串转int时间戳
+     * @param dateStr
+     * @return
+     */
+    public static int stringToYear(String dateStr){
+        LocalDateTime localDateTime = LocalDateTime.from(DateUtils.DATE_TIME_FORMATTER.parse(dateStr));
+        return localDateTime.getYear();
+
+    }
+    /**
+     * 时间字符串转int时间戳
+     * @param dateStr
+     * @return
+     */
+    public static int stringToMonth(String dateStr){
+        LocalDateTime localDateTime = LocalDateTime.from(DateUtils.DATE_TIME_FORMATTER.parse(dateStr));
+        return localDateTime.getMonthValue();
+
+    }
+    /**
+     * 时间字符串转int时间戳
+     * @param dateStr
+     * @return
+     */
+    public static int stringToDay(String dateStr){
+        LocalDateTime localDateTime = LocalDateTime.from(DateUtils.DATE_TIME_FORMATTER.parse(dateStr));
+        return localDateTime.getDayOfMonth();
+
+    }
+    /**
+     * 时间字符串转int时间戳
+     * @param dateStr
+     * @return
+     */
+    public static int stringToHour(String dateStr){
+        LocalDateTime localDateTime = LocalDateTime.from(DateUtils.DATE_TIME_FORMATTER.parse(dateStr));
+        return localDateTime.getHour();
+
+    }
+    /**
+     * 时间字符串转int时间戳
+     * @param dateStr
+     * @return
+     */
+    public static int stringToMinuts(String dateStr){
+        LocalDateTime localDateTime = LocalDateTime.from(DateUtils.DATE_TIME_FORMATTER.parse(dateStr));
+        return localDateTime.getMinute();
+
+    }
+
+    /**
+     * 时间字符串转int时间戳
+     * @param dateStr
+     * @return
+     */
+    public static int stringToSeconds(String dateStr){
+        LocalDateTime localDateTime = LocalDateTime.from(DateUtils.DATE_TIME_FORMATTER.parse(dateStr));
+        return localDateTime.getSecond();
+
+    }
+
     /**
      * 格式校验
      * @param timeStr 时间字符串
