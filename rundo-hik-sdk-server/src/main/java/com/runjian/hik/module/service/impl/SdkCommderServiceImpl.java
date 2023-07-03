@@ -19,6 +19,7 @@ import com.runjian.hik.sdklib.SocketPointer;
 import com.sun.jna.Memory;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
+import com.sun.jna.Structure;
 import com.sun.jna.examples.win32.W32API;
 import com.sun.jna.ptr.ByteByReference;
 import com.sun.jna.ptr.IntByReference;
@@ -648,16 +649,23 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     public PresetQueryDto presetList(int lUserId, int lChannel) {
         PresetQueryDto presetQueryDto = new PresetQueryDto();
 
-        IntByReference ibrBytesReturned = new IntByReference(0);//获取IP接入配置参数
-        HCNetSDK.NET_DVR_PRESET_NAME presetObj = new HCNetSDK.NET_DVR_PRESET_NAME();
-        presetObj.write();
 
-        boolean bRet = hCNetSDK.NET_DVR_GetDVRConfig(lUserId, HCNetSDK.NET_DVR_GET_PRESET_NAME, lChannel, presetObj.getPointer(), presetObj.size(), ibrBytesReturned);
-        presetObj.read();
-        if(!bRet){
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "预置位操作", "预置位操作失败", hCNetSDK.NET_DVR_GetLastError());
+        IntByReference ibrBytesReturned = new IntByReference(0);//获取IP接入配置参数
+        int MAX_PRESET_NUM = 256; // 最大预置点数
+        HCNetSDK.NET_DVR_PRESET_NAME[] presetList = (HCNetSDK.NET_DVR_PRESET_NAME[]) new HCNetSDK.NET_DVR_PRESET_NAME().toArray(MAX_PRESET_NUM);
+        Pointer lpOutBuffer = presetList[0].getPointer();
+        int dwOutBufferSize = presetList[0].size() * MAX_PRESET_NUM;
+        boolean bRet = hCNetSDK.NET_DVR_GetDVRConfig(lUserId, HCNetSDK.NET_DVR_GET_PRESET_NAME, lChannel, lpOutBuffer, dwOutBufferSize, ibrBytesReturned);
+        if (bRet) {
+            for (int i = 0; i < MAX_PRESET_NUM; i++) {
+                String name = new String(presetList[i].byName).trim();
+                if (name.length() > 0) {
+                    System.out.println("预置点" + (i+1) + "名称：" + name);
+                }
+            }
+        } else {
+            System.out.println("获取预置点信息列表失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
         }
-        short wPresetNum = presetObj.wPresetNum;
 
 
         return presetQueryDto;
