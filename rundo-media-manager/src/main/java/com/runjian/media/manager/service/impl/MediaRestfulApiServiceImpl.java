@@ -1,6 +1,7 @@
 package com.runjian.media.manager.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.exception.BusinessException;
@@ -127,12 +128,13 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
 
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
         }
-        CommonResponse<List<MediaPlayInfoRsp>> commonResponse = JSONObject.parseObject(result, CommonResponse.class);
+        CommonResponse commonResponse = JSONObject.parseObject(result, CommonResponse.class);
         if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
         }
-        return commonResponse.getData();
+        JSONArray dataArray = (JSONArray)commonResponse.getData();
+        return JSONObject.parseArray(dataArray.toJSONString(),MediaPlayInfoRsp.class);
     }
 
     @Override
@@ -153,12 +155,13 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
 
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
         }
-        CommonResponse<List<MediaDispatchInfoRsp>> commonResponse = JSONObject.parseObject(result, CommonResponse.class);
+        CommonResponse commonResponse = JSONObject.parseObject(result, CommonResponse.class);
         if(commonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",commonResponse);
             throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
         }
-        return  commonResponse.getData();
+        JSONArray dataArray = (JSONArray)commonResponse.getData();
+        return JSONObject.parseArray(dataArray.toJSONString(),MediaDispatchInfoRsp.class);
     }
 
     @Override
