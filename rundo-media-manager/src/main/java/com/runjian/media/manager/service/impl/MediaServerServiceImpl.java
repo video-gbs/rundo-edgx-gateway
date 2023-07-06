@@ -255,7 +255,7 @@ public class MediaServerServiceImpl  implements IMediaServerService {
             streamInfoResult.setRtsps(String.format("rtsps://%s:%s/%s/%s", addr, mediaInfo.getRtspSslPort(), app,  stream));
         }
         streamInfoResult.setHttpFlv(String.format("http://%s:%s/%s/%s.flv", addr, mediaInfo.getHttpPlayPort(), app,  stream));
-        streamInfoResult.setWsFlv(String.format("ws://%s:%s/%s/%s.flv", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setWsFlv(String.format("ws://%s:%s/%s/%s.flv", addr, 6088, app,  stream));
         streamInfoResult.setHttpHls(String.format("http://%s:%s/%s/%s/hls.m3u8", addr, mediaInfo.getHttpPlayPort(), app,  stream));
         streamInfoResult.setWsHls(String.format("ws://%s:%s/%s/%s/hls.m3u8", addr, mediaInfo.getHttpPlayPort(), app,  stream));
         streamInfoResult.setHttpFmp4(String.format("http://%s:%s/%s/%s.mp4", addr, mediaInfo.getHttpPlayPort(), app,  stream));

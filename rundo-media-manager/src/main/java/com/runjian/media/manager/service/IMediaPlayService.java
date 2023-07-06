@@ -7,6 +7,7 @@ import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayBackReq;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayReq;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
+import com.runjian.common.commonDto.Gb28181Media.resp.StreamMediaInfoResp;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.StreamBusinessSceneResp;
@@ -124,5 +125,12 @@ public interface IMediaPlayService {
      * @return
      */
     Boolean onStreamNoneReader(String app, String streamId);
+
+    /**
+     * 单个流信息获取
+     * @param streamId
+     * @return
+     */
+    StreamMediaInfoResp streamMediaInfo(String streamId);
 
 }

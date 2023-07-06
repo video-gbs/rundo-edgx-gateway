@@ -9,7 +9,10 @@ import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.ZlmStreamDto;
 import com.runjian.common.commonDto.Gb28181Media.req.*;
+import com.runjian.common.commonDto.Gb28181Media.resp.StreamAudioMediaInfoResp;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
+import com.runjian.common.commonDto.Gb28181Media.resp.StreamMediaInfoResp;
+import com.runjian.common.commonDto.Gb28181Media.resp.StreamVideoMediaInfoResp;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamCloseDto;
 import com.runjian.common.commonDto.StreamInfo;
@@ -601,5 +604,70 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         }else {
             return false;
         }
+    }
+
+    //    {
+//        "code": 0,
+//            "msg": "success",
+//            "data": [
+//        {
+//            "key": 801,
+//                "app": "gb28181",
+//                "streamId": "LIVE_44",
+//                "status": false,
+//                "sourceURL": "rtp://127.0.0.1:22002/gb28181/LIVE_44",
+//                "networkType": 61,
+//                "readerCount": 2,
+//                "videoCodec": "H264",
+//                "width": 1920,
+//                "height": 1080,
+//                "audioCodec": "",
+//                "audioChannels": 0,
+//                "audioSampleRate": 0,
+//                "url": {
+//            "ws-flv": "ws://192.192.192.132:6088/gb28181/LIVE_44.flv",
+//                    "http-flv": "http://192.192.192.132:8080/gb28181/LIVE_44.flv"
+//        }
+//        }
+//    ]
+//    }
+    @Override
+    public StreamMediaInfoResp streamMediaInfo(String streamId) {
+        //判断流属于哪个流媒体
+        OnlineStreamsEntity oneBystreamId = onlineStreamsService.getOneBystreamId(streamId);
+        if(ObjectUtils.isEmpty(oneBystreamId)){
+            //流信息不存在
+            throw new BusinessException(BusinessErrorEnums.STREAM_NOT_FOUND);
+        }
+        String mediaServerId = oneBystreamId.getMediaServerId();
+        MediaServerEntity serverItem = mediaServerService.getOne(mediaServerId);
+        List<MediaPlayInfoRsp> mediaList = mediaRestfulApiService.getMediaList(oneBystreamId.getApp(), oneBystreamId.getStreamId(), serverItem);
+        StreamMediaInfoResp streamMediaInfoResp = new StreamMediaInfoResp();
+        JSONArray objectsArr = new JSONArray();
+        if(!ObjectUtils.isEmpty(mediaList)){
+            MediaPlayInfoRsp mediaPlayInfoRsp = mediaList.get(0);
+            StreamAudioMediaInfoResp streamAudioMediaInfoResp = new StreamAudioMediaInfoResp();
+            StreamVideoMediaInfoResp streamVideoMediaInfoResp = new StreamVideoMediaInfoResp();
+
+            streamVideoMediaInfoResp.setCodecName(mediaPlayInfoRsp.getVideoCodec());
+            streamVideoMediaInfoResp.setCodecType(0);
+            streamVideoMediaInfoResp.setFps(25);
+            streamVideoMediaInfoResp.setHeight(mediaPlayInfoRsp.getHeight());
+            streamVideoMediaInfoResp.setWidth(mediaPlayInfoRsp.getWidth());
+            streamVideoMediaInfoResp.setReady(true);
+            objectsArr.add(streamVideoMediaInfoResp);
+            if(mediaPlayInfoRsp.getAudioChannels()>=1){
+                streamAudioMediaInfoResp.setChannels(mediaPlayInfoRsp.getAudioChannels());
+                streamAudioMediaInfoResp.setCodecName(mediaPlayInfoRsp.getAudioCodec());
+                streamAudioMediaInfoResp.setCodecType(1);
+                streamAudioMediaInfoResp.setReady(true);
+                streamAudioMediaInfoResp.setSampleBit(0);
+                streamAudioMediaInfoResp.setSampleRate(mediaPlayInfoRsp.getAudioSampleRate());
+                objectsArr.add(streamAudioMediaInfoResp);
+            }
+
+        }
+        streamMediaInfoResp.setTracks(objectsArr);
+        return streamMediaInfoResp;
     }
 }

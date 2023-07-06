@@ -18,11 +18,14 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
@@ -45,7 +48,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
 
     @Autowired
     private UserSetting userSetting;
-    @Autowired
+    @Resource
     RedisDelayQueuesUtil redisDelayQueuesUtil;
 
     @Autowired
