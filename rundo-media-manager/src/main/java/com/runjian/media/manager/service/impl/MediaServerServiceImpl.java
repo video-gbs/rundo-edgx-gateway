@@ -166,6 +166,11 @@ public class MediaServerServiceImpl  implements IMediaServerService {
             log.error(LogTemplate.PROCESS_LOG_TEMPLATE, "媒体服务器节点管理服务", "心跳保活失败,获取流媒体异常");
             return;
         }
+        //流媒体上线
+        if(mediaServerEntity.getOnline() != 1){
+            connectMediaServer(mediaServerEntity);
+        }
+
         final String zlmKeepaliveKey = mediaKeepaliveKeyPrefix + mediaServerEntity.getId();
         dynamicTask.stop(zlmKeepaliveKey);
         //三次下线
