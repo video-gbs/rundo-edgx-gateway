@@ -57,8 +57,6 @@ public class DispatcherInfoServiceImpl implements DispatcherInfoService {
     @Autowired
     RedisTemplate redisTemplate;
 
-    @Autowired
-    IRedisCatchStorageService redisCatchStorageService;
 
     @Autowired
     @Qualifier("dispatcherBusinessMqListenerContainer")

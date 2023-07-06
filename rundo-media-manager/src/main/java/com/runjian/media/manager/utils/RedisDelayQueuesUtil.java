@@ -7,6 +7,7 @@ import org.redisson.api.RBlockingDeque;
 import org.redisson.api.RDelayedQueue;
 import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
@@ -14,8 +15,11 @@ import javax.annotation.Resource;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author chenjialing
+ */
 @Slf4j
-@Component
+@Configuration
 @ConditionalOnBean({RedissonClient.class})
 public class RedisDelayQueuesUtil {
 
