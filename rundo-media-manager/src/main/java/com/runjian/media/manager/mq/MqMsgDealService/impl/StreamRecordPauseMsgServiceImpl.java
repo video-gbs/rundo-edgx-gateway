@@ -10,8 +10,10 @@ import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.manager.conf.mq.DispatcherSignInConf;
+import com.runjian.media.manager.dto.entity.OnlineStreamsEntity;
 import com.runjian.media.manager.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.media.manager.mq.MqMsgDealService.IMsgProcessorService;
+import com.runjian.media.manager.service.IOnlineStreamsService;
 import com.runjian.media.manager.service.IRedisCatchStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -37,6 +39,8 @@ public class StreamRecordPauseMsgServiceImpl implements InitializingBean, IMsgPr
     IRedisCatchStorageService redisCatchStorageService;
 
     @Autowired
+    IOnlineStreamsService onlineStreamsService;
+    @Autowired
     RabbitMqSender rabbitMqSender;
 
     @Autowired
@@ -55,7 +59,7 @@ public class StreamRecordPauseMsgServiceImpl implements InitializingBean, IMsgPr
         //设备信息同步  获取设备信息 String streamId,Double speed,String msgId
         String streamId = dataJson.getString("streamId");
         //通知网关操作
-        BaseRtpServerDto baseRtpServerDto = (BaseRtpServerDto) RedisCommonUtil.get(redisTemplate, VideoManagerConstants.MEDIA_RTP_SERVER_REQ + BusinessSceneConstants.SCENE_SEM_KEY + streamId);
+        OnlineStreamsEntity baseRtpServerDto = onlineStreamsService.getOneBystreamId(streamId);
         CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(StreamBusinessMsgType.STREAM_RECORD_PAUSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,commonMqDto.getMsgId());
         String mqGetQueue = dispatcherSignInConf.getMqSetQueue();
 
@@ -75,8 +79,7 @@ public class StreamRecordPauseMsgServiceImpl implements InitializingBean, IMsgPr
         CommonMqDto gatewayMqInfo = redisCatchStorageService.getMqInfo(GatewayBusinessMsgType.DEVICE_RECORD_PAUSE.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,null);
 
         gatewayMqInfo.setData(dataJson);
-        GatewayBindReq gatewayBindReq = baseRtpServerDto.getGatewayBindReq();
-        rabbitMqSender.sendMsgByExchange(gatewayBindReq.getMqExchange(), gatewayBindReq.getMqRouteKey(), UuidUtil.toUuid(),gatewayMqInfo,true);
+        rabbitMqSender.sendMsgByExchange(baseRtpServerDto.getMqExchange(), baseRtpServerDto.getMqRouteKey(), UuidUtil.toUuid(),gatewayMqInfo,true);
         //通知调度中心成功
         businessMqInfo.setData(true);
         rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),businessMqInfo,true);
