@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -32,6 +33,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author chenjialing
  */
+@Order(0)
+@ConditionalOnBean({RedisDelayQueuesUtil.class})
 @Service
 @Slf4j
 public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
@@ -48,7 +51,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
 
     @Autowired
     private UserSetting userSetting;
-    @Resource
+    @Autowired
     RedisDelayQueuesUtil redisDelayQueuesUtil;
 
     @Autowired

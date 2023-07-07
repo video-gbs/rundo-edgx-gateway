@@ -1,7 +1,6 @@
 package com.runjian.media.manager.mq.dispatcherBusiness.asyncSender;
 
 import com.runjian.common.config.exception.BusinessErrorEnums;
-import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.StreamBusinessSceneResp;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
@@ -11,10 +10,7 @@ import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.manager.conf.mq.DispatcherSignInConf;
 import com.runjian.media.manager.mq.MqInfoCommonDto;
 import com.runjian.media.manager.service.IMediaPlayService;
-import com.runjian.media.manager.service.IRedisCatchStorageService;
-import com.runjian.media.manager.utils.RedisDelayQueuesUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,8 +19,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -40,8 +34,6 @@ public class BusinessAsyncSender {
     @Autowired
     DispatcherSignInConf dispatcherSignInConf;
 
-    @Autowired
-    RedisDelayQueuesUtil redisDelayQueuesUtil;
 
     @Autowired
     RedisTemplate redisTemplate;
