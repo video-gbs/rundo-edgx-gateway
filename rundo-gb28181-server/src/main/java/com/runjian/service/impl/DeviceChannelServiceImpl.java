@@ -56,14 +56,14 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public  List<DeviceChannel> resetChannelsForcatalog(String deviceId, List<DeviceChannel> deviceChannelList) {
+    public synchronized List<DeviceChannel> resetChannelsForcatalog(String deviceId, List<DeviceChannel> deviceChannelList) {
         //获取通道原有数据
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"通道同步",deviceChannelList);
         return resetChannelsForcatalogLock(deviceId,deviceChannelList);
     }
 
-    public synchronized List<DeviceChannel> resetChannelsForcatalogLock(String deviceId, List<DeviceChannel> deviceChannelList){
+    @Transactional(rollbackFor = Exception.class)
+    public  List<DeviceChannel> resetChannelsForcatalogLock(String deviceId, List<DeviceChannel> deviceChannelList){
         List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannelsByDeviceId(deviceId);
         //组装增删改的数据
         List<String> updateCollects = new ArrayList<>();
