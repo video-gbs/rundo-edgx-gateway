@@ -3,6 +3,7 @@ package com.runjian.service;
 import com.runjian.common.commonDto.Gateway.req.ChannelPtzControlReq;
 import com.runjian.common.commonDto.Gateway.req.DeviceControlReq;
 import com.runjian.common.commonDto.Gateway.req.DragZoomControlReq;
+import com.runjian.domain.dto.commder.PresetQueryDto;
 
 /**
  * ptz处理服务
@@ -24,7 +25,7 @@ public interface IPtzService {
      * @param msgId
      */
 
-    void ptzPresetControl(String deviceId, String channelId,String msgId);
+    PresetQueryDto ptzPresetControl(String deviceId, String channelId, String msgId);
 
     /**
      * 拉框放大缩小

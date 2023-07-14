@@ -25,7 +25,7 @@ spring:
 
     # rabbitmq 配置
     rabbitmq:
-        host: 124.71.16.209
+        host: 124.71.20.118
         port: 5672
         username: wvp
         password: wvp12345678
@@ -73,12 +73,12 @@ media:
     # [必须修改] zlm服务器唯一id，用于触发hook时区别是哪台服务器,general.mediaServerId
     id: LORVY158beilorvy
     # [必须修改] zlm服务器的内网IP
-    ip: 192.192.192.115
+    ip: 192.192.192.132
 
     # [可选] 返回流地址时的ip，置空使用 media.ip
-    stream-ip: 192.192.192.115
+    stream-ip: 192.192.192.132
     # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
-    sdp-ip: 192.192.192.115
+    sdp-ip: 192.192.192.132
     # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
     hook-ip: 192.192.192.96
     # [必须修改] zlm服务器的http.port

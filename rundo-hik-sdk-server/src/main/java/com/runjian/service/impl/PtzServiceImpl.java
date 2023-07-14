@@ -9,6 +9,7 @@ import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.PtzOperationTypeEnum;
 import com.runjian.domain.dto.PlayCommonDto;
+import com.runjian.domain.dto.commder.PresetQueryDto;
 import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.entity.DeviceEntity;
 import com.runjian.hik.module.service.ISdkCommderService;
@@ -200,8 +201,12 @@ public class PtzServiceImpl implements IPtzService {
     }
 
     @Override
-    public void ptzPresetControl(String deviceId, String channelId, String msgId) {
+    public PresetQueryDto ptzPresetControl(String deviceId, String channelId, String msgId) {
+        CommonResponse<PlayCommonDto> playCommonDtoCommonResponse = playCommonCheck(deviceId, channelId); PlayCommonDto commonData = playCommonDtoCommonResponse.getData();
+        int channelNum = commonData.getChannelNum();
+        int lUserId = commonData.getLUserId();
 
+        return sdkCommderService.presetList(lUserId,channelNum);
     }
 
     @Override
