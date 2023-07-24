@@ -30,7 +30,6 @@ public interface IDeviceService extends IService<DeviceEntity> {
     CommonResponse<Long> add(String ip, short port, String user, String psw);
 
 
-    void startOnline();
     /**
      * 设备下线
      * @param lUserId 登录句柄

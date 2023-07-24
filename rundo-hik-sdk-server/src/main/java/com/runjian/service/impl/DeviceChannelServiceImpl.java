@@ -14,10 +14,7 @@ import com.runjian.conf.constant.DeviceTypeEnum;
 import com.runjian.domain.dto.CatalogSyncDto;
 import com.runjian.domain.dto.DeviceChannel;
 import com.runjian.domain.dto.PlayCommonDto;
-import com.runjian.domain.dto.commder.ChannelInfoDto;
-import com.runjian.domain.dto.commder.DeviceConfigDto;
-import com.runjian.domain.dto.commder.RecordAllItem;
-import com.runjian.domain.dto.commder.RecordInfoDto;
+import com.runjian.domain.dto.commder.*;
 import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.entity.DeviceEntity;
 import com.runjian.hik.module.service.ISdkCommderService;
@@ -85,12 +82,17 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
         long encodeId = Long.parseLong(recordInfoReq.getDeviceId());
         DeviceEntity deviceEntity = deviceMapper.selectById(encodeId);
         if(ObjectUtils.isEmpty(deviceEntity)){
-
+            throw new BusinessException(BusinessErrorEnums.DB_DEVICE_NOT_FOUND);
         }else {
             if(deviceEntity.getOnline() != 1){
                 throw new BusinessException(BusinessErrorEnums.DB_DEVICE_NOT_FOUND);
             }
         }
+        DeviceLoginDto login = iSdkCommderService.login(deviceEntity.getIp(), deviceEntity.getPort(), deviceEntity.getUsername(), deviceEntity.getPassword());
+        if(login.getErrorCode() != 0){
+            throw new BusinessException(BusinessErrorEnums.DEVICE_LOGIN_ERROR);
+        }
+
         //获取通道信息
 
         long channelId = Long.parseLong(recordInfoReq.getChannelId());
@@ -105,7 +107,7 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
         }
 
         PlayCommonDto playCommonDto = new PlayCommonDto();
-        playCommonDto.setLUserId(deviceEntity.getLUserId());
+        playCommonDto.setLUserId(login.getLUserId());
         playCommonDto.setChannelNum(deviceChannelEntity.getChannelNum());
         return CommonResponse.success(playCommonDto);
 
@@ -116,7 +118,11 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
 
         //获取设备的信息重新登陆
         DeviceEntity deviceEntity = deviceMapper.selectById(id);
-        int lUserId = deviceEntity.getLUserId();
+        DeviceLoginDto login = iSdkCommderService.login(deviceEntity.getIp(), deviceEntity.getPort(), deviceEntity.getUsername(), deviceEntity.getPassword());
+        if(login.getErrorCode() != 0){
+            throw new BusinessException(BusinessErrorEnums.DEVICE_LOGIN_ERROR);
+        }
+        int lUserId = login.getLUserId();
         //获取设备配置信息
         DeviceConfigDto deviceConfigDto = iSdkCommderService.deviceConfig(lUserId);
         if(deviceConfigDto.getErrorCode() != 0){

@@ -15,6 +15,7 @@ import com.runjian.common.utils.RestTemplateUtil;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.conf.PlayHandleConf;
 import com.runjian.domain.dto.PlayCommonDto;
+import com.runjian.domain.dto.commder.DeviceLoginDto;
 import com.runjian.domain.dto.commder.PlayInfoDto;
 import com.runjian.domain.req.PlaySdkReq;
 import com.runjian.entity.DeviceChannelEntity;
@@ -132,6 +133,11 @@ public class PlayServiceImpl implements IplayService {
                 throw new BusinessException(BusinessErrorEnums.DB_DEVICE_NOT_FOUND);
             }
         }
+        DeviceLoginDto login = iSdkCommderService.login(deviceEntity.getIp(), deviceEntity.getPort(), deviceEntity.getUsername(), deviceEntity.getPassword());
+        if(login.getErrorCode() != 0){
+            throw new BusinessException(BusinessErrorEnums.DEVICE_LOGIN_ERROR);
+        }
+        int lUserId = login.getLUserId();
         //获取通道信息
 
         long channelId = Long.parseLong(playReq.getChannelId());
@@ -146,7 +152,7 @@ public class PlayServiceImpl implements IplayService {
         }
 
         PlayCommonDto playCommonDto = new PlayCommonDto();
-        playCommonDto.setLUserId(deviceEntity.getLUserId());
+        playCommonDto.setLUserId(lUserId);
         playCommonDto.setChannelNum(deviceChannelEntity.getChannelNum());
         return CommonResponse.success(playCommonDto);
 

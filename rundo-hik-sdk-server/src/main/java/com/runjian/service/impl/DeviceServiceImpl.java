@@ -119,13 +119,6 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
         return CommonResponse.success(deviceEntity.getId());
     }
 
-    @Override
-    public void startOnline() {
-        List<DeviceEntity> deviceEntities = deviceMapper.selectList(null);
-        for (DeviceEntity deviceEntity :deviceEntities){
-            online(deviceEntity.getIp(),deviceEntity.getPort(),deviceEntity.getUsername(),deviceEntity.getPassword());
-        }
-    }
 
     @Override
     public Boolean offline(long encodeId) {
@@ -134,13 +127,18 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
         if(ObjectUtils.isEmpty(deviceEntityOne)){
             throw new BusinessException(BusinessErrorEnums.DB_NOT_FOUND);
         }
-        Integer lUserId = deviceEntityOne.getLUserId();
+        DeviceLoginDto login = iSdkCommderService.login(deviceEntityOne.getIp(), deviceEntityOne.getPort(), deviceEntityOne.getUsername(), deviceEntityOne.getPassword());
+        if(login.getErrorCode() != 0){
+            //登陆失败
+            throw new BusinessException(BusinessErrorEnums.SDK_OPERATION_FAILURE);
+        }
+        int lUserId = login.getLUserId();
 
         DeviceLoginOutDto logout = iSdkCommderService.logout(lUserId);
         boolean result = logout.isResult();
         if(result){
             LambdaQueryWrapper<DeviceEntity> updateWrapper = new LambdaQueryWrapper<>();
-            updateWrapper.eq(DeviceEntity::getLUserId,lUserId);
+            updateWrapper.eq(DeviceEntity::getId,deviceEntityOne.getId());
             DeviceEntity deviceEntity = new DeviceEntity();
             deviceEntity.setOnline(0);
             deviceMapper.update(deviceEntity,updateWrapper);
