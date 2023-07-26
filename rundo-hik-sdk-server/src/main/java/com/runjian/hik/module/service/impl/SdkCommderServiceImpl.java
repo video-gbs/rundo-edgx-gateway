@@ -1,13 +1,16 @@
 package com.runjian.hik.module.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.MarkConstant;
 import com.runjian.common.utils.DateUtils;
 import com.runjian.common.utils.FileUtil;
 import com.runjian.common.utils.StringUtils;
+import com.runjian.common.utils.XmlUtil;
 import com.runjian.conf.PlayHandleConf;
 import com.runjian.domain.dto.DeviceChannel;
+import com.runjian.domain.dto.PresetQueryReq;
 import com.runjian.domain.dto.commder.*;
 import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.entity.DeviceEntity;
@@ -24,6 +27,7 @@ import com.sun.jna.examples.win32.W32API;
 import com.sun.jna.ptr.ByteByReference;
 import com.sun.jna.ptr.IntByReference;
 import lombok.extern.slf4j.Slf4j;
+import org.dom4j.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
@@ -34,6 +38,7 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.runjian.hik.sdklib.HCNetSDK.NET_DVR_GET_PICCFG_V30;
@@ -648,26 +653,78 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     @Override
     public PresetQueryDto presetList(int lUserId, int lChannel) {
         PresetQueryDto presetQueryDto = new PresetQueryDto();
+        String url="GET /ISAPI/PTZCtrl/channels/"+lChannel+"/presets";   //透传url
+        String inputXml=" ";   //拼接的josn或者xml格式
 
-
-        IntByReference ibrBytesReturned = new IntByReference(0);//获取IP接入配置参数
-        int MAX_PRESET_NUM = 256; // 最大预置点数
-        HCNetSDK.NET_DVR_PRESET_NAME[] presetList = (HCNetSDK.NET_DVR_PRESET_NAME[]) new HCNetSDK.NET_DVR_PRESET_NAME().toArray(MAX_PRESET_NUM);
-        Pointer lpOutBuffer = presetList[0].getPointer();
-        int dwOutBufferSize = presetList[0].size() * MAX_PRESET_NUM;
-        boolean bRet = hCNetSDK.NET_DVR_GetDVRConfig(lUserId, HCNetSDK.NET_DVR_GET_PRESET_NAME, lChannel, lpOutBuffer, dwOutBufferSize, ibrBytesReturned);
-        if (bRet) {
-            for (int i = 0; i < MAX_PRESET_NUM; i++) {
-                String name = new String(presetList[i].byName).trim();
-                if (name.length() > 0) {
-                    System.out.println("预置点" + (i+1) + "名称：" + name);
-                }
-            }
+        HCNetSDK.NET_DVR_XML_CONFIG_INPUT struXMLInput = new HCNetSDK.NET_DVR_XML_CONFIG_INPUT();
+        struXMLInput.read();
+        HCNetSDK.BYTE_ARRAY stringRequest = new HCNetSDK.BYTE_ARRAY(1024);
+        stringRequest.read();
+        //输入ISAPI协议命令
+        System.arraycopy(url.getBytes(), 0, stringRequest.byValue, 0, url.length());
+        stringRequest.write();
+        struXMLInput.dwSize = struXMLInput.size();
+        struXMLInput.lpRequestUrl = stringRequest.getPointer();
+        struXMLInput.dwRequestUrlLen = url.length();
+        HCNetSDK.BYTE_ARRAY ptrInBuffer = new HCNetSDK.BYTE_ARRAY(inputXml.length());
+        ptrInBuffer.read();
+        System.arraycopy(inputXml.getBytes(), 0, ptrInBuffer.byValue, 0, inputXml.length());
+        ptrInBuffer.write();
+        struXMLInput.lpInBuffer = ptrInBuffer.getPointer();
+        struXMLInput.dwInBufferSize = inputXml.length();
+        struXMLInput.write();
+        HCNetSDK.BYTE_ARRAY stringXMLOut = new HCNetSDK.BYTE_ARRAY(8 * 1024);
+        stringXMLOut.read();
+        HCNetSDK.BYTE_ARRAY struXMLStatus = new HCNetSDK.BYTE_ARRAY(1024);
+        struXMLStatus.read();
+        HCNetSDK.NET_DVR_XML_CONFIG_OUTPUT struXMLOutput = new HCNetSDK.NET_DVR_XML_CONFIG_OUTPUT();
+        struXMLOutput.read();
+        struXMLOutput.dwSize = struXMLOutput.size();
+        struXMLOutput.lpOutBuffer = stringXMLOut.getPointer();
+        struXMLOutput.dwOutBufferSize = stringXMLOut.size();
+        struXMLOutput.lpStatusBuffer = struXMLStatus.getPointer();
+        struXMLOutput.dwStatusSize = struXMLStatus.size();
+        struXMLOutput.write();
+        List<PresetQueryReq> presetQueryReqs = new ArrayList<>();
+        if (!hCNetSDK.NET_DVR_STDXMLConfig(lUserId, struXMLInput, struXMLOutput)){
+            int iErr = hCNetSDK.NET_DVR_GetLastError();
+            presetQueryDto.setErrorCode(iErr);
         } else {
-            System.out.println("获取预置点信息列表失败，错误码：" + hCNetSDK.NET_DVR_GetLastError());
+            stringXMLOut.read();
+            //打印输出XML文本
+            String strOutXML = new String(stringXMLOut.byValue).trim();
+            struXMLStatus.read();
+            String strStatus = new String(struXMLStatus.byValue).trim();
+            try{
+                Element rootElement = XmlUtil.getRootElement(strOutXML);
+
+                for (Iterator<Element> presetIterator = rootElement.elementIterator(); presetIterator.hasNext(); ) {
+                    Element itemListElement = presetIterator.next();
+                    PresetQueryReq presetQuerySipReq = new PresetQueryReq();
+                    for (Iterator<Element> itemListIterator = itemListElement.elementIterator(); itemListIterator.hasNext(); ) {
+                        // 遍历item
+                        Element itemOne = itemListIterator.next();
+                        String name = itemOne.getName();
+                        String textTrim = itemOne.getTextTrim();
+
+                        if("id".equalsIgnoreCase(name)){
+                            presetQuerySipReq.setPresetId(Integer.parseInt(textTrim));
+                        }else if("presetName".equalsIgnoreCase(name)){
+                            presetQuerySipReq.setPresetName(textTrim);
+                        }
+
+                    }
+                    presetQueryReqs.add(presetQuerySipReq);
+                }
+
+
+            }catch (Exception e){
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE, "预置位操作", "预置位获取失败",e.getMessage());
+            }
+
         }
 
-
+        presetQueryDto.setPresetQueryReqList(presetQueryReqs);
         return presetQueryDto;
     }
 

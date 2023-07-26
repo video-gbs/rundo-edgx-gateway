@@ -1,10 +1,14 @@
 package com.runjian.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
+import com.runjian.domain.dto.commder.PresetQueryDto;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.mq.MqMsgDealService.IMsgProcessorService;
+import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
 import com.runjian.service.IPtzService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +23,9 @@ public class PtzPresetControlMsgServiceImpl implements InitializingBean, IMsgPro
     @Autowired
     IPtzService ptzService;
 
+    @Autowired
+    GatewayBusinessAsyncSender gatewayBusinessAsyncSender;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.CHANNEL_PTZ_PRESET.getTypeName(),this);
@@ -32,7 +39,21 @@ public class PtzPresetControlMsgServiceImpl implements InitializingBean, IMsgPro
         //设备信息同步  获取设备信息
         String deviceId = dataJson.getString("deviceId");
         String channelId = dataJson.getString("channelId");
-        ptzService.ptzPresetControl(deviceId,channelId, commonMqDto.getMsgId());
+        CommonResponse<Object> response = CommonResponse.success(true);
+        try {
+            PresetQueryDto presetQueryDto = ptzService.ptzPresetControl(deviceId,channelId,null);
+            if(presetQueryDto.getErrorCode()!=0){
+                response = CommonResponse.failure(BusinessErrorEnums.PTZ_OPERATION_ERROR,"网关错误码为："+presetQueryDto.getErrorCode());
+            }else {
+                response.setData(presetQueryDto.getPresetQueryReqList());
+            }
+        }catch (Exception e){
+            response = CommonResponse.failure(BusinessErrorEnums.PTZ_OPERATION_ERROR,e.getMessage());
+        }
+
+        //mq消息发送
+        gatewayBusinessAsyncSender.sendforAllScene(response, commonMqDto.getMsgId(), GatewayBusinessMsgType.CHANNEL_PTZ_PRESET);
+
 
     }
 
