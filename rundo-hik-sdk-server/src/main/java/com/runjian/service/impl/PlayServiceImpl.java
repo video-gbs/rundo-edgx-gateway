@@ -82,6 +82,7 @@ public class PlayServiceImpl implements IplayService {
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
+    private ConcurrentHashMap<String,Object> stringSocketHanderMap = new ConcurrentHashMap();
 
     @Override
     public CommonResponse<Integer> play(PlayReq playReq)  {
@@ -123,6 +124,8 @@ public class PlayServiceImpl implements IplayService {
             Socket socket = new Socket(ip, port);
             ConcurrentHashMap<Pointer, Object> socketHanderMap = playHandleConf.getSocketHanderMap();
             socketHanderMap.put(pUser,socket);
+            stringSocketHanderMap.put(socketHandle,socket);
+
         }catch (Exception e){
             return CommonResponse.failure(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
         }
@@ -210,8 +213,7 @@ public class PlayServiceImpl implements IplayService {
         playListLogMapper.updateById(playListLogEntity);
         //关闭流传输
         try{
-            Socket socket = (Socket)playHandleConf.getSocketHanderMap().get(playListLogEntity.getSocketHandle());
-
+            Socket socket = (Socket)stringSocketHanderMap.get(playListLogEntity.getSocketHandle());
             socket.shutdownOutput();
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流bye操作","关闭socket失败",e.getMessage());
