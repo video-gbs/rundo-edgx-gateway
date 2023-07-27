@@ -277,7 +277,8 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "推流注册成功通知", "收到推流订阅消息", json.toJSONString());
             //拼接拉流的地址
             String pushStreamId = json.getString("streamId");
-            StreamInfo streamInfoByAppAndStream = mediaServerService.getStreamInfoByAppAndStream(finalOneMedia, VideoManagerConstants.GB28181_SELF_APP, pushStreamId);
+            String pushApp = json.getString("app");
+            StreamInfo streamInfoByAppAndStream = mediaServerService.getStreamInfoByAppAndStream(finalOneMedia, pushApp, pushStreamId);
             //发送调度服务的业务队列 通知流实际成功
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,streamInfoByAppAndStream);
             //流状态修改为成功

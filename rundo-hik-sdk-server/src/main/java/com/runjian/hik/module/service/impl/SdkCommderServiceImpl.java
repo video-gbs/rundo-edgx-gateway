@@ -117,19 +117,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                 case HCNetSDK.NET_DVR_STREAMDATA:   //码流数据
                     if (dwBufSize > 0) {
                         try {
-
-
-
-                            SocketPointer socketPointer = new SocketPointer();
-                            Pointer pointer = socketPointer.getPointer();
-                            pointer.write(0, pUser.getByteArray(0, socketPointer.size()), 0, socketPointer.size());
-                            socketPointer.read();
-                            String socketHandle = socketPointer.socketHandle;
-                            if(ObjectUtils.isEmpty(socketHandle)){
-                                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"码流回调","连接错误，用户信息获取失败");
-                                throw  new NullPointerException();
-                            }
-                            Socket socket = (Socket) playHandleConf.getSocketHanderMap().get(socketPointer.socketHandle);
+                            Socket socket = (Socket) playHandleConf.getSocketHanderMap().get(pUser);
                             if(ObjectUtils.isEmpty(socket)){
                                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"码流回调","连接暂时超时");
                                 throw  new BusinessException(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);

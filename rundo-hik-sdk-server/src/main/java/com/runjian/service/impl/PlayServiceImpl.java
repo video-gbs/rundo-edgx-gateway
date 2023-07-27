@@ -33,7 +33,9 @@ import com.sun.jna.Pointer;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.parallel.Execution;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
@@ -76,6 +78,10 @@ public class PlayServiceImpl implements IplayService {
     @Autowired
     RestTemplate restTemplate;
 
+    @Qualifier("taskExecutor")
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
 
     @Override
     public CommonResponse<Integer> play(PlayReq playReq)  {
@@ -111,10 +117,12 @@ public class PlayServiceImpl implements IplayService {
         SocketPointer socketPointer = new SocketPointer();
         socketPointer.socketHandle = socketHandle;
         socketPointer.write();
+        Pointer pUser = socketPointer.getPointer();
+
         try {
             Socket socket = new Socket(ip, port);
-            ConcurrentHashMap<String, Object> socketHanderMap = playHandleConf.getSocketHanderMap();
-            socketHanderMap.put(socketPointer.socketHandle,socket);
+            ConcurrentHashMap<Pointer, Object> socketHanderMap = playHandleConf.getSocketHanderMap();
+            socketHanderMap.put(pUser,socket);
         }catch (Exception e){
             return CommonResponse.failure(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
         }
