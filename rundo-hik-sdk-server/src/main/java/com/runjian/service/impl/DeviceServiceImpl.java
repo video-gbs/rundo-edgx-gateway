@@ -79,6 +79,10 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
         return deviceOnlineDto;
     }
 
+    @Override
+    public DeviceEntity getOne(Long id) {
+        return deviceMapper.selectById(id);
+    }
 
     @Override
     public CommonResponse<Long> add(String ip, short port, String user, String psw) {

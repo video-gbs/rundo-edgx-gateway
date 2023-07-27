@@ -319,7 +319,9 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             businessKey = StreamBusinessMsgType.STREAM_RECORD_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         }
         BusinessErrorEnums oneBusinessNum = BusinessErrorEnums.getOneBusinessNum(businessSceneResp.getCode());
-        if(!oneBusinessNum.equals(BusinessErrorEnums.COMMDER_SEND_SUCESS)){
+        if(oneBusinessNum.equals(BusinessErrorEnums.COMMDER_SEND_SUCESS) || oneBusinessNum.equals(BusinessErrorEnums.SUCCESS)){
+            //网关正常通知
+        }else {
             redisCatchStorageService.editBusinessSceneKey(businessKey,oneBusinessNum,null);
         }
 

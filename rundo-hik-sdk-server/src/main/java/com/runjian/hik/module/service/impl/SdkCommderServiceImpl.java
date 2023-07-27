@@ -2,6 +2,8 @@ package com.runjian.hik.module.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.MarkConstant;
 import com.runjian.common.utils.DateUtils;
@@ -120,18 +122,17 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
 
                             SocketPointer socketPointer = new SocketPointer();
                             Pointer pointer = socketPointer.getPointer();
+                            pointer.write(0, pUser.getByteArray(0, socketPointer.size()), 0, socketPointer.size());
                             socketPointer.read();
-                            socketPointer.write();
-                            pUser.write(0, pointer.getByteArray(0, socketPointer.size()), 0, socketPointer.size());
-                            if(ObjectUtils.isEmpty(socketPointer)){
-                                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"码流回调","连接错误，初始化失败");
-                                return;
+                            String socketHandle = socketPointer.socketHandle;
+                            if(ObjectUtils.isEmpty(socketHandle)){
+                                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"码流回调","连接错误，用户信息获取失败");
+                                throw  new NullPointerException();
                             }
-
-                            Socket socket = (Socket) playHandleConf.getSocketHanderMap().get(socketPointer);
+                            Socket socket = (Socket) playHandleConf.getSocketHanderMap().get(socketPointer.socketHandle);
                             if(ObjectUtils.isEmpty(socket)){
                                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"码流回调","连接暂时超时");
-                                return;
+                                throw  new BusinessException(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
                             }
                             ByteBuffer byteBuffer = pBuffer.getPointer().getByteBuffer(0, dwBufSize);
                             byte[] bytes = new byte[byteBuffer.remaining()];
@@ -142,7 +143,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                         } catch (Exception e) {
                             //socket连接失败 进行流关闭
                             PlayInfoDto playInfoDto = stopPlay(lRealHandle);
-                            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接","socket发送异常",playInfoDto);
+                            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接","socket发送异常",e);
                         }
                     }
             }
@@ -423,14 +424,14 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         strClientInfo.lChannel = channelNum;
         strClientInfo.hPlayWnd = 0;
         //0-主码流，1-子码流，2-三码流，3-虚拟码流，以此类推
-        strClientInfo.dwStreamType= dwStreamType;
+        strClientInfo.dwStreamType= 0;
         //连接方式：0- TCP方式，1- UDP方式，2- 多播方式，3- RTP方式，4- RTP/RTSP，5- RTP/HTTP，6- HRUDP（可靠传输） ，7- RTSP/HTTPS，8- NPQ
         strClientInfo.dwLinkMode=4;
         strClientInfo.bBlocked=1;
         strClientInfo.write();
 
         Pointer pointer = socketPointer.getPointer();
-        socketPointer.write();
+        socketPointer.read();
 
         lPreviewHandle = hCNetSDK.NET_DVR_RealPlay_V40(lUserId, strClientInfo, fRealDataCallBack , pointer);
         PlayInfoDto playInfoDto = new PlayInfoDto();

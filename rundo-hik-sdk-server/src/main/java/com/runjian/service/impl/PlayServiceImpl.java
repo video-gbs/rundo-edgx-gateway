@@ -110,6 +110,7 @@ public class PlayServiceImpl implements IplayService {
         String socketHandle =  UuidUtil.toUuid();
         SocketPointer socketPointer = new SocketPointer();
         socketPointer.socketHandle = socketHandle;
+        socketPointer.write();
         try {
             Socket socket = new Socket(ip, port);
             ConcurrentHashMap<String, Object> socketHanderMap = playHandleConf.getSocketHanderMap();

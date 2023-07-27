@@ -63,7 +63,6 @@ public class DeviceTest {
     {
         SocketPointer socketPointer = new SocketPointer();
         Pointer pointer = socketPointer.getPointer();
-        socketPointer.read();
         socketPointer.socketHandle=socket;
         socketPointer.write();
         p.write(0, pointer.getByteArray(0, socketPointer.size()), 0, socketPointer.size());

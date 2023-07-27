@@ -20,6 +20,13 @@ public interface IDeviceService extends IService<DeviceEntity> {
     DeviceOnlineDto online(String ip, short port, String user, String psw);
 
     /**
+     * 获取单个设备
+     * @param id
+     * @return
+     */
+    DeviceEntity getOne(Long id);
+
+    /**
      * 设备添加
      * @param ip
      * @param port
