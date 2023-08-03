@@ -354,6 +354,9 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 //订阅流主销处理
                 //判断接入的类型
                 String app = oneBystreamId.getApp();
+
+                //网关流注销通知
+                gatewayDealMsgService.sendGatewayStreamBye(streamId,msgId,oneBystreamId);
                 //流注销成功 回调
                 if(oneBystreamId.getStatus() == 0){
                     //清除点播请求
@@ -395,8 +398,6 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                     });
                 }
 
-                //网关流注销通知
-                gatewayDealMsgService.sendGatewayStreamBye(streamId,msgId,oneBystreamId);
             }
         }
 

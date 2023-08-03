@@ -80,7 +80,7 @@ media:
     # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
     sdp-ip: 172.20.0.77
     # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
-    hook-ip: 172.20.0.87
+    hook-ip: 172.20.0.88
     # [必须修改] zlm服务器的http.port
     http-port: 18083
 

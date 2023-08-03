@@ -414,8 +414,8 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         //0-主码流，1-子码流，2-三码流，3-虚拟码流，以此类推
         strClientInfo.dwStreamType= 0;
         //连接方式：0- TCP方式，1- UDP方式，2- 多播方式，3- RTP方式，4- RTP/RTSP，5- RTP/HTTP，6- HRUDP（可靠传输） ，7- RTSP/HTTPS，8- NPQ
-        strClientInfo.dwLinkMode=4;
-        strClientInfo.bBlocked=1;
+        strClientInfo.dwLinkMode=0;
+        strClientInfo.bBlocked=0;
         strClientInfo.write();
 
         Pointer pointer = socketPointer.getPointer();

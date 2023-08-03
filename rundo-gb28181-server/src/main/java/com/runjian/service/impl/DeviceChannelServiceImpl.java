@@ -19,7 +19,10 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -54,6 +57,12 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Autowired
     IDeviceService deviceService;
 
+    @Autowired
+    DataSourceTransactionManager dataSourceTransactionManager;
+
+    @Autowired
+    TransactionDefinition transactionDefinition;
+
 
     @Override
     public synchronized List<DeviceChannel> resetChannelsForcatalog(String deviceId, List<DeviceChannel> deviceChannelList) {
@@ -62,7 +71,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         return resetChannelsForcatalogLock(deviceId,deviceChannelList);
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public  List<DeviceChannel> resetChannelsForcatalogLock(String deviceId, List<DeviceChannel> deviceChannelList){
         List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannelsByDeviceId(deviceId);
         //组装增删改的数据
@@ -86,45 +94,50 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         boolean b1 = addCollects.removeAll(oldChannelCollect);
         //状态待修改的数据
         boolean b2 = updateCollects.retainAll(newChannelCollect);
+        TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+        try{
+            List<DeviceChannel> addDeviceChannels = new ArrayList<>();
+            if(!CollectionUtils.isEmpty(removeCollects)){
+                //进行删除数据组装
+                List<Long> idList = new ArrayList<>();
+                for (DeviceChannel deviceChannel : deviceChannels) {
+                    if(removeCollects.contains(deviceChannel.getChannelId())){
+                        long id = deviceChannel.getId();
+                        idList.add(id);
+                    }
+                }
+                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"通道下线",idList);
+                deviceChannelMapper.cleanChannelsByChannelIdList(idList);
+            }
 
-        List<DeviceChannel> addDeviceChannels = new ArrayList<>();
-        if(!CollectionUtils.isEmpty(removeCollects)){
-            //进行删除数据组装
-            List<Long> idList = new ArrayList<>();
-            for (DeviceChannel deviceChannel : deviceChannels) {
-                if(removeCollects.contains(deviceChannel.getChannelId())){
-                    long id = deviceChannel.getId();
-                    idList.add(id);
+            if(!CollectionUtils.isEmpty(addCollects)){
+                //进行添加数据组装
+                for (DeviceChannel deviceChannel : deviceChannelList) {
+                    if(addCollects.contains(deviceChannel.getChannelId())){
+                        addDeviceChannels.add(deviceChannel);
+                    }
+                }
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE,"通道新增",addDeviceChannels,deviceChannelList);
+                deviceChannelMapper.batchAdd(addDeviceChannels);
+            }
+            if(!CollectionUtils.isEmpty(updateCollects)){
+                //进行编辑数据操作
+                List<DeviceChannel> deviceChannelsUpdate = new ArrayList<>();
+                for (DeviceChannel deviceChannel : deviceChannelList) {
+                    if(updateCollects.contains(deviceChannel.getChannelId())){
+                        //单独编辑入库
+                        deviceChannelsUpdate.add(deviceChannel);
+                    }
+                }
+                if(!CollectionUtils.isEmpty(deviceChannelsUpdate)){
+                    log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"通道编辑",deviceChannelsUpdate);
+                    deviceChannelMapper.batchUpdate(deviceChannelsUpdate);
+
                 }
             }
-            log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"通道下线",idList);
-            deviceChannelMapper.cleanChannelsByChannelIdList(idList);
-        }
-
-        if(!CollectionUtils.isEmpty(addCollects)){
-            //进行添加数据组装
-            for (DeviceChannel deviceChannel : deviceChannelList) {
-                if(addCollects.contains(deviceChannel.getChannelId())){
-                    addDeviceChannels.add(deviceChannel);
-                }
-            }
-            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE,"通道新增",addDeviceChannels,deviceChannelList);
-            deviceChannelMapper.batchAdd(addDeviceChannels);
-        }
-        if(!CollectionUtils.isEmpty(updateCollects)){
-            //进行编辑数据操作
-            List<DeviceChannel> deviceChannelsUpdate = new ArrayList<>();
-            for (DeviceChannel deviceChannel : deviceChannelList) {
-                if(updateCollects.contains(deviceChannel.getChannelId())){
-                    //单独编辑入库
-                    deviceChannelsUpdate.add(deviceChannel);
-                }
-            }
-            if(!CollectionUtils.isEmpty(deviceChannelsUpdate)){
-                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"通道编辑",deviceChannelsUpdate);
-                deviceChannelMapper.batchUpdate(deviceChannelsUpdate);
-
-            }
+            dataSourceTransactionManager.commit(transactionStatus);
+        }catch (Exception e){
+            dataSourceTransactionManager.rollback(transactionStatus);
         }
         //从数据库中重新查找 过滤被删除的通道
 

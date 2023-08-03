@@ -144,7 +144,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
             return false;
         }
         SsrcConfig ssrcConfig = (SsrcConfig)o;
-        if(!ObjectUtils.isEmpty(ssrc)){
+        if(ObjectUtils.isEmpty(ssrc)){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"释放ssrc","释放失败,对应的ssrc缓存不存在",ssrc);
             return false;
         }
