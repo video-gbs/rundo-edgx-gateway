@@ -42,6 +42,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.runjian.hik.sdklib.HCNetSDK.NET_DVR_GET_PICCFG_V30;
 
@@ -65,6 +66,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
 
     private PlayBackCallBack playBackCallBack;
 
+    private ConcurrentHashMap<String,Integer> loginHanderMap = new ConcurrentHashMap();
 
 
     @Autowired
@@ -130,7 +132,6 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                             dataOutputStream.write(bytes);
                         } catch (Exception e) {
                             //socket连接失败 进行流关闭
-                            PlayInfoDto playInfoDto = stopPlay(lRealHandle);
                             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接","socket发送异常",e);
                         }
                     }
@@ -166,8 +167,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
 
                         } catch (Exception e) {
                             //socket连接失败 进行流关闭
-                            PlayInfoDto playInfoDto = stopPlay(lRealHandle);
-                            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接--socket发送异常",e,playInfoDto);
+                            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接--socket发送异常",e,null);
                         }
                     }
                     break;
@@ -186,38 +186,46 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     @Override
     public DeviceLoginDto login(String ip, short port, String user, String psw) {
         int lUserId = -1;//用户句柄
-        //设备注册
-        HCNetSDK.NET_DVR_USER_LOGIN_INFO m_strLoginInfo = new HCNetSDK.NET_DVR_USER_LOGIN_INFO();//设备登录信息
-        HCNetSDK.NET_DVR_DEVICEINFO_V40 m_strDeviceInfo = new HCNetSDK.NET_DVR_DEVICEINFO_V40();//设备信息
-        HCNetSDK.NET_DVR_DEVICEINFO_V30 m_strDeviceInfo3 =  new HCNetSDK.NET_DVR_DEVICEINFO_V30();//设备信息
-        String m_sDeviceIP = ip;//设备ip地址
-        m_strLoginInfo.sDeviceAddress = new byte[HCNetSDK.NET_DVR_DEV_ADDRESS_MAX_LEN];
-        System.arraycopy(m_sDeviceIP.getBytes(), 0, m_strLoginInfo.sDeviceAddress, 0, m_sDeviceIP.length());
-
-        String m_sUsername = user;//设备用户名
-        m_strLoginInfo.sUserName = new byte[HCNetSDK.NET_DVR_LOGIN_USERNAME_MAX_LEN];
-        System.arraycopy(m_sUsername.getBytes(), 0, m_strLoginInfo.sUserName, 0, m_sUsername.length());
-
-        String m_sPassword = psw;//设备密码
-        m_strLoginInfo.sPassword = new byte[HCNetSDK.NET_DVR_LOGIN_PASSWD_MAX_LEN];
-        System.arraycopy(m_sPassword.getBytes(), 0, m_strLoginInfo.sPassword, 0, m_sPassword.length());
-
-        m_strLoginInfo.wPort = port;
-        m_strLoginInfo.bUseAsynLogin = false; //是否异步登录：0- 否，1- 是
-//        m_strLoginInfo.byLoginMode=0;  //ISAPI登录
-        m_strLoginInfo.write();
-
-        lUserId =  hCNetSDK.NET_DVR_Login_V40(m_strLoginInfo, m_strDeviceInfo);
+        String loginHandle = ip+":"+port;
+        lUserId = loginHanderMap.get(loginHandle);
         DeviceLoginDto deviceLoginDto = new DeviceLoginDto();
         deviceLoginDto.setLUserId(lUserId);
+        if(lUserId <= 0){
+            //设备注册
+            HCNetSDK.NET_DVR_USER_LOGIN_INFO m_strLoginInfo = new HCNetSDK.NET_DVR_USER_LOGIN_INFO();//设备登录信息
+            HCNetSDK.NET_DVR_DEVICEINFO_V40 m_strDeviceInfo = new HCNetSDK.NET_DVR_DEVICEINFO_V40();//设备信息
+            HCNetSDK.NET_DVR_DEVICEINFO_V30 m_strDeviceInfo3 =  new HCNetSDK.NET_DVR_DEVICEINFO_V30();//设备信息
+            String m_sDeviceIP = ip;//设备ip地址
+            m_strLoginInfo.sDeviceAddress = new byte[HCNetSDK.NET_DVR_DEV_ADDRESS_MAX_LEN];
+            System.arraycopy(m_sDeviceIP.getBytes(), 0, m_strLoginInfo.sDeviceAddress, 0, m_sDeviceIP.length());
 
-        if (lUserId== -1) {
-            int errorCode = hCNetSDK.NET_DVR_GetLastError();
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"sdk登陆失败",m_strLoginInfo,hCNetSDK.NET_DVR_GetLastError());
-            deviceLoginDto.setErrorCode(errorCode);
+            String m_sUsername = user;//设备用户名
+            m_strLoginInfo.sUserName = new byte[HCNetSDK.NET_DVR_LOGIN_USERNAME_MAX_LEN];
+            System.arraycopy(m_sUsername.getBytes(), 0, m_strLoginInfo.sUserName, 0, m_sUsername.length());
+
+            String m_sPassword = psw;//设备密码
+            m_strLoginInfo.sPassword = new byte[HCNetSDK.NET_DVR_LOGIN_PASSWD_MAX_LEN];
+            System.arraycopy(m_sPassword.getBytes(), 0, m_strLoginInfo.sPassword, 0, m_sPassword.length());
+
+            m_strLoginInfo.wPort = port;
+            m_strLoginInfo.bUseAsynLogin = false; //是否异步登录：0- 否，1- 是
+//        m_strLoginInfo.byLoginMode=0;  //ISAPI登录
+            m_strLoginInfo.write();
+
+            lUserId =  hCNetSDK.NET_DVR_Login_V40(m_strLoginInfo, m_strDeviceInfo);
+
+
+            if (lUserId== -1) {
+                int errorCode = hCNetSDK.NET_DVR_GetLastError();
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE,"sdk登陆失败",m_strLoginInfo,hCNetSDK.NET_DVR_GetLastError());
+                deviceLoginDto.setErrorCode(errorCode);
+                return deviceLoginDto;
+            }
+            deviceLoginDto.setDeviceinfoV40(m_strDeviceInfo);
+        }else {
             return deviceLoginDto;
         }
-        deviceLoginDto.setDeviceinfoV40(m_strDeviceInfo);
+
         return  deviceLoginDto;
 
     }

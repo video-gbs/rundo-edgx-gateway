@@ -18,15 +18,14 @@ import com.runjian.domain.dto.PlayCommonDto;
 import com.runjian.domain.dto.commder.DeviceLoginDto;
 import com.runjian.domain.dto.commder.PlayInfoDto;
 import com.runjian.domain.req.PlaySdkReq;
-import com.runjian.entity.DeviceChannelEntity;
-import com.runjian.entity.DeviceEntity;
-import com.runjian.entity.PlayListLogEntity;
+import com.runjian.entity.*;
 import com.runjian.hik.module.service.ISdkCommderService;
 import com.runjian.hik.sdklib.HCNetSDK;
 import com.runjian.hik.sdklib.SocketPointer;
 import com.runjian.mapper.PlayListLogMapper;
 import com.runjian.service.IDeviceChannelService;
 import com.runjian.service.IDeviceService;
+import com.runjian.service.IMediaToolRestfulApiService;
 import com.runjian.service.IplayService;
 import com.sun.jna.Memory;
 import com.sun.jna.Pointer;
@@ -63,14 +62,6 @@ public class PlayServiceImpl implements IplayService {
     @Autowired
     IDeviceChannelService deviceChannelService;
 
-    @Value("${mdeia-tool-uri-list.server-ip}")
-    private String serverIp;
-
-    @Value("${mdeia-tool-uri-list.open-sdk-server}")
-    private String openSdkServerApi;
-
-    @Value("${mdeia-tool-uri-list.close-sdk-server}")
-    private String closeSdkServerApi;
 
     @Autowired
     private PlayHandleConf playHandleConf;
@@ -82,57 +73,36 @@ public class PlayServiceImpl implements IplayService {
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
-    private ConcurrentHashMap<String,Object> stringSocketHanderMap = new ConcurrentHashMap();
+    private IMediaToolRestfulApiService mediaToolRestfulApiService;
 
     @Override
     public CommonResponse<Integer> play(PlayReq playReq)  {
         CommonResponse<PlayCommonDto> commonResponse = playCommonCheck(playReq);
-        //建立socke连接
-        CommonResponse<SocketPointer> commonResponse1 = streamMediaDeal(playReq);
-        if(commonResponse1.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
-            throw new BusinessException(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
-        }
-        SocketPointer socketPointer = commonResponse1.getData();
-        String socketHandle = socketPointer.socketHandle;
         PlayCommonDto data = commonResponse.getData();
-        int streamMode = playReq.getStreamMode();
-        PlayInfoDto play = iSdkCommderService.play(data.getLUserId(), data.getChannelNum(), streamMode, 1,socketPointer);
-        int errorCode = play.getErrorCode();
 
+        //直播流请求
+        PlayToolEntity playToolEntity = new PlayToolEntity();
+        playToolEntity.setDeviceIp(data.getDeviceIp());
+        playToolEntity.setDevicePort(data.getDevicePort());
+        playToolEntity.setDevicepassword(data.getDevicepassword());
+        playToolEntity.setDeviceUser(data.getDeviceUser());
+        playToolEntity.setChannelNum(data.getChannelNum());
+        playToolEntity.setMediaIp(playReq.getSsrcInfo().getIp());
+        playToolEntity.setMediaGb28181Port(playReq.getSsrcInfo().getPort());
+        playToolEntity.setStreamMode(playReq.getStreamMode());
+        CommonResponse<Integer> integerCommonResponse = mediaToolRestfulApiService.liveStreamDeal(playToolEntity);
+        Integer playHandle = integerCommonResponse.getData();
+        int errorCode = integerCommonResponse.getCode();
         int playStatus = errorCode==0?0:-1;
         PlayListLogEntity playListLogEntity = new PlayListLogEntity();
         playListLogEntity.setStreamId(playReq.getStreamId());
         playListLogEntity.setPlayErrorCode(errorCode);
-        playListLogEntity.setPlayHandle(play.getLPreviewHandle());
+        playListLogEntity.setPlayHandle(playHandle);
         playListLogEntity.setPlayStatus(playStatus);
-        playListLogEntity.setSocketHandle(socketHandle);
         playListLogMapper.insert(playListLogEntity);
         return errorCode==0?CommonResponse.success(errorCode):CommonResponse.failure(BusinessErrorEnums.SDK_OPERATION_FAILURE,BusinessErrorEnums.SDK_OPERATION_FAILURE.getErrMsg()+errorCode);
 
     }
-
-    private synchronized CommonResponse<SocketPointer> streamMediaDeal(PlayReq playReq) {
-        String ip = playReq.getSsrcInfo().getIp();
-        int port = playReq.getSsrcInfo().getPort();
-        String socketHandle =  UuidUtil.toUuid();
-        SocketPointer socketPointer = new SocketPointer();
-        socketPointer.socketHandle = socketHandle;
-        socketPointer.write();
-        Pointer pUser = socketPointer.getPointer();
-
-        try {
-            Socket socket = new Socket(ip, port);
-            ConcurrentHashMap<Pointer, Object> socketHanderMap = playHandleConf.getSocketHanderMap();
-            socketHanderMap.put(pUser,socket);
-            stringSocketHanderMap.put(socketHandle,socket);
-
-        }catch (Exception e){
-            return CommonResponse.failure(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
-        }
-        return CommonResponse.success(socketPointer);
-
-    }
-
 
     private CommonResponse<PlayCommonDto> playCommonCheck(PlayReq playReq){
         //获取设备信息luserId
@@ -166,30 +136,41 @@ public class PlayServiceImpl implements IplayService {
         PlayCommonDto playCommonDto = new PlayCommonDto();
         playCommonDto.setLUserId(lUserId);
         playCommonDto.setChannelNum(deviceChannelEntity.getChannelNum());
+        playCommonDto.setDevicepassword(deviceEntity.getPassword());
+        playCommonDto.setDeviceUser(deviceEntity.getUsername());
+        playCommonDto.setDeviceIp(deviceEntity.getIp());
+        playCommonDto.setDevicePort(deviceEntity.getPort());
         return CommonResponse.success(playCommonDto);
 
     }
     @Override
     public CommonResponse<Integer> playBack(PlayBackReq playBackReq) {
         CommonResponse<PlayCommonDto> commonResponse = playCommonCheck(playBackReq);
-        //建立socke连接
-        CommonResponse<SocketPointer> commonResponse1 = streamMediaDeal(playBackReq);
-        if(commonResponse1.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
-            throw new BusinessException(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
-        }
-        SocketPointer socketPointer = commonResponse1.getData();
-        String socketHandle = socketPointer.socketHandle;
         PlayCommonDto data = commonResponse.getData();
-        PlayInfoDto play = iSdkCommderService.playBack(data.getLUserId(), data.getChannelNum(), playBackReq.getStartTime(), playBackReq.getEndTime(),socketPointer);
-        int errorCode = play.getErrorCode();
+
+        //直播流请求
+        PlayBackToolEntity playToolEntity = new PlayBackToolEntity();
+        playToolEntity.setDeviceIp(data.getDeviceIp());
+        playToolEntity.setDevicePort(data.getDevicePort());
+        playToolEntity.setDevicepassword(data.getDevicepassword());
+        playToolEntity.setDeviceUser(data.getDeviceUser());
+        playToolEntity.setChannelNum(data.getChannelNum());
+        playToolEntity.setMediaIp(playBackReq.getSsrcInfo().getIp());
+        playToolEntity.setMediaGb28181Port(playBackReq.getSsrcInfo().getPort());
+        playToolEntity.setStreamMode(playBackReq.getStreamMode());
+        playToolEntity.setStartTime(playBackReq.getStartTime());
+        playToolEntity.setEndTime(playBackReq.getEndTime());
+
+        CommonResponse<Integer> integerCommonResponse = mediaToolRestfulApiService.backStreamDeal(playToolEntity);
+        Integer playHandle = integerCommonResponse.getData();
+        int errorCode = integerCommonResponse.getCode();
 
         int playStatus = errorCode==0?0:-1;
         PlayListLogEntity playListLogEntity = new PlayListLogEntity();
         playListLogEntity.setStreamId(playBackReq.getStreamId());
         playListLogEntity.setPlayErrorCode(errorCode);
-        playListLogEntity.setPlayHandle(play.getLPreviewHandle());
+        playListLogEntity.setPlayHandle(playHandle);
         playListLogEntity.setPlayStatus(playStatus);
-        playListLogEntity.setSocketHandle(socketHandle);
         playListLogMapper.insert(playListLogEntity);
         return errorCode==0?CommonResponse.success(errorCode):CommonResponse.failure(BusinessErrorEnums.SDK_OPERATION_FAILURE,BusinessErrorEnums.SDK_OPERATION_FAILURE.getErrMsg()+errorCode);
     }
@@ -198,27 +179,23 @@ public class PlayServiceImpl implements IplayService {
 
 
     @Override
-    public Boolean streamBye(String streamId) {
+    public synchronized Boolean streamBye(String streamId) {
         log.info(LogTemplate.ERROR_LOG_TEMPLATE,"流bye操作","bye进入",streamId);
         LambdaQueryWrapper<PlayListLogEntity> playListLogEntityLambdaQueryWrapper = new LambdaQueryWrapper<>();
         playListLogEntityLambdaQueryWrapper.eq(PlayListLogEntity::getPlayStatus,0);
         playListLogEntityLambdaQueryWrapper.eq(PlayListLogEntity::getStreamId,streamId).last("limit 1");
         PlayListLogEntity playListLogEntity = playListLogMapper.selectOne(playListLogEntityLambdaQueryWrapper);
-        PlayInfoDto playInfoDto = iSdkCommderService.stopPlay(playListLogEntity.getPlayHandle());
 
-        int errorCode = playInfoDto.getErrorCode();
+        CommonResponse<Boolean> booleanCommonResponse = mediaToolRestfulApiService.streamToolBye(playListLogEntity.getPlayHandle());
+        if(booleanCommonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体工具服务","连接业务异常",booleanCommonResponse);
+        }
+
+        int errorCode = booleanCommonResponse.getCode();
         int playStatus = errorCode != 0?1:2;
         playListLogEntity.setPlayStatus(playStatus);
         playListLogEntity.setPlayErrorCode(errorCode);
         playListLogMapper.updateById(playListLogEntity);
-        //关闭流传输
-        try{
-            Socket socket = (Socket)stringSocketHanderMap.get(playListLogEntity.getSocketHandle());
-            socket.shutdownOutput();
-        }catch (Exception e){
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流bye操作","关闭socket失败",e.getMessage());
-        }
-
         return errorCode == 0;
 
     }
