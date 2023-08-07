@@ -187,7 +187,16 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     public DeviceLoginDto login(String ip, short port, String user, String psw) {
         int lUserId = -1;//用户句柄
         String loginHandle = ip+":"+port;
-        lUserId = loginHanderMap.get(loginHandle);
+        if(!ObjectUtils.isEmpty(loginHanderMap)){
+
+            Integer i = loginHanderMap.get(loginHandle);
+            if(!ObjectUtils.isEmpty(i)){
+                lUserId = i;
+
+            }else {
+                lUserId = -1;
+            }
+        }
         DeviceLoginDto deviceLoginDto = new DeviceLoginDto();
         deviceLoginDto.setLUserId(lUserId);
         if(lUserId <= 0){
@@ -221,6 +230,8 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                 deviceLoginDto.setErrorCode(errorCode);
                 return deviceLoginDto;
             }
+            deviceLoginDto.setLUserId(lUserId);
+            loginHanderMap.put(loginHandle,lUserId);
             deviceLoginDto.setDeviceinfoV40(m_strDeviceInfo);
         }else {
             return deviceLoginDto;

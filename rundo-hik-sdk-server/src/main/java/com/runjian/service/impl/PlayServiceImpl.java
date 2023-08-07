@@ -73,6 +73,7 @@ public class PlayServiceImpl implements IplayService {
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
+    @Autowired
     private IMediaToolRestfulApiService mediaToolRestfulApiService;
 
     @Override
@@ -185,18 +186,22 @@ public class PlayServiceImpl implements IplayService {
         playListLogEntityLambdaQueryWrapper.eq(PlayListLogEntity::getPlayStatus,0);
         playListLogEntityLambdaQueryWrapper.eq(PlayListLogEntity::getStreamId,streamId).last("limit 1");
         PlayListLogEntity playListLogEntity = playListLogMapper.selectOne(playListLogEntityLambdaQueryWrapper);
-
-        CommonResponse<Boolean> booleanCommonResponse = mediaToolRestfulApiService.streamToolBye(playListLogEntity.getPlayHandle());
-        if(booleanCommonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体工具服务","连接业务异常",booleanCommonResponse);
+        CommonResponse<Boolean> booleanCommonResponse = CommonResponse.failure(BusinessErrorEnums.UNKNOWN_ERROR);
+        if(!ObjectUtils.isEmpty(playListLogEntity)){
+            booleanCommonResponse =mediaToolRestfulApiService.streamToolBye(playListLogEntity.getPlayHandle());
+            if(booleanCommonResponse.getCode()!=BusinessErrorEnums.SUCCESS.getErrCode()){
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体工具服务","连接业务异常",booleanCommonResponse);
+            }
+            int errorCode = booleanCommonResponse.getCode();
+            int playStatus = errorCode != 0?1:2;
+            playListLogEntity.setPlayStatus(playStatus);
+            playListLogEntity.setPlayErrorCode(errorCode);
+            playListLogMapper.updateById(playListLogEntity);
         }
 
-        int errorCode = booleanCommonResponse.getCode();
-        int playStatus = errorCode != 0?1:2;
-        playListLogEntity.setPlayStatus(playStatus);
-        playListLogEntity.setPlayErrorCode(errorCode);
-        playListLogMapper.updateById(playListLogEntity);
-        return errorCode == 0;
+
+
+        return Boolean.TRUE;
 
     }
 

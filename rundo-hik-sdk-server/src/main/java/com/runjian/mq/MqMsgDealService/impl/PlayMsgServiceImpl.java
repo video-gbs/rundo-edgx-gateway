@@ -58,7 +58,7 @@ public class PlayMsgServiceImpl implements InitializingBean, IMsgProcessorServic
             play = iplayService.play(playReq);
 
         }catch (Exception e){
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", e.getMessage());
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", e);
         }
 
         //restfulapi请求 分离请求中的streamId
