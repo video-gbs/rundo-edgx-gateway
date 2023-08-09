@@ -34,7 +34,7 @@ public class PlayController {
         playReq.setChannelId("34020000001310000001");
         playReq.setDeviceId("34020000001180000241");
         playReq.setMsgId("12345678");
-        playReq.setStreamMode("UDP");
+        playReq.setStreamMode(0);
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"请求进入","无");
         playService.play(playReq);
 

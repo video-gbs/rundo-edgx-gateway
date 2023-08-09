@@ -5,7 +5,6 @@ import com.runjian.conf.dao.SimpleUpdateExtendedLanguageDriver;
 import com.runjian.domain.dto.DeviceSendDto;
 import com.runjian.gb28181.bean.Device;
 import org.apache.ibatis.annotations.*;
-import org.intellij.lang.annotations.Language;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -24,7 +23,7 @@ public interface DeviceMapper {
      * @param deviceId
      * @return
      */
-    @Select("SELECT * FROM "+DEVICE_TABLE_NAME+" WHERE device_id = #{deviceId} and deleted = 0")
+    @Select("SELECT * FROM "+DEVICE_TABLE_NAME+" WHERE device_id = #{deviceId}")
     Device getDeviceByDeviceId(String deviceId);
 
     @Insert("INSERT INTO "+DEVICE_TABLE_NAME+" (#{device})")
@@ -43,7 +42,7 @@ public interface DeviceMapper {
     @Delete("DELETE FROM "+DEVICE_TABLE_NAME+" WHERE device_id=#{deviceId}")
     int remove(String deviceId);
 
-    @Update("UPDATE "+DEVICE_TABLE_NAME+" set deleted = 1 where id= #{id}")
+    @Update("UPDATE "+DEVICE_TABLE_NAME+" set deleted = 1 where device_id= #{id}")
     int softRemove(String deviceId);
 
     /**

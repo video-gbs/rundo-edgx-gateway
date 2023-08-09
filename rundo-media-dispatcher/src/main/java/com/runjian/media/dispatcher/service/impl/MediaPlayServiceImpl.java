@@ -323,6 +323,8 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
     }
 
+
+
     @Override
     public void streamStop(String streamId, String msgId) {
         MediaServerItem defaultMediaServer = mediaServerService.getDefaultMediaServer();
@@ -380,14 +382,14 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                             subscribe.response(mediaInfo, json);
                         }else {
                             //国标异常断流处理
-                            streamBye(streamId,null);
+                            exceptionStreamBye(streamId,oneBystreamId);
                             //进行上层消息发送
                             streamCloseSend(streamId,false);
                         }
 
                     }else {
+                        //自定义推流
                         streamCloseSend(streamId,false);
-                        onlineStreamsService.remove(streamId);
                     }
 
 
@@ -404,6 +406,24 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                     onlineStreamsService.update(oneBystreamId);
                 }
 
+            }
+        }
+
+    }
+    public synchronized void exceptionStreamBye(String streamId,OnlineStreamsEntity oneBystreamId){
+        //主动管理流的关闭
+        if(!ObjectUtils.isEmpty(oneBystreamId)){
+            if(oneBystreamId.getStreamType() == 0){
+                //订阅流主销处理
+                //流注销成功 回调
+                //流准备中 未成功点流
+                mediaServerService.closeRTPServer(oneBystreamId.getMediaServerId(),streamId);
+                //释放ssrc
+                redisCatchStorageService.ssrcRelease(oneBystreamId.getSsrc());
+                //清除点播请求
+                onlineStreamsService.remove(streamId);
+                //网关流注销通知
+                gatewayDealMsgService.sendGatewayStreamBye(streamId,null,oneBystreamId);
             }
         }
 
@@ -527,10 +547,10 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         if (VideoManagerConstants.GB28181_APP.equals(app)){
             // 国标流， 点播/录像回放/录像下载
             streamCloseSend(streamId,true);
-            return false;
+            return true;
 
         }else {
-            return true;
+            return false;
         }
     }
 }

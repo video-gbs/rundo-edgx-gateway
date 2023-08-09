@@ -182,7 +182,7 @@ public class ZLMHttpHookListener {
 		String mediaServerId = json.getString("mediaServerId");
 		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 		String app = json.getString("app");
-		String streamId = json.getString("stream");
+		String streamId = json.getString("stream").trim();
 		ret.put("code", -1);
 		ret.put("msg", "error");
 		ret.put("enable_hls", true);
@@ -310,7 +310,7 @@ public class ZLMHttpHookListener {
 		ret.put("code", 0);
 		//是否关闭推拉流 交给上层业务判断
 		Boolean aBoolean = mediaPlayService.onStreamNoneReader(app, streamId);
-		ret.put("close", aBoolean);
+		ret.put("close", false);
 
 		return ret;
 	}

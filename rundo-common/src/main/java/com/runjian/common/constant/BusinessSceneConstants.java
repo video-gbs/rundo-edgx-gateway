@@ -21,6 +21,12 @@ public class BusinessSceneConstants {
     //redisson的lock前缀
     public static final String  BUSINESS_LOCK_KEY = "redisson_lock";
     /**
+     * 自研调度服务 缓存key的全部场景值
+     */
+    public static final String  SELF_BUSINESS_LOCK_KEY = "SELF_BUSINESS_LOCK_KEY:";
+    public static final String  SELF_STREAM_BUSINESS_KEY= "SELF_STREAM_BUSINESS_KEY:";
+    public static final String  SELF_STREAM_BUSINESS_LISTS= "SELF_STREAM_BUSINESS_LISTS:";
+    /*
      * 设备信息缓存键
      */
     public static final String  DEVICE_INFO_SCENE_KEY= "device_info_scene_key:";

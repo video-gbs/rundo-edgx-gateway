@@ -2,7 +2,6 @@ package com.runjian.conf;
 
 import com.runjian.common.constant.ConfigConst;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.ArrayList;

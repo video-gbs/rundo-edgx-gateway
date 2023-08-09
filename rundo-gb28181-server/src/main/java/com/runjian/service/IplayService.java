@@ -26,12 +26,7 @@ public interface IplayService {
     @Deprecated
     public void onStreamChanges(StreamInfo streamInfo);
 
-    /**
-     * 无人观看处理
-     * @param noneStreamReaderReq
-     */
-    @Deprecated
-    public void onStreamNoneReader(NoneStreamReaderReq noneStreamReaderReq);
+
 
     @Deprecated
     public void playBusinessErrorScene(String businessKey, BusinessSceneResp businessSceneResp);

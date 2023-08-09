@@ -59,6 +59,10 @@ public class CommonResponse<T> {
         return failure(businessErrorEnums, null);
     }
 
+
+    public static<T> CommonResponse<T> failure(BusinessErrorEnums businessErrorEnums,String msg){
+        return create(businessErrorEnums.getErrCode(), msg,null);
+    }
     /**
      * 失败自定义异常带数据
      * @param businessErrorEnums

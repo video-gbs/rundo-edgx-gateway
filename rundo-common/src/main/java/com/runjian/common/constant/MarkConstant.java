@@ -135,5 +135,7 @@ public class MarkConstant {
     //F1指令----stop
 
 
+    /*********************manufacturer厂商****************************/
+    public static final String HIK_MANUFACTURER = "hikvision";
 
 }
