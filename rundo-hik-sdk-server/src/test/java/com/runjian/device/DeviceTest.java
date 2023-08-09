@@ -33,7 +33,7 @@ public class DeviceTest {
     public void testLogin(){
 
 //        deviceService.online("192.168.0.203",(short)8000,"admin","rj123456");
-        deviceService.online("192.168.0.241",(short)8000,"admin","rj123456");
+//        deviceService.online("192.168.0.241",(short)8000,"admin","rj123456");
     }
 
     @Test

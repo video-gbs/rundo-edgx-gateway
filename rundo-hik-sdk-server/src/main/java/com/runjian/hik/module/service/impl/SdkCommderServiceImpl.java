@@ -187,18 +187,20 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     public DeviceLoginDto login(String ip, short port, String user, String psw) {
         int lUserId = -1;//用户句柄
         String loginHandle = ip+":"+port;
+        DeviceLoginDto deviceLoginDto = new DeviceLoginDto();
+        deviceLoginDto.setLUserId(lUserId);
         if(!ObjectUtils.isEmpty(loginHanderMap)){
 
             Integer i = loginHanderMap.get(loginHandle);
             if(!ObjectUtils.isEmpty(i)){
                 lUserId = i;
-
+                deviceLoginDto.setLUserId(lUserId);
+                deviceLoginDto.setErrorCode(0);
             }else {
                 lUserId = -1;
             }
         }
-        DeviceLoginDto deviceLoginDto = new DeviceLoginDto();
-        deviceLoginDto.setLUserId(lUserId);
+
         if(lUserId <= 0){
             //设备注册
             HCNetSDK.NET_DVR_USER_LOGIN_INFO m_strLoginInfo = new HCNetSDK.NET_DVR_USER_LOGIN_INFO();//设备登录信息
@@ -803,6 +805,20 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         if(!res){
             int error = hCNetSDK.NET_DVR_GetLastError();
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "回放控制操作", "回放控制操作，类型："+dwControlCode, error);
+            return error;
+        }
+        return 0;
+    }
+
+    @Override
+    public Integer remoteControl(int lUserId, int dwCommand,String loginHandle) {
+        boolean bRet = hCNetSDK.NET_DVR_RemoteControl(lUserId, dwCommand,null,0);
+
+        if(!bRet){
+            int error = hCNetSDK.NET_DVR_GetLastError();
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "远程控制操作", "远程控制操作，类型："+error, error);
+
+            loginHanderMap.remove(loginHandle);
             return error;
         }
         return 0;

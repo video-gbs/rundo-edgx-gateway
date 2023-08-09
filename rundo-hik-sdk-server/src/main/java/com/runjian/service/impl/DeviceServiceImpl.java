@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.config.response.CommonResponse;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.MarkConstant;
 import com.runjian.conf.constant.DeviceTypeEnum;
@@ -18,9 +19,11 @@ import com.runjian.hik.module.util.DeviceUtils;
 import com.runjian.hik.sdklib.HCNetSDK;
 import com.runjian.mapper.DeviceChannelMapper;
 import com.runjian.mapper.DeviceMapper;
+import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
 import com.runjian.service.IDeviceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
@@ -41,6 +44,8 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
     @Resource
     DeviceChannelMapper deviceChannelMapper;
     static int lDChannel;  //预览通道号
+    @Autowired
+    GatewayBusinessAsyncSender gatewayBusinessAsyncSender;
 
     @Override
     public DeviceOnlineDto online(String ip, short port, String user, String psw) {
@@ -134,7 +139,8 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
         DeviceLoginDto login = iSdkCommderService.login(deviceEntityOne.getIp(), deviceEntityOne.getPort(), deviceEntityOne.getUsername(), deviceEntityOne.getPassword());
         if(login.getErrorCode() != 0){
             //登陆失败
-            throw new BusinessException(BusinessErrorEnums.SDK_OPERATION_FAILURE);
+//            throw new BusinessException(BusinessErrorEnums.SDK_OPERATION_FAILURE);
+            return false;
         }
         int lUserId = login.getLUserId();
 
@@ -175,8 +181,10 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
     }
 
     @Override
-    public CommonResponse<List<DeviceEntity>> deviceList() {
-        return CommonResponse.success(deviceMapper.selectList(null));
+    public List<DeviceEntity> deviceList() {
+        LambdaQueryWrapper<DeviceEntity> deviceEntityLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        deviceEntityLambdaQueryWrapper.eq(DeviceEntity::getDeleted,0);
+        return deviceMapper.selectList(deviceEntityLambdaQueryWrapper);
     }
 
     @Override
@@ -206,8 +214,46 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
         deviceMapper.updateById(deviceEntity);
 
         DeviceChannelEntity deviceChannel = new DeviceChannelEntity();
-        deviceChannel.setEncodeId(encodeId);
         deviceChannel.setDeleted(1);
-        deviceChannelMapper.updateById(deviceChannel);
+        LambdaQueryWrapper<DeviceChannelEntity> deviceChannelEntityLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        deviceChannelEntityLambdaQueryWrapper.eq(DeviceChannelEntity::getEncodeId,encodeId);
+        deviceChannelMapper.update(deviceChannel,deviceChannelEntityLambdaQueryWrapper);
+    }
+
+
+    private void deviceStatusMsg(DeviceEntity deviceEntity,int errorCode){
+        if(errorCode!=0){
+            deviceEntity.setOnline(0);
+            deviceMapper.updateById(deviceEntity);
+
+            //通道下线
+            DeviceChannelEntity deviceChannel = new DeviceChannelEntity();
+            deviceChannel.setOnline(0);
+            LambdaQueryWrapper<DeviceChannelEntity> deviceChannelEntityLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            deviceChannelEntityLambdaQueryWrapper.eq(DeviceChannelEntity::getEncodeId,deviceEntity.getId());
+            deviceChannelMapper.update(deviceChannel,deviceChannelEntityLambdaQueryWrapper);
+        }else {
+            deviceEntity.setOnline(1);
+            deviceMapper.updateById(deviceEntity);
+        }
+        CommonResponse<DeviceEntity> success = CommonResponse.success(deviceEntity);
+        gatewayBusinessAsyncSender.sendforAllScene(success, null, GatewayBusinessMsgType.REGISTER);
+    }
+
+    @Async("taskExecutor")
+    @Override
+    public void checkDeviceStatus(DeviceEntity deviceEntity) {
+        //登陆
+        DeviceLoginDto login = iSdkCommderService.login(deviceEntity.getIp(), deviceEntity.getPort(), deviceEntity.getUsername(), deviceEntity.getPassword());
+        if(login.getErrorCode()!=0){
+            //
+            deviceStatusMsg(deviceEntity,login.getErrorCode());
+            return;
+        }
+        String loginHandle = deviceEntity.getIp()+":"+deviceEntity.getPort();
+        Integer errorCode = iSdkCommderService.remoteControl(login.getLUserId(), HCNetSDK.NET_DVR_CHECK_USER_STATUS, loginHandle);
+        deviceStatusMsg(deviceEntity,errorCode);
+
+
     }
 }

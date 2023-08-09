@@ -15,7 +15,7 @@ public class DeviceLoginDto {
 
     private int lUserId;
 
-    private int errorCode;
+    private int errorCode = -1;
 
 
 }

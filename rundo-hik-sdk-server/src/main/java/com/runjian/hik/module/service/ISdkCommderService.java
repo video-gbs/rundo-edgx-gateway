@@ -150,4 +150,12 @@ public interface ISdkCommderService {
      * @return
      */
     Integer playBackControl(int lPlayHandle, int dwControlCode, int value);
+
+    /**
+     * 设备远程控制
+     * @param lUserId
+     * @param dwCommand
+     * @return
+     */
+    Integer remoteControl(int lUserId, int dwCommand,String loginHandle);
 }
