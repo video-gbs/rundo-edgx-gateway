@@ -100,6 +100,7 @@ public class PlayServiceImpl implements IplayService {
         playListLogEntity.setPlayErrorCode(errorCode);
         playListLogEntity.setPlayHandle(playHandle);
         playListLogEntity.setPlayStatus(playStatus);
+        playListLogEntity.setChannelNum(data.getChannelNum());
         playListLogMapper.insert(playListLogEntity);
         return errorCode==0?CommonResponse.success(errorCode):CommonResponse.failure(BusinessErrorEnums.SDK_OPERATION_FAILURE,BusinessErrorEnums.SDK_OPERATION_FAILURE.getErrMsg()+errorCode);
 
@@ -208,22 +209,38 @@ public class PlayServiceImpl implements IplayService {
     @Override
     public Integer  playSpeedControl(String streamId, Double speed) {
         PlayListLogEntity playListLogEntity = playControlCommon(streamId);
-        Integer playHandle = playListLogEntity.getPlayHandle();
-        return iSdkCommderService.playBackControl(playHandle, HCNetSDK.NET_DVR_PLAYFAST, speed.intValue());
+        PlayBackControlToolEntity playBackControlToolEntity = new PlayBackControlToolEntity();
+        playBackControlToolEntity.setChannel(playListLogEntity.getChannelNum());
+        playBackControlToolEntity.setReplayHandle(playListLogEntity.getPlayHandle());
+        playBackControlToolEntity.setCmd(6);
+        playBackControlToolEntity.setVal2(Math.round(speed));
+
+        mediaToolRestfulApiService.backStreamControlDeal(playBackControlToolEntity);
+        return 0;
     }
 
     @Override
     public Integer playPauseControl(String streamId) {
         PlayListLogEntity playListLogEntity = playControlCommon(streamId);
-        Integer playHandle = playListLogEntity.getPlayHandle();
-        return iSdkCommderService.playBackControl(playHandle, HCNetSDK.NET_DVR_PLAYPAUSE, 0);
+        PlayBackControlToolEntity playBackControlToolEntity = new PlayBackControlToolEntity();
+        playBackControlToolEntity.setChannel(playListLogEntity.getChannelNum());
+        playBackControlToolEntity.setReplayHandle(playListLogEntity.getPlayHandle());
+        playBackControlToolEntity.setCmd(3);
+
+        mediaToolRestfulApiService.backStreamControlDeal(playBackControlToolEntity);
+        return 0;
     }
 
     @Override
     public Integer playResumeControl(String streamId) {
         PlayListLogEntity playListLogEntity = playControlCommon(streamId);
-        Integer playHandle = playListLogEntity.getPlayHandle();
-        return iSdkCommderService.playBackControl(playHandle, HCNetSDK.NET_DVR_PLAYRESTART, 0);
+        PlayBackControlToolEntity playBackControlToolEntity = new PlayBackControlToolEntity();
+        playBackControlToolEntity.setChannel(playListLogEntity.getChannelNum());
+        playBackControlToolEntity.setReplayHandle(playListLogEntity.getPlayHandle());
+        playBackControlToolEntity.setCmd(4);
+
+        mediaToolRestfulApiService.backStreamControlDeal(playBackControlToolEntity);
+        return 0;
     }
 
     private PlayListLogEntity playControlCommon(String streamId){

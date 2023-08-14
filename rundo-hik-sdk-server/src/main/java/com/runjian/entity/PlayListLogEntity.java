@@ -45,6 +45,7 @@ public class PlayListLogEntity {
     private Integer deleted;
 
 
+    private long channelNum;
 
     private Date createdAt;
 

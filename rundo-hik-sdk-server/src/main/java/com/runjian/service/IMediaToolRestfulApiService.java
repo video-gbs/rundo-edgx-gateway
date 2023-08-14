@@ -1,6 +1,7 @@
 package com.runjian.service;
 
 import com.runjian.common.config.response.CommonResponse;
+import com.runjian.entity.PlayBackControlToolEntity;
 import com.runjian.entity.PlayBackToolEntity;
 import com.runjian.entity.PlayToolEntity;
 
@@ -22,6 +23,12 @@ public interface IMediaToolRestfulApiService {
      */
     CommonResponse<Integer> backStreamDeal(PlayBackToolEntity playToolEntity);
 
+
+    /**
+     * 录播流处理
+     * @return
+     */
+    CommonResponse<Integer> backStreamControlDeal(PlayBackControlToolEntity playBackControlToolEntity);
     /**
      * 直播流处理
      * @return

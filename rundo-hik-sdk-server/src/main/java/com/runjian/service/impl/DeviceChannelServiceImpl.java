@@ -69,7 +69,7 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
         PlayCommonDto data = playCommonDtoCommonResponse.getData();
         //获取设备配置信息
         RecordInfoDto recordInfoDto = iSdkCommderService.recordList(data.getLUserId(), data.getChannelNum(), recordInfoReq.getStartTime(), recordInfoReq.getEndTime());
-        if(recordInfoDto.getErrorCode() <= 0){
+        if(recordInfoDto.getErrorCode() < 0){
             //获取失败
             throw new BusinessException(BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,String.valueOf(recordInfoDto.getErrorCode()));
         }

@@ -36,6 +36,7 @@ public class DateUtils {
      * 内部统一时间格式
      */
     public static final String PATTERN = "yyyy-MM-dd HH:mm:ss";
+    public static final String PATTERN_SDK = "yyyyMMddHHmmss";
 
     public static final String zoneStr = "Asia/Shanghai";
 
@@ -50,6 +51,7 @@ public class DateUtils {
     public static final DateTimeFormatter formatterCompatibleISO8601 = DateTimeFormatter.ofPattern(ISO8601_COMPATIBLE_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter formatterISO8601 = DateTimeFormatter.ofPattern(ISO8601_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
+    public static final DateTimeFormatter formatterSdk = DateTimeFormatter.ofPattern(PATTERN_SDK, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
 
     /**
      * 缺省的时间戳格式
@@ -162,6 +164,16 @@ public class DateUtils {
 
     public static String ISO8601Toyyyy_MM_dd_HH_mm_ss(String formatTime) {
         return formatter.format(formatterCompatibleISO8601.parse(formatTime));
+
+    }
+
+    /**
+     * yyyy_MM_dd_HH_mm_ss 转时间戳
+     * @param formatTime
+     * @return
+     */
+    public static String ISO8601ToyyyyMMddHHmmss(String formatTime) {
+        return formatterSdk.format(formatter.parse(formatTime));
 
     }
 

@@ -233,6 +233,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                 return deviceLoginDto;
             }
             deviceLoginDto.setLUserId(lUserId);
+            deviceLoginDto.setErrorCode(0);
             loginHanderMap.put(loginHandle,lUserId);
             deviceLoginDto.setDeviceinfoV40(m_strDeviceInfo);
         }else {

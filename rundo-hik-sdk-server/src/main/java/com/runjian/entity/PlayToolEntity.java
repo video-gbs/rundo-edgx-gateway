@@ -45,8 +45,9 @@ public class PlayToolEntity {
      */
     private String mediaIp;
     /**
-     * 流传输模式，1:tcp,2udp
+     * 流传输模式，1:udp,2tcp
      */
     private long streamMode = 1;
+
 
 }
