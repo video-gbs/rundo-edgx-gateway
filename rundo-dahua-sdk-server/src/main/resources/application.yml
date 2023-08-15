@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: "dahua-sdk-serve"
+  profiles:
+    active: ${PROFILES_ACTIVE:local}

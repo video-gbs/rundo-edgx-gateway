@@ -14,7 +14,6 @@ import com.runjian.domain.dto.commder.*;
 import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.entity.DeviceEntity;
 import com.runjian.hik.module.service.ISdkCommderService;
-import com.runjian.hik.module.service.SdkInitService;
 import com.runjian.hik.module.util.DeviceUtils;
 import com.runjian.hik.sdklib.HCNetSDK;
 import com.runjian.mapper.DeviceChannelMapper;
