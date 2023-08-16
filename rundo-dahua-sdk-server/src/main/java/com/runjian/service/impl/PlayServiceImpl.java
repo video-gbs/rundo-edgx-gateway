@@ -104,7 +104,7 @@ public class PlayServiceImpl implements IplayService {
         if(login.getErrorCode() != 0){
             throw new BusinessException(BusinessErrorEnums.DEVICE_LOGIN_ERROR);
         }
-        int lUserId = login.getLUserId();
+        long lUserId = login.getLUserId();
         //获取通道信息
 
         long channelId = Long.parseLong(playReq.getChannelId());

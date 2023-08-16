@@ -23,7 +23,7 @@ public class DeviceEntity {
 	/**
 	 * 登陆句柄
 	 */
-	private Integer lUserId;
+	private Long lUserId;
 
 	/**
 	 * 账户
@@ -54,7 +54,7 @@ public class DeviceEntity {
 	 * wan地址_port
 	 */
 
-	private Short port;
+	private int port;
 
 
 	/**

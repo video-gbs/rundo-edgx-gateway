@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class DeviceReq {
     String ip;
-    short port;
+    int port;
     String user;
     String psw;
 

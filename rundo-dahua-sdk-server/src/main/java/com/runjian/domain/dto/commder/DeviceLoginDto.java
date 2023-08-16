@@ -1,5 +1,6 @@
 package com.runjian.domain.dto.commder;
 
+import com.runjian.sdk.sdklib.NetSDKLib;
 import lombok.Data;
 import org.json.JSONObject;
 
@@ -10,9 +11,9 @@ import org.json.JSONObject;
 @Data
 public class DeviceLoginDto {
 
-    JSONObject deviceinfoV40;
+    NetSDKLib.NET_DEVICEINFO_Ex deviceinfoV40;
 
-    private int lUserId;
+    private long lUserId;
 
     private int errorCode = -1;
 

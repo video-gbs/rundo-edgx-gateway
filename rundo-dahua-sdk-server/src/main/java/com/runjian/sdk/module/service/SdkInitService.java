@@ -1,6 +1,7 @@
 package com.runjian.sdk.module.service;
 
 
+import com.runjian.sdk.module.LoginModule;
 import com.runjian.sdk.sdklib.NetSDKLib;
 import com.runjian.sdk.sdklib.ToolKits;
 import com.sun.jna.Native;
@@ -46,7 +47,7 @@ public class SdkInitService {
         if (hCNetSDK == null) {
             synchronized (NetSDKLib.class) {
                 try {
-                    hCNetSDK = NetSDKLib.NETSDK_INSTANCE;
+                    hCNetSDK = LoginModule.netsdk;
                 } catch (Exception ex) {
                     log.error("SdkInitService-init-hCNetSDK-error");
                 }

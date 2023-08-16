@@ -95,7 +95,7 @@ public class ApiTestServer {
     }
 
     @GetMapping(value = "/test/ptz")
-    public CommonResponse<Integer> ptz(@RequestParam int lUserId,@RequestParam int lChannel,@RequestParam int dwPTZCommand, @RequestParam int dwStop,@RequestParam int dwSpeed){
+    public CommonResponse<Integer> ptz(@RequestParam long lUserId,@RequestParam int lChannel,@RequestParam int dwPTZCommand, @RequestParam int dwStop,@RequestParam int dwSpeed){
 
 
         return CommonResponse.success(sdkCommderService.ptzControl(lUserId,lChannel,dwPTZCommand,dwStop,dwSpeed));
@@ -104,7 +104,7 @@ public class ApiTestServer {
 
 
     @GetMapping(value = "/test/preset")
-    public CommonResponse<PresetQueryDto> preset(@RequestParam int lUserId, @RequestParam int lChannel){
+    public CommonResponse<PresetQueryDto> preset(@RequestParam long lUserId, @RequestParam int lChannel){
 
 
         return CommonResponse.success(sdkCommderService.presetList(lUserId,lChannel));

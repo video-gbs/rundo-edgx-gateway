@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class PlayCommonDto {
 
-    private int lUserId;
+    private long lUserId;
     private int channelNum;
     /**
      * 设备ip

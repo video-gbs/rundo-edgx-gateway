@@ -50,7 +50,7 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
     public DeviceOnlineDto online(String ip, short port, String user, String psw) {
 
         DeviceLoginDto login = iSdkCommderService.login(ip, port, user, psw);
-        int lUserId = login.getLUserId();
+        long lUserId = login.getLUserId();
         LambdaQueryWrapper<DeviceEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DeviceEntity::getIp,ip);
         queryWrapper.eq(DeviceEntity::getPort,port);
@@ -76,7 +76,6 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
 //            deviceMapper.updateById(deviceEntity);
 //        }
 
-        deviceInfo(deviceEntity,lUserId);
         DeviceOnlineDto deviceOnlineDto = new DeviceOnlineDto();
         deviceOnlineDto.setDeviceinfoV40(login.getDeviceinfoV40());
         deviceOnlineDto.setDeviceEntity(deviceEntity);
@@ -89,13 +88,13 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
     }
 
     @Override
-    public CommonResponse<Long> add(String ip, short port, String user, String psw) {
+    public CommonResponse<Long> add(String ip, int port, String user, String psw) {
         DeviceLoginDto login = iSdkCommderService.login(ip, port, user, psw);
         if(login.getErrorCode() != 0){
             //登陆失败
             return  CommonResponse.failure(BusinessErrorEnums.SDK_OPERATION_FAILURE,BusinessErrorEnums.SDK_OPERATION_FAILURE.getErrMsg()+login.getErrorCode());
         }
-        int lUserId = login.getLUserId();
+        long lUserId = login.getLUserId();
         LambdaQueryWrapper<DeviceEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DeviceEntity::getIp,ip);
         queryWrapper.eq(DeviceEntity::getPort,port);
@@ -107,23 +106,22 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
         deviceEntity.setOnline(lUserId<0?0:1);
         deviceEntity.setPassword(psw);
         deviceEntity.setUsername(user);
-        deviceEntity.setManufacturer(MarkConstant.HIK_MANUFACTURER);
-//        HCNetSDK.NET_DVR_DEVICEINFO_V40 deviceinfoV40 = login.getDeviceinfoV40();
-//
-//
-//        deviceEntity.setCharset(DeviceUtils.getCharset(deviceinfoV40.byCharEncodeType));
-//        if(ObjectUtils.isEmpty(one)){
-//
-//            deviceMapper.insert(deviceEntity);
-//        }else {
-//            deviceEntity.setId(one.getId());
-//            deviceMapper.updateById(deviceEntity);
-//        }
+        deviceEntity.setManufacturer(MarkConstant.DAHUA_MANUFACTURER);
 
-        deviceInfo(deviceEntity,lUserId);
-        DeviceOnlineDto deviceOnlineDto = new DeviceOnlineDto();
-        deviceOnlineDto.setDeviceinfoV40(login.getDeviceinfoV40());
-        deviceOnlineDto.setDeviceEntity(deviceEntity);
+        deviceEntity.setName("IPDOME");
+        NetSDKLib.NET_DEVICEINFO_Ex deviceinfoV40 = login.getDeviceinfoV40();
+        String serialNumber = new String(deviceinfoV40.sSerialNumber).trim();
+        deviceEntity.setSerialNumber(serialNumber);
+        deviceEntity.setDeviceType(0);
+        
+        if(ObjectUtils.isEmpty(one)){
+
+            deviceMapper.insert(deviceEntity);
+        }else {
+            deviceEntity.setId(one.getId());
+            deviceMapper.updateById(deviceEntity);
+        }
+
         return CommonResponse.success(deviceEntity.getId());
     }
 
@@ -141,7 +139,7 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
 //            throw new BusinessException(BusinessErrorEnums.SDK_OPERATION_FAILURE);
             return false;
         }
-        int lUserId = login.getLUserId();
+        long lUserId = login.getLUserId();
 
         DeviceLoginOutDto logout = iSdkCommderService.logout(lUserId);
         boolean result = logout.isResult();
@@ -159,13 +157,13 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
     }
 
     @Override
-    public void deviceInfo(DeviceEntity deviceEntity, int lUserId) {
+    public void deviceInfo(DeviceEntity deviceEntity, long lUserId) {
 
-        DeviceConfigDto deviceConfigDto = iSdkCommderService.deviceConfig(lUserId);
-        if(deviceConfigDto.getErrorCode() != 0){
-            //失败
-            return;
-        }
+//        DeviceConfigDto deviceConfigDto = iSdkCommderService.deviceConfig(lUserId);
+//        if(deviceConfigDto.getErrorCode() != 0){
+//            //失败
+//            return;
+//        }
 //        HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40 = deviceConfigDto.getDevicecfgV40();
 //        String name = new String(devicecfgV40.sDVRName).trim();
 //        String serialNumber = new String(devicecfgV40.sSerialNumber).trim();
@@ -175,7 +173,7 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
 //        deviceEntity.setName(name);
 //        deviceEntity.setSerialNumber(serialNumber);
 //        deviceEntity.setDeviceType(deviceTypeEnum.getCode());
-        deviceMapper.updateById(deviceEntity);
+//        deviceMapper.updateById(deviceEntity);
 
     }
 

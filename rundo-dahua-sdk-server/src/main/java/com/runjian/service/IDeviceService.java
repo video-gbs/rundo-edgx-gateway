@@ -33,7 +33,7 @@ public interface IDeviceService extends IService<DeviceEntity> {
      * @param psw
      * @return
      */
-    CommonResponse<Long> add(String ip, short port, String user, String psw);
+    CommonResponse<Long> add(String ip, int port, String user, String psw);
 
     /**
      * 设备状态检测
@@ -53,7 +53,7 @@ public interface IDeviceService extends IService<DeviceEntity> {
      * @param id 数据库id
      * @param lUserId 登录句柄
      */
-    void deviceInfo(DeviceEntity deviceEntity, int lUserId);
+    void deviceInfo(DeviceEntity deviceEntity, long lUserId);
 
 
     /**

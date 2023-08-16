@@ -45,7 +45,7 @@ public class PtzServiceImpl implements IPtzService {
         CommonResponse<PlayCommonDto> playCommonDtoCommonResponse = playCommonCheck(channelPtzControlReq.getDeviceId(), channelPtzControlReq.getChannelId());
         PlayCommonDto commonData = playCommonDtoCommonResponse.getData();
         int channelNum = commonData.getChannelNum();
-        int lUserId = commonData.getLUserId();
+        long lUserId = commonData.getLUserId();
         //进行数据的获取
         //通用的值
         int oldOperationValue = channelPtzControlReq.getCmdValue();
@@ -200,7 +200,7 @@ public class PtzServiceImpl implements IPtzService {
     public PresetQueryDto ptzPresetControl(String deviceId, String channelId, String msgId) {
         CommonResponse<PlayCommonDto> playCommonDtoCommonResponse = playCommonCheck(deviceId, channelId); PlayCommonDto commonData = playCommonDtoCommonResponse.getData();
         int channelNum = commonData.getChannelNum();
-        int lUserId = commonData.getLUserId();
+        long lUserId = commonData.getLUserId();
 
         return sdkCommderService.presetList(lUserId,channelNum);
     }
@@ -210,7 +210,7 @@ public class PtzServiceImpl implements IPtzService {
         CommonResponse<PlayCommonDto> playCommonDtoCommonResponse = playCommonCheck(dragZoomControlReq.getDeviceId(), dragZoomControlReq.getChannelId());
         PlayCommonDto commonData = playCommonDtoCommonResponse.getData();
         int channelNum = commonData.getChannelNum();
-        int lUserId = commonData.getLUserId();
+        long lUserId = commonData.getLUserId();
 
         return sdkCommderService.Zoom3DControl(lUserId, channelNum, dragZoomControlReq.getLengthx(), dragZoomControlReq.getLengthy(), dragZoomControlReq.getMidpointx(), dragZoomControlReq.getMidpointy(), dragZoomControlReq.getDragType());
     }
@@ -231,7 +231,7 @@ public class PtzServiceImpl implements IPtzService {
         if(login.getErrorCode() != 0){
             throw new BusinessException(BusinessErrorEnums.DEVICE_LOGIN_ERROR);
         }
-        int lUserId = login.getLUserId();
+        long lUserId = login.getLUserId();
         //获取通道信息
 
         long channelDbId = Long.parseLong(channelId);

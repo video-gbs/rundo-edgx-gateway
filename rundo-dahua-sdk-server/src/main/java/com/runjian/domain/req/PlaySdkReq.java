@@ -7,7 +7,7 @@ import lombok.Data;
  */
 @Data
 public class PlaySdkReq {
-    int lUserId;
+    long lUserId;
     int channelNum;
     int dwStreamType;
     int dwLinkMode;

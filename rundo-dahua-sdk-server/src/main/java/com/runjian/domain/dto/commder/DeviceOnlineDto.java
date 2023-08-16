@@ -1,6 +1,7 @@
 package com.runjian.domain.dto.commder;
 
 import com.runjian.entity.DeviceEntity;
+import com.runjian.sdk.sdklib.NetSDKLib;
 import lombok.Data;
 import org.json.JSONObject;
 
@@ -11,7 +12,7 @@ import org.json.JSONObject;
 @Data
 public class DeviceOnlineDto {
 
-    JSONObject deviceinfoV40;
+    NetSDKLib.NET_DEVICEINFO_Ex deviceinfoV40;
 
     DeviceEntity deviceEntity;
 }

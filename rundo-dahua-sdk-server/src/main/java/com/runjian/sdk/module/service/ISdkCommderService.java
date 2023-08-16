@@ -14,14 +14,14 @@ public interface ISdkCommderService {
      * @param psw
      * @return
      */
-    DeviceLoginDto login(String ip, short port, String user, String psw);
+    DeviceLoginDto login(String ip, int port, String user, String psw);
 
     /**
      *
      * @param lUserId
      * @return
      */
-    DeviceLoginOutDto logout(int lUserId);
+    DeviceLoginOutDto logout(long lUserId);
 
 
 
@@ -30,7 +30,7 @@ public interface ISdkCommderService {
      * @param lUserId
      * @return
      */
-    DeviceConfigDto deviceConfig(int lUserId);
+    DeviceConfigDto deviceConfig(long lUserId);
 
 
 
@@ -46,7 +46,7 @@ public interface ISdkCommderService {
      * @param endTime
      * @return
      */
-    RecordInfoDto recordList(int lUserId,int lChannel,String startTime,String endTime);
+    RecordInfoDto recordList(long lUserId,int lChannel,String startTime,String endTime);
 
 
 
@@ -59,7 +59,7 @@ public interface ISdkCommderService {
      * @param dwSpeed
      * @return
      */
-    Integer ptzControl(int lUserId,int lChannel,int dwPTZCommand, int dwStop,int dwSpeed);
+    Integer ptzControl(long lUserId,int lChannel,int dwPTZCommand, int dwStop,int dwSpeed);
 
 
     /**
@@ -68,7 +68,7 @@ public interface ISdkCommderService {
      * @param lChannel
      * @return
      */
-    PresetQueryDto presetList(int lUserId,int lChannel);
+    PresetQueryDto presetList(long lUserId,int lChannel);
 
 
     /**
@@ -79,7 +79,7 @@ public interface ISdkCommderService {
      * @param presetNum
      * @return
      */
-    Integer presetControl(int lUserId,int lChannel,int commond, int presetNum);
+    Integer presetControl(long lUserId,int lChannel,int commond, int presetNum);
 
     /**
      * 3d放大功能
@@ -92,7 +92,7 @@ public interface ISdkCommderService {
      * @param dragType
      * @return
      */
-    Integer Zoom3DControl(int lUserId, int lChannel, int xTop, int yTop,int xBottom,int yBottom,int dragType);
+    Integer Zoom3DControl(long lUserId, int lChannel, int xTop, int yTop,int xBottom,int yBottom,int dragType);
 
     /**
      * 回放控制
@@ -109,5 +109,5 @@ public interface ISdkCommderService {
      * @param dwCommand
      * @return
      */
-    Integer remoteControl(int lUserId, int dwCommand,String loginHandle);
+    Integer remoteControl(long lUserId, int dwCommand,String loginHandle);
 }

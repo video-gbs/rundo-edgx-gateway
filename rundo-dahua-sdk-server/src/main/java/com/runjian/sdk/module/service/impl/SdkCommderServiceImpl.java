@@ -1,15 +1,15 @@
 package com.runjian.sdk.module.service.impl;
 
-import com.runjian.common.constant.LogTemplate;
-import com.runjian.common.constant.MarkConstant;
-import com.runjian.common.utils.DateUtils;
-import com.runjian.common.utils.StringUtils;
-import com.runjian.common.utils.XmlUtil;
 
+
+import com.runjian.common.constant.LogTemplate;
 import com.runjian.domain.dto.commder.*;
+import com.runjian.sdk.module.LoginModule;
 import com.runjian.sdk.module.service.ISdkCommderService;
 import com.runjian.sdk.module.service.SdkInitService;
 import com.runjian.sdk.sdklib.NetSDKLib;
+import com.runjian.sdk.sdklib.NetSDKLib.*;
+import com.runjian.sdk.sdklib.ToolKits;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
 import lombok.extern.slf4j.Slf4j;
@@ -31,52 +31,102 @@ import java.util.concurrent.ConcurrentHashMap;
 @DependsOn("sdkInitService")
 public class SdkCommderServiceImpl implements ISdkCommderService {
 
-    @Autowired
-    SdkInitService sdkInitService;
+//    @Autowired
+//    SdkInitService sdkInitService;
 
-    private static NetSDKLib hCNetSDK;
-    @PostConstruct
-    public void init(){
-        hCNetSDK = sdkInitService.getHCNetSDK();
+    private static NetSDKLib hCNetSDK = LoginModule.netsdk;
+
+
+    private ConcurrentHashMap<String,Long> loginHanderMap = new ConcurrentHashMap();
+//    @PostConstruct
+//    public void init(){
+//        hCNetSDK = sdkInitService.getHCNetSDK();
+//    }
+
+    @Override
+    public DeviceLoginDto login(String ip, int port, String user, String psw) {
+        long lUserId = 0;//用户句柄
+        String loginHandle = ip+":"+port;
+        DeviceLoginDto deviceLoginDto = new DeviceLoginDto();
+        deviceLoginDto.setLUserId(lUserId);
+        if(!ObjectUtils.isEmpty(loginHanderMap)){
+
+            long i = loginHanderMap.get(loginHandle);
+            if(!ObjectUtils.isEmpty(i)){
+                lUserId = i;
+                deviceLoginDto.setLUserId(lUserId);
+                deviceLoginDto.setErrorCode(0);
+            }else {
+                lUserId = 0;
+            }
+        }
+        if(lUserId <= 0){
+
+            //入参
+            NetSDKLib.NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY pstInParam=new NetSDKLib.NET_IN_LOGIN_WITH_HIGHLEVEL_SECURITY();
+            pstInParam.nPort=port;
+            pstInParam.szIP=ip.getBytes();
+            pstInParam.szPassword=psw.getBytes();
+            pstInParam.szUserName=user.getBytes();
+            //出参
+            NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY pstOutParam=new NET_OUT_LOGIN_WITH_HIGHLEVEL_SECURITY();
+
+            pstOutParam.stuDeviceInfo=new NetSDKLib.NET_DEVICEINFO_Ex();
+            //m_hLoginHandle = netsdk.CLIENT_LoginEx2(m_strIp, m_nPort, m_strUser, m_strPassword, 0, null, m_stDeviceInfo, nError);
+            LLong m_hLoginHandle=hCNetSDK.CLIENT_LoginWithHighLevelSecurity(pstInParam, pstOutParam);
+            lUserId = m_hLoginHandle.longValue();
+            if(lUserId == 0) {
+                //失败
+                int errorCode = hCNetSDK.CLIENT_GetLastError();
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE,"sdk登陆失败",pstInParam,errorCode);
+                deviceLoginDto.setErrorCode(errorCode);
+                return deviceLoginDto;
+            }
+
+            deviceLoginDto.setLUserId(lUserId);
+            deviceLoginDto.setErrorCode(0);
+            loginHanderMap.put(loginHandle,lUserId);
+            deviceLoginDto.setDeviceinfoV40(pstOutParam.stuDeviceInfo);
+        }else {
+            return deviceLoginDto;
+        }
+
+
+        return deviceLoginDto;
     }
 
     @Override
-    public DeviceLoginDto login(String ip, short port, String user, String psw) {
+    public DeviceLoginOutDto logout(long lUserId) {
         return null;
     }
 
     @Override
-    public DeviceLoginOutDto logout(int lUserId) {
+    public DeviceConfigDto deviceConfig(long lUserId) {
         return null;
     }
 
     @Override
-    public DeviceConfigDto deviceConfig(int lUserId) {
+    public RecordInfoDto recordList(long lUserId, int lChannel, String startTime, String endTime) {
         return null;
     }
 
     @Override
-    public RecordInfoDto recordList(int lUserId, int lChannel, String startTime, String endTime) {
+    public Integer ptzControl(long lUserId, int lChannel, int dwPTZCommand, int dwStop, int dwSpeed) {
         return null;
     }
 
     @Override
-    public Integer ptzControl(int lUserId, int lChannel, int dwPTZCommand, int dwStop, int dwSpeed) {
+    public PresetQueryDto presetList(long lUserId, int lChannel) {
         return null;
     }
 
     @Override
-    public PresetQueryDto presetList(int lUserId, int lChannel) {
+    public Integer presetControl(long lUserId, int lChannel, int commond, int presetNum) {
         return null;
     }
 
     @Override
-    public Integer presetControl(int lUserId, int lChannel, int commond, int presetNum) {
-        return null;
-    }
-
-    @Override
-    public Integer Zoom3DControl(int lUserId, int lChannel, int xTop, int yTop, int xBottom, int yBottom, int dragType) {
+    public Integer Zoom3DControl(long lUserId, int lChannel, int xTop, int yTop, int xBottom, int yBottom, int dragType) {
         return null;
     }
 
@@ -86,7 +136,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     }
 
     @Override
-    public Integer remoteControl(int lUserId, int dwCommand, String loginHandle) {
+    public Integer remoteControl(long lUserId, int dwCommand, String loginHandle) {
         return null;
     }
 }

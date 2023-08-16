@@ -137,5 +137,6 @@ public class MarkConstant {
 
     /*********************manufacturer厂商****************************/
     public static final String HIK_MANUFACTURER = "hikvision";
+    public static final String DAHUA_MANUFACTURER = "dahua";
 
 }

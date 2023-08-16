@@ -21,7 +21,7 @@ public class DeviceStatusSchedule {
     IDeviceService deviceService;
 
     //每3分钟执行一次
-    @Scheduled(fixedRate=300000)
+//    @Scheduled(fixedRate=300000)
     public void deviceStatusCheck(){
         List<DeviceEntity> deviceEntities = deviceService.deviceList();
         for (DeviceEntity one : deviceEntities){
