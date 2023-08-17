@@ -111,7 +111,7 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
         HCNetSDK.NET_DVR_DEVICEINFO_V40 deviceinfoV40 = login.getDeviceinfoV40();
 
 
-        deviceEntity.setCharset(DeviceUtils.getCharset(deviceinfoV40.byCharEncodeType));
+//        deviceEntity.setCharset(DeviceUtils.getCharset(deviceinfoV40.byCharEncodeType));
         if(ObjectUtils.isEmpty(one)){
 
             deviceMapper.insert(deviceEntity);
