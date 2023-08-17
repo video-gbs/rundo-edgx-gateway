@@ -9,7 +9,7 @@ import lombok.Data;
 public class StreamInfo {
 
     /**
-     * 0：ws-flv,1:http-flv;
+     * 0：ws-flv,1:http-flv;2:wss-flv
      */
     private Integer playProtocalType = 0;
 

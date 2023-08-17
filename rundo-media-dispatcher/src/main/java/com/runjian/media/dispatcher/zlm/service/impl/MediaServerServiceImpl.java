@@ -130,6 +130,9 @@ public class MediaServerServiceImpl implements ImediaServerService {
     @Autowired
     IGatewayDealMsgService gatewayDealMsgService;
 
+    @Value("${media.play-protocal-type:0}")
+    private Integer playProtocalType;
+
     @Override
     public SsrcInfo openRTPServer(MediaServerItem mediaServerItem, String streamId,String ssrc,Boolean ssrcCheck,Integer port) {
         SsrcInfo ssrcInfo = null;
@@ -564,7 +567,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
             streamInfoResult.setWssTs(String.format("wss://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpSslPort(), app,  stream));
             streamInfoResult.setRtcs(String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play", mediaInfo.getStreamIp(), mediaInfo.getHttpSslPort(), app,  stream));
         }
-
+        streamInfoResult.setPlayProtocalType(playProtocalType);
         return streamInfoResult;
     }
 
