@@ -57,7 +57,15 @@ public class ApiTestServer {
     }
 
 
-    @GetMapping(value = "/test/channelSync",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/test/alarm",produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<Integer> alarm(@RequestParam long lUserId, @RequestParam int channelNm){
+
+        return CommonResponse.success(sdkCommderService.intellectAlarm(lUserId,channelNm,0));
+
+    }
+
+
+    @GetMapping(value = "/test/channelSync",produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<CatalogSyncDto> channelSync(@RequestParam Long id){
 
         return deviceChannelService.channelSync(id);

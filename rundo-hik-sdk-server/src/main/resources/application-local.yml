@@ -54,7 +54,7 @@ spring:
 
     # rabbitmq 配置
     rabbitmq:
-        host: 124.71.20.118
+        host: 124.71.16.209
         port: 5672
         username: wvp
         password: wvp12345678
@@ -170,12 +170,12 @@ mq-defualt:
 
 gateway-info:
 #   网关的唯一id
-    serialNum: 28fc51254c0c4809a9f4851f994180ac
+    serialNum: 28fc51254c0c4809a9f4851f99418011
     #a网关过期时间 默认3分钟
     expire: 180
 
 mdeia-tool-uri-list:
-    livestreamPlay: "http://172.20.0.94:10000/index/api/livestreamPlay"
-    backstreamPlay: "http://172.20.0.94:10000/index/api/backstreamPlay"
-    backstreamControl: "http://172.20.0.94:10000/index/api/backstreamControl"
-    streamBye: "http://172.20.0.94:10000/index/api/streamBye"
+    livestreamPlay: "http://172.20.0.121:10000/index/api/livestreamPlay"
+    backstreamPlay: "http://172.20.0.121:10000/index/api/backstreamPlay"
+    backstreamControl: "http://172.20.0.121:10000/index/api/backstreamControl"
+    streamBye: "http://172.20.0.121:10000/index/api/streamBye"

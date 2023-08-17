@@ -1497,6 +1497,13 @@ public interface NetSDKLib extends Library {
             return  String.format("%02d/%02d/%02d %02d:%02d:%02d", dwYear, dwMonth, dwDay, dwHour, dwMinute, dwSecond);
         }
 
+
+        //用于列表中显示
+        public String toStringTime1()
+        {
+            return  String.format("%02d-%02d-%02d %02d:%02d:%02d", dwYear, dwMonth, dwDay, dwHour, dwMinute, dwSecond);
+        }
+
         //存储文件名使用
         public String toStringTitle()
         {

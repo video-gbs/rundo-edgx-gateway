@@ -179,3 +179,7 @@ mdeia-tool-uri-list:
     backstreamPlay: "http://172.20.0.94:10000/index/api/backstreamPlay"
     backstreamControl: "http://172.20.0.94:10000/index/api/backstreamControl"
     streamBye: "http://172.20.0.94:10000/index/api/streamBye"
+
+alarm-push-list:
+    type: 0
+    pushUrl: "http://127.0.0.1:8060/expansion/device/test"

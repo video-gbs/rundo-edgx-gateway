@@ -7,6 +7,7 @@ import com.runjian.common.constant.StreamBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.media.manager.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.media.manager.mq.MqMsgDealService.IMsgProcessorService;
+import com.runjian.media.manager.service.IMediaPlayService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,8 @@ public class StreamCheckStreamMsgServiceImpl implements InitializingBean, IMsgPr
     @Autowired
     IMqMsgDealServer iMqMsgDealServer;
 
+    @Autowired
+    IMediaPlayService mediaPlayService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -31,6 +34,7 @@ public class StreamCheckStreamMsgServiceImpl implements InitializingBean, IMsgPr
         if(!ObjectUtils.isEmpty(dataJson)){
             JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
             StreamCheckListResp streamCheckListResp = JSONObject.toJavaObject(dataMapJson, StreamCheckListResp.class);
+            mediaPlayService.streamListByStreamIds(streamCheckListResp,commonMqDto.getMsgId());
         }
 
 

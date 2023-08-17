@@ -110,4 +110,6 @@ public interface ISdkCommderService {
      * @return
      */
     Integer remoteControl(long lUserId, int dwCommand,String loginHandle);
+
+    Integer intellectAlarm(long lUserId, int channelNm,int dwUser);
 }
