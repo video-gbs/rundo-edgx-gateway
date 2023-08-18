@@ -122,6 +122,16 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     }
 
     @Override
+    public ChannelInfoDto channelSync(long lUserId, int channelNum) {
+
+        LLong lhandle = new LLong(lUserId);
+
+
+//        LLong m_hLoginHandle=hCNetSDK.CLIENT_GetDevConfig(lhandle, hCNetSDK.NET_DEV_CHANNELCFG,channelNum);
+        return null;
+    }
+
+    @Override
     public RecordInfoDto recordList(long lUserId, int lChannel, String startTime, String endTime) {
         return null;
     }

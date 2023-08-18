@@ -33,11 +33,13 @@ public interface ISdkCommderService {
     DeviceConfigDto deviceConfig(long lUserId);
 
 
-
-
-
-
-
+    /**
+     * 通道同步
+     * @param lUserId
+     * @param channelNum
+     * @return
+     */
+    ChannelInfoDto channelSync(long lUserId,int channelNum);
     /**
      * 获取录像信息
      * @param lUserId
