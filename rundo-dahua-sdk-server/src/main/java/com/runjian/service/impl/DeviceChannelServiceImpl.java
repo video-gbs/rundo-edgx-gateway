@@ -108,7 +108,18 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
 
     @Override
     public CommonResponse<CatalogSyncDto> channelSync(Long id) {
+        DeviceEntity deviceEntity = deviceMapper.selectById(id);
+        DeviceLoginDto login = iSdkCommderService.login(deviceEntity.getIp(), deviceEntity.getPort(), deviceEntity.getUsername(), deviceEntity.getPassword());
+        if(login.getErrorCode() != 0){
+            throw new BusinessException(BusinessErrorEnums.DEVICE_LOGIN_ERROR);
+        }
+        Long lUserId = login.getLUserId();
+        int deviceType = deviceEntity.getDeviceType();
+        if(deviceType == 0){
 
+        }else {
+
+        }
 
         return CommonResponse.success(null);
 

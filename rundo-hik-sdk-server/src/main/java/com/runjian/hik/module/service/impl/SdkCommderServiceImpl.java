@@ -280,7 +280,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     }
 
     @Override
-    public ChannelInfoDto getIpcChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40) {
+    public ChannelInfoDto getIpcChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40,String charset) {
         int total = devicecfgV40.byChanNum;
         int channel = devicecfgV40.byStartChan;
         ArrayList<DeviceChannelEntity> deviceChannelList = new ArrayList<>();
@@ -299,9 +299,9 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备配置获取失败", lUserId, hCNetSDK.NET_DVR_GetLastError());
                 continue;
             }
-
+            picInfo.read();
             DeviceChannelEntity deviceChannel = new DeviceChannelEntity();
-            String sChanName = StringUtils.getGbkStringFromByte(picInfo.sChanName);
+            String sChanName = StringUtils.getStringFromByte(picInfo.sChanName,charset);
             deviceChannel.setChannelName(sChanName);
             deviceChannel.setManufacturer(MarkConstant.HIK_MANUFACTURER);
             deviceChannel.setPtzType(0);
@@ -317,10 +317,10 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     }
 
     @Override
-    public ChannelInfoDto getDvrChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40) {
+    public ChannelInfoDto getDvrChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40,String charset) {
         //模拟加ip通道
-        ChannelInfoDto ipcChannelList = getIpcChannelList(lUserId, devicecfgV40);
-        ChannelInfoDto nvrChannelList = getNvrChannelList(lUserId, devicecfgV40);
+        ChannelInfoDto ipcChannelList = getIpcChannelList(lUserId, devicecfgV40,charset);
+        ChannelInfoDto nvrChannelList = getNvrChannelList(lUserId, devicecfgV40,charset);
 
         ArrayList<DeviceChannelEntity> deviceChannelEntities = new ArrayList<>();
         deviceChannelEntities.addAll(ipcChannelList.getChannelList());
@@ -333,7 +333,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     }
 
     @Override
-    public ChannelInfoDto getNvrChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40) {
+    public ChannelInfoDto getNvrChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40,String charset) {
         //仅处理ip通道
         IntByReference ibrBytesReturned = new IntByReference(0);//获取IP接入配置参数
         boolean bRet;
@@ -404,7 +404,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                 }
                 DeviceChannelEntity deviceChannel = new DeviceChannelEntity();
 
-                String sChanName = StringUtils.getGbkStringFromByte(picInfo.sChanName);
+                String sChanName = StringUtils.getStringFromByte(picInfo.sChanName,charset);
                 String name = sChanName;
                 deviceChannel.setChannelName(name);
                 deviceChannel.setManufacturer(MarkConstant.HIK_MANUFACTURER);

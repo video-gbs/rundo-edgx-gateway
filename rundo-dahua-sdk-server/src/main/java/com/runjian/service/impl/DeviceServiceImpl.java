@@ -112,7 +112,15 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
         NetSDKLib.NET_DEVICEINFO_Ex deviceinfoV40 = login.getDeviceinfoV40();
         String serialNumber = new String(deviceinfoV40.sSerialNumber).trim();
         deviceEntity.setSerialNumber(serialNumber);
-        deviceEntity.setDeviceType(0);
+
+        int byDVRType = deviceinfoV40.byDVRType;
+        int deviceType = 0;
+        if(byDVRType == 20){
+            deviceType = 0;
+        }else if(byDVRType == 31) {
+            deviceType = 1;
+        }
+        deviceEntity.setDeviceType(deviceType);
         
         if(ObjectUtils.isEmpty(one)){
 

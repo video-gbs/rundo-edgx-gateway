@@ -134,17 +134,18 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
         short wDevClass = devicecfgV40.wDevClass;
         DeviceTypeEnum deviceTypeEnum = DeviceUtils.checkDeviceType(wDevClass);
         ChannelInfoDto channelInfoDto = new ChannelInfoDto();
+        String charset = deviceEntity.getCharset();
         switch (deviceTypeEnum){
             case HIKVISION_DVR:
 
-                channelInfoDto = iSdkCommderService.getDvrChannelList(lUserId, devicecfgV40);
+                channelInfoDto = iSdkCommderService.getDvrChannelList(lUserId, devicecfgV40,charset);
                 break;
             case HIKVISION_NVR:
-                channelInfoDto = iSdkCommderService.getNvrChannelList(lUserId, devicecfgV40);
+                channelInfoDto = iSdkCommderService.getNvrChannelList(lUserId, devicecfgV40,charset);
                 break;
 
             case HIKVISION_IPC:
-                channelInfoDto = iSdkCommderService.getIpcChannelList(lUserId, devicecfgV40);
+                channelInfoDto = iSdkCommderService.getIpcChannelList(lUserId, devicecfgV40,charset);
                 break;
 
             default:

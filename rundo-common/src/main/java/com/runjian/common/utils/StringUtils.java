@@ -51,6 +51,14 @@ public class StringUtils {
         }
     }
 
+    public static String getStringFromByte(byte[] strByte,String charset) {
+
+        try {
+            return new String(strByte, charset).trim();
+        } catch (UnsupportedEncodingException e) {
+            throw new InternalError();
+        }
+    }
 
     public static String getUtf8StringFromByte(byte[] strByte) {
 
