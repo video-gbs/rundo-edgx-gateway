@@ -228,11 +228,11 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
         deviceEntity.setDeleted(1);
         deviceMapper.updateById(deviceEntity);
 
-        DeviceChannelEntity deviceChannel = new DeviceChannelEntity();
-        deviceChannel.setDeleted(1);
-        LambdaQueryWrapper<DeviceChannelEntity> deviceChannelEntityLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        deviceChannelEntityLambdaQueryWrapper.eq(DeviceChannelEntity::getEncodeId,encodeId);
-        deviceChannelMapper.update(deviceChannel,deviceChannelEntityLambdaQueryWrapper);
+//        DeviceChannelEntity deviceChannel = new DeviceChannelEntity();
+//        deviceChannel.setDeleted(1);
+//        LambdaQueryWrapper<DeviceChannelEntity> deviceChannelEntityLambdaQueryWrapper = new LambdaQueryWrapper<>();
+//        deviceChannelEntityLambdaQueryWrapper.eq(DeviceChannelEntity::getEncodeId,encodeId);
+//        deviceChannelMapper.update(deviceChannel,deviceChannelEntityLambdaQueryWrapper);
     }
 
 

@@ -228,7 +228,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 return;
             }
             //软删除通道
-            deviceChannelMapper.softDeleteByDeviceIdAndChannelId(deviceId,channelId);
+//            deviceChannelMapper.softDeleteByDeviceIdAndChannelId(deviceId,channelId);
 
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DELETE_SOFT,BusinessErrorEnums.SUCCESS,true);
 

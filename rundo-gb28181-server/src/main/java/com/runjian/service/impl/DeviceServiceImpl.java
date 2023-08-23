@@ -298,7 +298,7 @@ public class DeviceServiceImpl implements IDeviceService {
             }
             //可以删除
             deviceMapper.softRemove(deviceId);
-            deviceChannelMapper.softDeleteByDeviceId(deviceId);
+//            deviceChannelMapper.softDeleteByDeviceId(deviceId);
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_SOFT,BusinessErrorEnums.SUCCESS,true);
 
 
