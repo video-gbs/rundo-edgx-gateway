@@ -415,7 +415,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                 deviceChannel.setIp(new String(m_strIpparaCfgi.struIPDevInfo[ipcInfoIndex].struIP.sIpV4).trim());
                 deviceChannel.setPort(m_strIpparaCfgi.struIPDevInfo[ipcInfoIndex].wDVRPort);
                 deviceChannel.setPassword(new String(m_strIpparaCfgi.struIPDevInfo[ipcInfoIndex].sPassword).trim());
-                deviceChannel.setOnline(m_strIpparaCfgi.struStreamMode[ipcInfoIndex].uGetStream.struChanInfo.byEnable);
+                deviceChannel.setOnline(m_strIpparaCfgi.struStreamMode[j].uGetStream.struChanInfo.byEnable);
                 deviceChannelList.add(deviceChannel);
             }
 
@@ -684,7 +684,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         struXMLInput.lpInBuffer = ptrInBuffer.getPointer();
         struXMLInput.dwInBufferSize = inputXml.length();
         struXMLInput.write();
-        HCNetSDK.BYTE_ARRAY stringXMLOut = new HCNetSDK.BYTE_ARRAY(8 * 1024);
+        HCNetSDK.BYTE_ARRAY stringXMLOut = new HCNetSDK.BYTE_ARRAY(255 * 1024);
         stringXMLOut.read();
         HCNetSDK.BYTE_ARRAY struXMLStatus = new HCNetSDK.BYTE_ARRAY(1024);
         struXMLStatus.read();

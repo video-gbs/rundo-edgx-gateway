@@ -70,6 +70,11 @@ public interface IDeviceService extends IService<DeviceEntity> {
      */
     void deviceDelete(long encodeId);
 
+    /**
+     * 删除删除恢复
+     * @param encodeId
+     */
+    void deviceDeleteRecover(long encodeId);
 
     /**
      * 设备软删除

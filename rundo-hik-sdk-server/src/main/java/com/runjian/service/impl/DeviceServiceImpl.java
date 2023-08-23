@@ -205,6 +205,21 @@ public class DeviceServiceImpl extends ServiceImpl<DeviceMapper, DeviceEntity> i
     }
 
     @Override
+    public void deviceDeleteRecover(long encodeId) {
+        //可以删除
+        DeviceEntity deviceEntity = new DeviceEntity();
+        deviceEntity.setId(encodeId);
+        deviceEntity.setDeleted(0);
+        deviceMapper.updateById(deviceEntity);
+
+        DeviceChannelEntity deviceChannel = new DeviceChannelEntity();
+        deviceChannel.setDeleted(0);
+        LambdaQueryWrapper<DeviceChannelEntity> deviceChannelEntityLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        deviceChannelEntityLambdaQueryWrapper.eq(DeviceChannelEntity::getEncodeId,encodeId);
+        deviceChannelMapper.update(deviceChannel,deviceChannelEntityLambdaQueryWrapper);
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void deviceSoftDelete(long encodeId) {
         //可以删除

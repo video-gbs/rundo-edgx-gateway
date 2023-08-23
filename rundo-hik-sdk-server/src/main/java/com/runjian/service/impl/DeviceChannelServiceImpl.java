@@ -185,7 +185,9 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
                     for (DeviceChannelEntity channelDb: deviceChannelDbList){
                         //需要删除的
                         if(!channelNumList.contains(channelDb.getChannelNum())){
-                            deviceChannelMapper.deleteById(channelDb.getId());
+                            //离线
+                            deviceChannel.setOnline(0);
+                            deviceChannelMapper.updateById(deviceChannel);
                             continue;
 
                         }

@@ -14,13 +14,13 @@ public enum  DeviceTypeEnum {
 //    CVR	3
 //    DVS	4
 //    IPC	5
-
+//设备类型 1-设备 2-NVR 3-DVR 4-CVR
     //云镜控制
-    HIKVISION_DVR(1,"DVR"),
+    HIKVISION_DVR(3,"DVR"),
     HIKVISION_NVR(2,"NVR"),
     HIKVISION_DVS(4,"DVS"),
-    HIKVISION_IPC(5,"IPC"),
-    HIKVISION_OTHER(3,"OTHER"),
+    HIKVISION_IPC(1,"IPC"),
+    HIKVISION_OTHER(5,"OTHER"),
     HIKVISION_UNKNOWN(0,"UNKNOWN"),
 
             ;
