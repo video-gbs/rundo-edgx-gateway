@@ -69,7 +69,7 @@ public class DeviceEntity {
 
 
 
-	private int deviceType;
+	private Integer deviceType;
 
 
 	private int deleted;
