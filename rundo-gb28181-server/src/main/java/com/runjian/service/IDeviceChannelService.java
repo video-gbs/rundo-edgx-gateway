@@ -52,4 +52,8 @@ public interface IDeviceChannelService {
      * @param msgId
      */
     void channelSoftDelete(String deviceId, String channelId, String msgId);
+    /*
+    删除恢复
+     */
+    void channelDeleteRecover(String deviceId, String channelId, String msgId);
 }

@@ -238,4 +238,21 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
         }
     }
+
+    @Override
+    public void channelDeleteRecover(String deviceId, String channelId, String msgId) {
+        String businessSceneKey = GatewayBusinessMsgType.CHANNEL_DELETE_RECOVER.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceId+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
+        try {
+            RLock lock = redissonClient.getLock(businessSceneKey);
+            //阻塞型,默认是30s无返回参数
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_DELETE_RECOVER,msgId);
+
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DELETE_RECOVER,BusinessErrorEnums.SUCCESS,true);
+
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "软删除通道恢复", e);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DELETE_RECOVER,BusinessErrorEnums.UNKNOWN_ERROR,null);
+
+        }
+    }
 }

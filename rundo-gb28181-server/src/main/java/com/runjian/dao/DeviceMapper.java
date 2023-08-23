@@ -45,6 +45,9 @@ public interface DeviceMapper {
     @Update("UPDATE "+DEVICE_TABLE_NAME+" set deleted = 1 where device_id= #{id}")
     int softRemove(String deviceId);
 
+
+    @Update("UPDATE "+DEVICE_TABLE_NAME+" set deleted = 0 where device_id= #{id}")
+    int softRecover(String deviceId);
     /**
      * 根据设备id获取设备信息
      * @return

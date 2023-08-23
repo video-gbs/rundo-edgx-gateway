@@ -70,16 +70,23 @@ public interface DeviceChannelMapper {
      * @param deviceId
      * @return
      */
-    @Delete("update "+DEVICE_CHANNEL_TABLE_NAME+" set deleted = 0 WHERE device_id=#{deviceId}")
+    @Delete("update "+DEVICE_CHANNEL_TABLE_NAME+" set deleted = 1 WHERE device_id=#{deviceId}")
     int softDeleteByDeviceId(String deviceId);
 
+    /**
+     * 删除设备通道恢复
+     * @param deviceId
+     * @return
+     */
+    @Delete("update "+DEVICE_CHANNEL_TABLE_NAME+" set deleted = 0 WHERE device_id=#{deviceId}")
+    int softDeleteRecoverByDeviceId(String deviceId);
     /**
      * 删除通道
      * @param deviceId
      * @param channelId
      * @return
      */
-    @Delete("update "+DEVICE_CHANNEL_TABLE_NAME+" set deleted = 0 WHERE device_id=#{deviceId} and channel_id = #{channelId}")
+    @Delete("update "+DEVICE_CHANNEL_TABLE_NAME+" set deleted = 1 WHERE device_id=#{deviceId} and channel_id = #{channelId}")
     int softDeleteByDeviceIdAndChannelId(String deviceId,String channelId);
 
 

@@ -37,16 +37,9 @@ public class DeviceDeleteRecoverMsgServiceImpl implements InitializingBean, IMsg
         JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
         //设备信息同步  获取设备信息
         String deviceId = dataJson.getString("deviceId");
-        long encodeId = Long.parseLong(deviceId);
-        CommonResponse<Object> response = CommonResponse.success(true);
-        try {
-            deviceService.deviceDeleteRecover(encodeId);
+        deviceService.deviceDeleteRecover(deviceId, commonMqDto.getMsgId());
 
-        }catch (Exception e){
-            response = CommonResponse.failure(BusinessErrorEnums.UNKNOWN_ERROR,e.getMessage());
-        }
-        //mq消息发送
-        gatewayBusinessAsyncSender.sendforAllScene(response, commonMqDto.getMsgId(), GatewayBusinessMsgType.DEVICE_DELETE_RECOVER);
+
     }
 
 
