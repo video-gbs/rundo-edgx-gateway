@@ -173,6 +173,7 @@ public class PlayServiceImpl implements IplayService {
         playListLogEntity.setPlayErrorCode(errorCode);
         playListLogEntity.setPlayHandle(playHandle);
         playListLogEntity.setPlayStatus(playStatus);
+        playListLogEntity.setChannelNum(data.getChannelNum());
         playListLogMapper.insert(playListLogEntity);
         return errorCode==0?CommonResponse.success(errorCode):CommonResponse.failure(BusinessErrorEnums.SDK_OPERATION_FAILURE,BusinessErrorEnums.SDK_OPERATION_FAILURE.getErrMsg()+errorCode);
     }
