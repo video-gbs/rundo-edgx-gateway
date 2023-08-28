@@ -175,7 +175,7 @@ gateway-info:
     expire: 180
 
 mdeia-tool-uri-list:
-    livestreamPlay: "http://172.20.0.121:10000/index/api/livestreamPlay"
-    backstreamPlay: "http://172.20.0.121:10000/index/api/backstreamPlay"
-    backstreamControl: "http://172.20.0.121:10000/index/api/backstreamControl"
-    streamBye: "http://172.20.0.121:10000/index/api/streamBye"
+    livestreamPlay: "http://172.20.0.161:10000/index/api/livestreamPlay"
+    backstreamPlay: "http://172.20.0.161:10000/index/api/backstreamPlay"
+    backstreamControl: "http://172.20.0.161:10000/index/api/backstreamControl"
+    streamBye: "http://172.20.0.161:10000/index/api/streamBye"

@@ -115,13 +115,82 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
         }
         Long lUserId = login.getLUserId();
         int deviceType = deviceEntity.getDeviceType();
+        ChannelInfoDto channelInfoDto = new ChannelInfoDto();
         if(deviceType == 0){
-
+            //ipc的通道获取
         }else {
-
+            //nvr的通道获取
+            channelInfoDto = iSdkCommderService.getNvrChannelList(lUserId, deviceEntity.getCharset());
         }
 
-        return CommonResponse.success(null);
+        List<DeviceChannelEntity> channelList = channelInfoDto.getChannelList();
+        if(channelInfoDto.getErrorCode() == 0){
+            LambdaQueryWrapper<DeviceChannelEntity> updateLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            updateLambdaQueryWrapper.eq(DeviceChannelEntity::getEncodeId,id);
+            List<DeviceChannelEntity> deviceChannelDbList = deviceChannelMapper.selectList(updateLambdaQueryWrapper);
+            String ip = deviceEntity.getIp();
+            int port = deviceEntity.getPort();
+            String password = deviceEntity.getPassword();
+            if(ObjectUtils.isEmpty(deviceChannelDbList)){
+                for(DeviceChannelEntity deviceChannel: channelList){
+                    deviceChannel.setIp(ip);
+                    deviceChannel.setPort(port);
+                    deviceChannel.setPassword(password);
+                    deviceChannel.setEncodeId(id);
+                    deviceChannelMapper.insert(deviceChannel);
+                }
+            }else {
+                List<Integer> channelNumList = channelList.stream().map(DeviceChannelEntity::getChannelNum).collect(Collectors.toList());
+                List<Integer> channelDbNumList = deviceChannelDbList.stream().map(DeviceChannelEntity::getChannelNum).collect(Collectors.toList());
+
+                for(DeviceChannelEntity deviceChannel: channelList){
+                    deviceChannel.setIp(ip);
+                    deviceChannel.setPort(port);
+                    deviceChannel.setPassword(password);
+                    deviceChannel.setEncodeId(id);
+
+
+                    for (DeviceChannelEntity channelDb: deviceChannelDbList){
+                        //需要删除的
+                        if(!channelNumList.contains(channelDb.getChannelNum())){
+                            //离线
+                            deviceChannel.setOnline(0);
+                            deviceChannelMapper.updateById(deviceChannel);
+                            continue;
+
+                        }
+                        //需要编辑的
+                        if(channelDb.getChannelNum().equals(deviceChannel.getChannelNum())){
+                            //编辑
+                            deviceChannel.setId(channelDb.getId());
+                            deviceChannelMapper.updateById(deviceChannel);
+                            continue;
+                        }
+
+                        //新增
+                        if(!channelDbNumList.contains(deviceChannel.getChannelNum())){
+                            deviceChannelMapper.insert(deviceChannel);
+
+                        }
+
+                    }
+
+                }
+            }
+
+
+
+
+        }else {
+            return CommonResponse.failure(BusinessErrorEnums.SDK_OPERATION_FAILURE,BusinessErrorEnums.SDK_OPERATION_FAILURE.getErrMsg()+channelInfoDto.getErrorCode());
+        }
+
+        CatalogSyncDto catalogSyncDto = new CatalogSyncDto();
+        catalogSyncDto.setChannelDetailList(channelInfoDto.getChannelList());
+        catalogSyncDto.setTotal(channelInfoDto.getChannelList().size());
+        catalogSyncDto.setNum(channelInfoDto.getChannelList().size());
+
+        return CommonResponse.success(catalogSyncDto);
 
     }
 

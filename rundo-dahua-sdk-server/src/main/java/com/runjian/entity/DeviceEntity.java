@@ -68,7 +68,9 @@ public class DeviceEntity {
 	private int online;
 
 
-
+	/**
+	 * 0是ipc,1为nvr
+	 */
 	private int deviceType;
 
 

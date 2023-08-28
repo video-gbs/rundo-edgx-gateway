@@ -40,6 +40,8 @@ public interface ISdkCommderService {
      * @return
      */
     ChannelInfoDto channelSync(long lUserId,int channelNum);
+
+    ChannelInfoDto getNvrChannelList(long lUserId, String charset);
     /**
      * 获取录像信息
      * @param lUserId

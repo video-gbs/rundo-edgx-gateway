@@ -1,5 +1,7 @@
 package com.runjian.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -16,7 +18,7 @@ public class DeviceChannelEntity {
 	/**
 	 * 数据库自增ID
 	 */
-
+	@TableId(type = IdType.AUTO)
 	private long id;
 
 	/**

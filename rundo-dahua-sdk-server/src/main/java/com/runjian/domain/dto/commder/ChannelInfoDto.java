@@ -13,5 +13,7 @@ public class ChannelInfoDto {
 
     private int errorCode = 0;
 
+    private String errorMsg;
+
     private List<DeviceChannelEntity> channelList;
 }

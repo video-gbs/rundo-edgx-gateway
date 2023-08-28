@@ -18,7 +18,7 @@ public class DeviceChannelEntity {
 	/**
 	 * 数据库自增ID
 	 */
-
+	@TableId(value = "id",type = IdType.AUTO)
 	private long id;
 
 	/**
