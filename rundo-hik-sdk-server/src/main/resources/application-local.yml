@@ -14,7 +14,12 @@ spring:
         password: rundoredis
         # [可选] 超时时间
         timeout: 10000
-
+        lettuce:                # lettuce连接池
+            pool:
+                max-active: 8       # 连接池最大连接数（使用负值表示没有限制）
+                max-wait: -1        # 连接池最大阻塞等待时间（使用负值表示没有限制）
+                max-idle: 8         # 连接池中的最大空闲连接
+                min-idle: 0         #  连接池中的最小空闲连接
 
         # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
         # mysql数据源
@@ -49,7 +54,7 @@ spring:
 
     # rabbitmq 配置
     rabbitmq:
-        host: 124.71.20.118
+        host: 124.71.16.209
         port: 5672
         username: wvp
         password: wvp12345678
@@ -165,12 +170,12 @@ mq-defualt:
 
 gateway-info:
 #   网关的唯一id
-    serialNum: 28fc51254c0c4809a9f4851f994180ac
+    serialNum: 28fc51254c0c4809a9f4851f99418011
     #a网关过期时间 默认3分钟
     expire: 180
 
 mdeia-tool-uri-list:
-    server-ip: "192.168.0.132"
-    http-port: 18083
-    open-sdk-server: "http://192.168.0.132:18083/index/api/openSDKServer?ip={ip}&port={port}&tcpMode={tcpMode}&streamId={streamId}"
-    close-sdk-server: "http://192.168.0.132:18083/index/api/closeSDKServer?streamId={streamId}"
+    livestreamPlay: "http://172.20.0.161:10000/index/api/livestreamPlay"
+    backstreamPlay: "http://172.20.0.161:10000/index/api/backstreamPlay"
+    backstreamControl: "http://172.20.0.161:10000/index/api/backstreamControl"
+    streamBye: "http://172.20.0.161:10000/index/api/streamBye"

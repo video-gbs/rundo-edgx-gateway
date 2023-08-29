@@ -68,7 +68,7 @@ public class GatewayRunner implements CommandLineRunner {
         iplayService.restartStopAll();
 
         //设备全部重新注册
-        deviceService.startOnline();
+//        deviceService.startOnline();
 
         //进行全量的设备数据数据同步，避免出现设备数据差异
         CommonMqDto commonMqDto = new CommonMqDto();

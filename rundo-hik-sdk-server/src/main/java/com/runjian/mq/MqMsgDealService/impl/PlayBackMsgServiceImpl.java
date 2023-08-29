@@ -54,7 +54,7 @@ public class PlayBackMsgServiceImpl implements InitializingBean, IMsgProcessorSe
         String channelId = dataJson.getString("channelId");
 
         CommonResponse<Integer> play = CommonResponse.failure(BusinessErrorEnums.UNKNOWN_ERROR);
-        PlayBackReq playBackReq = JSONObject.toJavaObject(dataMapJson, PlayBackReq.class);
+        PlayBackReq playBackReq = JSONObject.toJavaObject(dataJson, PlayBackReq.class);
         playBackReq.setDeviceId(deviceId);
         playBackReq.setChannelId(channelId);
         playBackReq.setMsgId(commonMqDto.getMsgId());
@@ -71,7 +71,7 @@ public class PlayBackMsgServiceImpl implements InitializingBean, IMsgProcessorSe
         GatewayBusinessSceneResp businessSceneResp = new GatewayBusinessSceneResp();
         businessSceneResp.setCode(play.getCode());
         businessSceneResp.setMsg(play.getMsg());
-        businessSceneResp.setGatewayMsgType(GatewayBusinessMsgType.PLAY);
+        businessSceneResp.setGatewayMsgType(GatewayBusinessMsgType.PLAY_BACK);
 
         GatewayStreamNotify gatewayStreamNotify = new GatewayStreamNotify();
         gatewayStreamNotify.setStreamId(streamId);

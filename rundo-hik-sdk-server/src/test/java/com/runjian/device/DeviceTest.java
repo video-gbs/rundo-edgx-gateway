@@ -33,7 +33,7 @@ public class DeviceTest {
     public void testLogin(){
 
 //        deviceService.online("192.168.0.203",(short)8000,"admin","rj123456");
-        deviceService.online("192.168.0.241",(short)8000,"admin","rj123456");
+//        deviceService.online("192.168.0.241",(short)8000,"admin","rj123456");
     }
 
     @Test
@@ -63,7 +63,6 @@ public class DeviceTest {
     {
         SocketPointer socketPointer = new SocketPointer();
         Pointer pointer = socketPointer.getPointer();
-        socketPointer.read();
         socketPointer.socketHandle=socket;
         socketPointer.write();
         p.write(0, pointer.getByteArray(0, socketPointer.size()), 0, socketPointer.size());

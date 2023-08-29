@@ -479,13 +479,13 @@ public class RestTemplateUtil {
 
             ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, httpEntity, String.class);
             long endTime = System.currentTimeMillis();
-            log.info("post-string, 请求地址={}, 耗时={} ms, 响应信息={}", url,
+            log.info("get-string, 请求地址={}, 耗时={} ms, 响应信息={}", url,
                     (endTime - startTime), responseEntity.getBody());
             if (responseEntity.getStatusCodeValue() == HttpStatus.OK.value()) {
                 return responseEntity.getBody();
             }
         } catch (Exception e) {
-            log.error("post-string error, 请求地址={}, 耗时={} ms, 失败信息={}", url,
+            log.error("get-string error, 请求地址={}, 耗时={} ms, 失败信息={}", url,
                     (System.currentTimeMillis() - startTime), e.getMessage());
         }
         return null;

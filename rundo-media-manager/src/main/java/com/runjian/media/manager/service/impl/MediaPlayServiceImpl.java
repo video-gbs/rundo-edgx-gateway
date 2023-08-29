@@ -223,53 +223,31 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         String app = VideoManagerConstants.GB28181_SELF_APP;
         String ssrc = "";
         CreateServerPortRsp createServerPortRsp = null;
-        switch (gatewayProtocalEnum){
-            case GB28181:
-                if(playReq.getSsrcCheck()){
-                    SsrcConfig ssrcConfig = redisCatchStorageService.getSsrcConfig();
-                    if(isPlay){
-                        ssrc = ssrcConfig.getPlaySsrc();
-                    }else {
-                        ssrc = ssrcConfig.getPlayBackSsrc();
-                    }
-                    //更新ssrc的缓存
-                    redisCatchStorageService.setSsrcConfig(ssrcConfig);
-                }
-
-                Gb28181ServerReq gb28181ServerReq = new Gb28181ServerReq();
-                gb28181ServerReq.setPayload(96);
-                gb28181ServerReq.setApp(VideoManagerConstants.GB28181_SELF_APP);
-                gb28181ServerReq.setStreamId(streamId);
-                gb28181ServerReq.setEnableTcp(playReq.getStreamMode());
-                gb28181ServerReq.setEnableMp4(0);
-                gb28181ServerReq.setPort(0);
-
-                createServerPortRsp = mediaRestfulApiService.openRtpServer(gb28181ServerReq, oneMedia);
-                ssrcInfo = new SsrcInfo(createServerPortRsp.getPort(),ssrc,streamId,oneMedia.getId());
-                ssrcInfo.setSdpIp(oneMedia.getSdpIp());
-                ssrcInfo.setIp(oneMedia.getIp());
-                break;
-
-            case HIK_SDK:
-                //流注册成功 回调
-                app = VideoManagerConstants.HKSDK_APP;
-                CreateServerReq createServerReq = new CreateServerReq();
-                createServerReq.setApp(VideoManagerConstants.HKSDK_APP);
-                createServerReq.setStreamId(streamId);
-                createServerReq.setEnableTcp(playReq.getStreamMode());
-                createServerReq.setEnableMp4(0);
-                createServerReq.setPort(0);
-                createServerPortRsp = mediaRestfulApiService.openSDKServer(createServerReq, oneMedia);
-                ssrcInfo = new SsrcInfo(createServerPortRsp.getPort(),ssrc,streamId,oneMedia.getId());
-                ssrcInfo.setSdpIp(oneMedia.getSdpIp());
-                ssrcInfo.setIp(oneMedia.getIp());
-                break;
-
-            default:
-                //默认就是国标
-                throw new BusinessException(BusinessErrorEnums.MEDIA_PROTOCAL_ERROR);
-
+        if(playReq.getSsrcCheck()){
+            SsrcConfig ssrcConfig = redisCatchStorageService.getSsrcConfig();
+            if(isPlay){
+                ssrc = ssrcConfig.getPlaySsrc();
+            }else {
+                ssrc = ssrcConfig.getPlayBackSsrc();
+            }
+            //更新ssrc的缓存
+            redisCatchStorageService.setSsrcConfig(ssrcConfig);
         }
+
+        Gb28181ServerReq gb28181ServerReq = new Gb28181ServerReq();
+        gb28181ServerReq.setPayload(96);
+        gb28181ServerReq.setApp(VideoManagerConstants.GB28181_SELF_APP);
+        gb28181ServerReq.setStreamId(streamId);
+        gb28181ServerReq.setEnableTcp(playReq.getStreamMode());
+        gb28181ServerReq.setEnableMp4(0);
+        gb28181ServerReq.setPort(0);
+
+        createServerPortRsp = mediaRestfulApiService.openRtpServer(gb28181ServerReq, oneMedia);
+        ssrcInfo = new SsrcInfo(createServerPortRsp.getPort(),ssrc,streamId,oneMedia.getId());
+        ssrcInfo.setSdpIp(oneMedia.getSdpIp());
+        ssrcInfo.setIp(oneMedia.getIp());
+
+
         hookSubscribe = HookSubscribeFactory.onStreamArrive(app, playReq.getStreamId(),oneMedia.getId());
         MediaServerEntity finalOneMedia = oneMedia;
         subscribe.addSubscribe(hookSubscribe, (MediaServerEntity mediaServerItemInUse, JSONObject json) -> {
@@ -277,7 +255,8 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "推流注册成功通知", "收到推流订阅消息", json.toJSONString());
             //拼接拉流的地址
             String pushStreamId = json.getString("streamId");
-            StreamInfo streamInfoByAppAndStream = mediaServerService.getStreamInfoByAppAndStream(finalOneMedia, VideoManagerConstants.GB28181_SELF_APP, pushStreamId);
+            String pushApp = json.getString("app");
+            StreamInfo streamInfoByAppAndStream = mediaServerService.getStreamInfoByAppAndStream(finalOneMedia, pushApp, pushStreamId);
             //发送调度服务的业务队列 通知流实际成功
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,streamInfoByAppAndStream);
             //流状态修改为成功
@@ -319,7 +298,9 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             businessKey = StreamBusinessMsgType.STREAM_RECORD_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         }
         BusinessErrorEnums oneBusinessNum = BusinessErrorEnums.getOneBusinessNum(businessSceneResp.getCode());
-        if(!oneBusinessNum.equals(BusinessErrorEnums.COMMDER_SEND_SUCESS)){
+        if(oneBusinessNum.equals(BusinessErrorEnums.COMMDER_SEND_SUCESS) || oneBusinessNum.equals(BusinessErrorEnums.SUCCESS)){
+            //网关正常通知
+        }else {
             redisCatchStorageService.editBusinessSceneKey(businessKey,oneBusinessNum,null);
         }
 
@@ -351,6 +332,9 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 //订阅流主销处理
                 //判断接入的类型
                 String app = oneBystreamId.getApp();
+
+                //网关流注销通知
+                gatewayDealMsgService.sendGatewayStreamBye(streamId,msgId,oneBystreamId);
                 //流注销成功 回调
                 if(oneBystreamId.getStatus() == 0){
                     //清除点播请求
@@ -359,11 +343,6 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                         redisCatchStorageService.ssrcRelease(oneBystreamId.getSsrc());
                         //流准备中 未成功点流
                         mediaRestfulApiService.closeRtpServer(oneBystreamId.getKey(),oneMedia);
-                    }else if(VideoManagerConstants.HKSDK_APP.equals(app)){
-                        //流准备中 未成功点流
-                        mediaRestfulApiService.closeSDKServer(oneBystreamId.getKey(),oneMedia);
-                    }else {
-                        //未知错误
                     }
                     onlineStreamsService.remove(streamId);
 
@@ -379,11 +358,6 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                             redisCatchStorageService.ssrcRelease(oneBystreamId.getSsrc());
                             //流准备中 未成功点流
                             mediaRestfulApiService.closeRtpServer(oneBystreamId.getKey(),oneMedia);
-                        }else if(VideoManagerConstants.HKSDK_APP.equals(app)){
-                            //流准备中 未成功点流
-                            mediaRestfulApiService.closeSDKServer(oneBystreamId.getKey(),oneMedia);
-                        }else {
-                            //未知错误
                         }
                         //清除点播请求
                         onlineStreamsService.remove(streamId);
@@ -392,8 +366,6 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                     });
                 }
 
-                //网关流注销通知
-                gatewayDealMsgService.sendGatewayStreamBye(streamId,msgId,oneBystreamId);
             }
         }
 
@@ -596,7 +568,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
     @Override
     public Boolean onStreamNoneReader(String app,String streamId) {
 
-        if (VideoManagerConstants.GB28181_SELF_APP.equals(app) || VideoManagerConstants.HKSDK_APP.equals(app)){
+        if (VideoManagerConstants.GB28181_SELF_APP.equals(app)){
             // 国标流， 点播/录像回放/录像下载
             streamCloseSend(streamId,true);
             return true;

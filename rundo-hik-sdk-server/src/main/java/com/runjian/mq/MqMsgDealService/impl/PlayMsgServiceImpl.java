@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
 import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.config.response.GatewayBusinessSceneResp;
@@ -57,8 +58,13 @@ public class PlayMsgServiceImpl implements InitializingBean, IMsgProcessorServic
         try{
             play = iplayService.play(playReq);
 
-        }catch (Exception e){
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", e.getMessage());
+        }catch (BusinessException be){
+            BusinessErrorEnums businessErrorEnums = be.getBusinessErrorEnums();
+            play.setMsg(businessErrorEnums.getErrMsg()+be.getErrDetail());
+            play.setCode(businessErrorEnums.getErrCode());
+        } catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", e);
+
         }
 
         //restfulapi请求 分离请求中的streamId

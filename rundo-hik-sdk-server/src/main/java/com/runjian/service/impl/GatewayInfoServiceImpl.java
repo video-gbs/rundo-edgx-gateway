@@ -95,8 +95,8 @@ public class GatewayInfoServiceImpl implements IGatewayInfoService {
         if (!list.contains(queueName)) {
             container.addQueueNames(queueName);
             container.setMessageListener(gatewayBusinessMqListener);
-            container.setConcurrentConsumers(1);
-            container.setMaxConcurrentConsumers(1);
+            container.setConcurrentConsumers(8);
+            container.setMaxConcurrentConsumers(32);
             container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         }else {
             for (String queueString : list) {

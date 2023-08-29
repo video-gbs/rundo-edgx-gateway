@@ -130,6 +130,8 @@ public enum BusinessErrorEnums {
 
     RECORD_OPERATION_ERROR(200,232018,"回放操作失败"),
 
+    DEVICE_LOGIN_ERROR(200,232019,"设备登陆失败"),
+
 
     /************************** media异常 CODE:233xx ****************************/
     MEDIA_ZLM_EXSITED_ERROR(500,23300,"流媒体服务已存在"),

@@ -298,13 +298,44 @@ public class DeviceServiceImpl implements IDeviceService {
             }
             //可以删除
             deviceMapper.softRemove(deviceId);
-            deviceChannelMapper.softDeleteByDeviceId(deviceId);
+//            deviceChannelMapper.softDeleteByDeviceId(deviceId);
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_SOFT,BusinessErrorEnums.SUCCESS,true);
 
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_SOFT,BusinessErrorEnums.UNKNOWN_ERROR,null);
+
+        }
+    }
+
+    @Override
+    public void deviceDeleteRecover(String deviceId, String msgId) {
+//同设备同类型业务消息，加上全局锁
+        String businessSceneKey = GatewayBusinessMsgType.DEVICE_DELETE_RECOVER.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+deviceId;
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息删除恢复请求",deviceId+"|"+msgId);
+        try {
+            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_SOFT,msgId);
+            //尝试获取锁
+            if(!b){
+                //加锁失败，不继续执行
+                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息删除恢复请求,加锁失败，合并全局的请求",msgId);
+                return;
+            }
+            Device deviceDto = getDevice(deviceId);
+            if(ObjectUtils.isEmpty(deviceDto)){
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_RECOVER,BusinessErrorEnums.SUCCESS,true);
+                return ;
+            }
+            //可以删除
+            deviceMapper.softRecover(deviceId);
+            deviceChannelMapper.softDeleteRecoverByDeviceId(deviceId);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_RECOVER,BusinessErrorEnums.SUCCESS,true);
+
+
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_RECOVER,BusinessErrorEnums.UNKNOWN_ERROR,null);
 
         }
     }

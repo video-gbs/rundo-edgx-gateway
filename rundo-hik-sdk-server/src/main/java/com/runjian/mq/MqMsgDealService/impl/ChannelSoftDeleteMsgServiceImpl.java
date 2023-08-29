@@ -40,12 +40,12 @@ public class ChannelSoftDeleteMsgServiceImpl implements InitializingBean, IMsgPr
         String deviceId = dataJson.getString("deviceId");
         long channelDbId = Long.parseLong(channelId);
         CommonResponse<Object> response = CommonResponse.success(true);
-        try {
-            deviceChannelService.channelSoftDelete(channelDbId);
-
-        }catch (Exception e){
-            response = CommonResponse.failure(BusinessErrorEnums.UNKNOWN_ERROR,e.getMessage());
-        }
+//        try {
+//            deviceChannelService.channelSoftDelete(channelDbId);
+//
+//        }catch (Exception e){
+//            response = CommonResponse.failure(BusinessErrorEnums.UNKNOWN_ERROR,e.getMessage());
+//        }
         //mq消息发送
         gatewayBusinessAsyncSender.sendforAllScene(response, commonMqDto.getMsgId(), GatewayBusinessMsgType.CHANNEL_DELETE_SOFT);
     }

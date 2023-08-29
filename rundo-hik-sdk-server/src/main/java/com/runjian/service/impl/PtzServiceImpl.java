@@ -10,6 +10,7 @@ import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.PtzOperationTypeEnum;
 import com.runjian.domain.dto.PlayCommonDto;
 import com.runjian.domain.dto.commder.PresetQueryDto;
+import com.runjian.domain.dto.commder.DeviceLoginDto;
 import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.entity.DeviceEntity;
 import com.runjian.hik.module.service.ISdkCommderService;
@@ -225,12 +226,17 @@ public class PtzServiceImpl implements IPtzService {
         long encodeId = Long.parseLong(deviceId);
         DeviceEntity deviceEntity = deviceService.getById(encodeId);
         if(ObjectUtils.isEmpty(deviceEntity)){
-
+            throw new BusinessException(BusinessErrorEnums.DB_DEVICE_NOT_FOUND);
         }else {
             if(deviceEntity.getOnline() != 1){
                 throw new BusinessException(BusinessErrorEnums.DB_DEVICE_NOT_FOUND);
             }
         }
+        DeviceLoginDto login = sdkCommderService.login(deviceEntity.getIp(), deviceEntity.getPort(), deviceEntity.getUsername(), deviceEntity.getPassword());
+        if(login.getErrorCode() != 0){
+            throw new BusinessException(BusinessErrorEnums.DEVICE_LOGIN_ERROR);
+        }
+        int lUserId = login.getLUserId();
         //获取通道信息
 
         long channelDbId = Long.parseLong(channelId);
@@ -245,7 +251,7 @@ public class PtzServiceImpl implements IPtzService {
         }
 
         PlayCommonDto playCommonDto = new PlayCommonDto();
-        playCommonDto.setLUserId(deviceEntity.getLUserId());
+        playCommonDto.setLUserId(lUserId);
         playCommonDto.setChannelNum(deviceChannelEntity.getChannelNum());
         return CommonResponse.success(playCommonDto);
 

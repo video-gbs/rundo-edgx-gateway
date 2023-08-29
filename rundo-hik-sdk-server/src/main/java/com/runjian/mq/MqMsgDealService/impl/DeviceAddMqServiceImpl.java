@@ -1,9 +1,12 @@
 package com.runjian.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.CommonResponse;
+import com.runjian.common.constant.BusinessSceneStatusEnum;
 import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
+import com.runjian.entity.DeviceEntity;
 import com.runjian.mq.MqMsgDealService.IMqMsgDealServer;
 import com.runjian.mq.MqMsgDealService.IMsgProcessorService;
 import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
@@ -44,9 +47,16 @@ public class DeviceAddMqServiceImpl implements InitializingBean, IMsgProcessorSe
         String pwd = dataMapJson.getString("password");
 
         CommonResponse<Long> add = deviceService.add(ip, port, user, pwd);
-        //消息回复
-
         gatewayBusinessAsyncSender.sendforAllScene(add, commonMqDto.getMsgId(), GatewayBusinessMsgType.DEVICE_ADD);
+        //消息回复
+        if(add.getCode() == BusinessErrorEnums.SUCCESS.getErrCode()){
+            //进行设备注册
+            DeviceEntity one = deviceService.getOne(add.getData());
+            CommonResponse<DeviceEntity> success = CommonResponse.success(one);
+            gatewayBusinessAsyncSender.sendforAllScene(success, null, GatewayBusinessMsgType.REGISTER);
+        }
+
+
     }
 
 

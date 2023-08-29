@@ -22,6 +22,7 @@
         <module>rundo-media-dispatcher</module>
         <module>rundo-hik-sdk-server</module>
         <module>rundo-media-manager</module>
+        <module>rundo-dahua-sdk-server</module>
     </modules>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>

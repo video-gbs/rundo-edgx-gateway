@@ -41,7 +41,7 @@ public interface ISdkCommderService {
      * @param devicecfgV40
      * @return
      */
-    ChannelInfoDto getIpcChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40);
+    ChannelInfoDto getIpcChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40,String charset);
 
     /**
      * dvr通道
@@ -49,7 +49,7 @@ public interface ISdkCommderService {
      * @param devicecfgV40
      * @return
      */
-    ChannelInfoDto getDvrChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40);
+    ChannelInfoDto getDvrChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40,String charset);
 
     /**
      * nvr通道
@@ -57,7 +57,7 @@ public interface ISdkCommderService {
      * @param devicecfgV40
      * @return
      */
-    ChannelInfoDto getNvrChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40);
+    ChannelInfoDto getNvrChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40,String charset);
 
     /**
      * 直播
@@ -150,4 +150,12 @@ public interface ISdkCommderService {
      * @return
      */
     Integer playBackControl(int lPlayHandle, int dwControlCode, int value);
+
+    /**
+     * 设备远程控制
+     * @param lUserId
+     * @param dwCommand
+     * @return
+     */
+    Integer remoteControl(int lUserId, int dwCommand,String loginHandle);
 }

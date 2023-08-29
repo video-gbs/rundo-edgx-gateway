@@ -51,7 +51,7 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
     @Value("${mediaApi.openSDKServer}")
     private String openSdkServerApi;
 
-    @Value("${mediaApi.getDispatchList}")
+    @Value("${mediaApi.closeSDKServer}")
     private String closeSdkServerApi;
 
 

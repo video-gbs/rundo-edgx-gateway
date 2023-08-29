@@ -20,6 +20,13 @@ public interface IDeviceService extends IService<DeviceEntity> {
     DeviceOnlineDto online(String ip, short port, String user, String psw);
 
     /**
+     * 获取单个设备
+     * @param id
+     * @return
+     */
+    DeviceEntity getOne(Long id);
+
+    /**
      * 设备添加
      * @param ip
      * @param port
@@ -29,8 +36,12 @@ public interface IDeviceService extends IService<DeviceEntity> {
      */
     CommonResponse<Long> add(String ip, short port, String user, String psw);
 
+    /**
+     * 设备状态检测
+     * @param deviceEntity
+     */
+    void checkDeviceStatus(DeviceEntity deviceEntity);
 
-    void startOnline();
     /**
      * 设备下线
      * @param lUserId 登录句柄
@@ -50,7 +61,7 @@ public interface IDeviceService extends IService<DeviceEntity> {
      * 全量设备信息
      * @return
      */
-    CommonResponse<List<DeviceEntity>> deviceList();
+    List<DeviceEntity> deviceList();
 
     /**
      *
@@ -59,6 +70,11 @@ public interface IDeviceService extends IService<DeviceEntity> {
      */
     void deviceDelete(long encodeId);
 
+    /**
+     * 删除删除恢复
+     * @param encodeId
+     */
+    void deviceDeleteRecover(long encodeId);
 
     /**
      * 设备软删除

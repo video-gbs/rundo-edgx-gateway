@@ -2,6 +2,8 @@ package com.runjian.hik.module.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.MarkConstant;
 import com.runjian.common.utils.DateUtils;
@@ -40,6 +42,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.runjian.hik.sdklib.HCNetSDK.NET_DVR_GET_PICCFG_V30;
 
@@ -63,6 +66,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
 
     private PlayBackCallBack playBackCallBack;
 
+    private ConcurrentHashMap<String,Integer> loginHanderMap = new ConcurrentHashMap();
 
 
     @Autowired
@@ -115,23 +119,10 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                 case HCNetSDK.NET_DVR_STREAMDATA:   //码流数据
                     if (dwBufSize > 0) {
                         try {
-
-
-
-                            SocketPointer socketPointer = new SocketPointer();
-                            Pointer pointer = socketPointer.getPointer();
-                            socketPointer.read();
-                            socketPointer.write();
-                            pUser.write(0, pointer.getByteArray(0, socketPointer.size()), 0, socketPointer.size());
-                            if(ObjectUtils.isEmpty(socketPointer)){
-                                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"码流回调","连接错误，初始化失败");
-                                return;
-                            }
-
-                            Socket socket = (Socket) playHandleConf.getSocketHanderMap().get(socketPointer);
+                            Socket socket = (Socket) playHandleConf.getSocketHanderMap().get(pUser);
                             if(ObjectUtils.isEmpty(socket)){
                                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"码流回调","连接暂时超时");
-                                return;
+                                throw  new BusinessException(BusinessErrorEnums.MEDIA_SERVER_SOCKET_ERROR);
                             }
                             ByteBuffer byteBuffer = pBuffer.getPointer().getByteBuffer(0, dwBufSize);
                             byte[] bytes = new byte[byteBuffer.remaining()];
@@ -141,8 +132,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                             dataOutputStream.write(bytes);
                         } catch (Exception e) {
                             //socket连接失败 进行流关闭
-                            PlayInfoDto playInfoDto = stopPlay(lRealHandle);
-                            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接","socket发送异常",playInfoDto);
+                            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接","socket发送异常",e);
                         }
                     }
             }
@@ -177,8 +167,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
 
                         } catch (Exception e) {
                             //socket连接失败 进行流关闭
-                            PlayInfoDto playInfoDto = stopPlay(lRealHandle);
-                            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接--socket发送异常",e,playInfoDto);
+                            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接--socket发送异常",e,null);
                         }
                     }
                     break;
@@ -197,38 +186,60 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     @Override
     public DeviceLoginDto login(String ip, short port, String user, String psw) {
         int lUserId = -1;//用户句柄
-        //设备注册
-        HCNetSDK.NET_DVR_USER_LOGIN_INFO m_strLoginInfo = new HCNetSDK.NET_DVR_USER_LOGIN_INFO();//设备登录信息
-        HCNetSDK.NET_DVR_DEVICEINFO_V40 m_strDeviceInfo = new HCNetSDK.NET_DVR_DEVICEINFO_V40();//设备信息
-        HCNetSDK.NET_DVR_DEVICEINFO_V30 m_strDeviceInfo3 =  new HCNetSDK.NET_DVR_DEVICEINFO_V30();//设备信息
-        String m_sDeviceIP = ip;//设备ip地址
-        m_strLoginInfo.sDeviceAddress = new byte[HCNetSDK.NET_DVR_DEV_ADDRESS_MAX_LEN];
-        System.arraycopy(m_sDeviceIP.getBytes(), 0, m_strLoginInfo.sDeviceAddress, 0, m_sDeviceIP.length());
-
-        String m_sUsername = user;//设备用户名
-        m_strLoginInfo.sUserName = new byte[HCNetSDK.NET_DVR_LOGIN_USERNAME_MAX_LEN];
-        System.arraycopy(m_sUsername.getBytes(), 0, m_strLoginInfo.sUserName, 0, m_sUsername.length());
-
-        String m_sPassword = psw;//设备密码
-        m_strLoginInfo.sPassword = new byte[HCNetSDK.NET_DVR_LOGIN_PASSWD_MAX_LEN];
-        System.arraycopy(m_sPassword.getBytes(), 0, m_strLoginInfo.sPassword, 0, m_sPassword.length());
-
-        m_strLoginInfo.wPort = port;
-        m_strLoginInfo.bUseAsynLogin = false; //是否异步登录：0- 否，1- 是
-//        m_strLoginInfo.byLoginMode=0;  //ISAPI登录
-        m_strLoginInfo.write();
-
-        lUserId =  hCNetSDK.NET_DVR_Login_V40(m_strLoginInfo, m_strDeviceInfo);
+        String loginHandle = ip+":"+port;
         DeviceLoginDto deviceLoginDto = new DeviceLoginDto();
         deviceLoginDto.setLUserId(lUserId);
+        if(!ObjectUtils.isEmpty(loginHanderMap)){
 
-        if (lUserId== -1) {
-            int errorCode = hCNetSDK.NET_DVR_GetLastError();
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"sdk登陆失败",m_strLoginInfo,hCNetSDK.NET_DVR_GetLastError());
-            deviceLoginDto.setErrorCode(errorCode);
+            Integer i = loginHanderMap.get(loginHandle);
+            if(!ObjectUtils.isEmpty(i)){
+                lUserId = i;
+                deviceLoginDto.setLUserId(lUserId);
+                deviceLoginDto.setErrorCode(0);
+            }else {
+                lUserId = -1;
+            }
+        }
+
+        if(lUserId <= 0){
+            //设备注册
+            HCNetSDK.NET_DVR_USER_LOGIN_INFO m_strLoginInfo = new HCNetSDK.NET_DVR_USER_LOGIN_INFO();//设备登录信息
+            HCNetSDK.NET_DVR_DEVICEINFO_V40 m_strDeviceInfo = new HCNetSDK.NET_DVR_DEVICEINFO_V40();//设备信息
+            HCNetSDK.NET_DVR_DEVICEINFO_V30 m_strDeviceInfo3 =  new HCNetSDK.NET_DVR_DEVICEINFO_V30();//设备信息
+            String m_sDeviceIP = ip;//设备ip地址
+            m_strLoginInfo.sDeviceAddress = new byte[HCNetSDK.NET_DVR_DEV_ADDRESS_MAX_LEN];
+            System.arraycopy(m_sDeviceIP.getBytes(), 0, m_strLoginInfo.sDeviceAddress, 0, m_sDeviceIP.length());
+
+            String m_sUsername = user;//设备用户名
+            m_strLoginInfo.sUserName = new byte[HCNetSDK.NET_DVR_LOGIN_USERNAME_MAX_LEN];
+            System.arraycopy(m_sUsername.getBytes(), 0, m_strLoginInfo.sUserName, 0, m_sUsername.length());
+
+            String m_sPassword = psw;//设备密码
+            m_strLoginInfo.sPassword = new byte[HCNetSDK.NET_DVR_LOGIN_PASSWD_MAX_LEN];
+            System.arraycopy(m_sPassword.getBytes(), 0, m_strLoginInfo.sPassword, 0, m_sPassword.length());
+
+            m_strLoginInfo.wPort = port;
+            m_strLoginInfo.bUseAsynLogin = false; //是否异步登录：0- 否，1- 是
+//        m_strLoginInfo.byLoginMode=0;  //ISAPI登录
+            m_strLoginInfo.write();
+
+            lUserId =  hCNetSDK.NET_DVR_Login_V40(m_strLoginInfo, m_strDeviceInfo);
+
+
+            if (lUserId== -1) {
+                int errorCode = hCNetSDK.NET_DVR_GetLastError();
+                log.error(LogTemplate.ERROR_LOG_TEMPLATE,"sdk登陆失败",m_strLoginInfo,hCNetSDK.NET_DVR_GetLastError());
+                deviceLoginDto.setErrorCode(errorCode);
+                return deviceLoginDto;
+            }
+            deviceLoginDto.setLUserId(lUserId);
+            deviceLoginDto.setErrorCode(0);
+            loginHanderMap.put(loginHandle,lUserId);
+            deviceLoginDto.setDeviceinfoV40(m_strDeviceInfo);
+        }else {
             return deviceLoginDto;
         }
-        deviceLoginDto.setDeviceinfoV40(m_strDeviceInfo);
+
         return  deviceLoginDto;
 
     }
@@ -269,7 +280,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     }
 
     @Override
-    public ChannelInfoDto getIpcChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40) {
+    public ChannelInfoDto getIpcChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40,String charset) {
         int total = devicecfgV40.byChanNum;
         int channel = devicecfgV40.byStartChan;
         ArrayList<DeviceChannelEntity> deviceChannelList = new ArrayList<>();
@@ -288,9 +299,9 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备配置获取失败", lUserId, hCNetSDK.NET_DVR_GetLastError());
                 continue;
             }
-
+            picInfo.read();
             DeviceChannelEntity deviceChannel = new DeviceChannelEntity();
-            String sChanName = StringUtils.getGbkStringFromByte(picInfo.sChanName);
+            String sChanName = StringUtils.getStringFromByte(picInfo.sChanName,charset);
             deviceChannel.setChannelName(sChanName);
             deviceChannel.setManufacturer(MarkConstant.HIK_MANUFACTURER);
             deviceChannel.setPtzType(0);
@@ -306,10 +317,10 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     }
 
     @Override
-    public ChannelInfoDto getDvrChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40) {
+    public ChannelInfoDto getDvrChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40,String charset) {
         //模拟加ip通道
-        ChannelInfoDto ipcChannelList = getIpcChannelList(lUserId, devicecfgV40);
-        ChannelInfoDto nvrChannelList = getNvrChannelList(lUserId, devicecfgV40);
+        ChannelInfoDto ipcChannelList = getIpcChannelList(lUserId, devicecfgV40,charset);
+        ChannelInfoDto nvrChannelList = getNvrChannelList(lUserId, devicecfgV40,charset);
 
         ArrayList<DeviceChannelEntity> deviceChannelEntities = new ArrayList<>();
         deviceChannelEntities.addAll(ipcChannelList.getChannelList());
@@ -322,7 +333,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
     }
 
     @Override
-    public ChannelInfoDto getNvrChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40) {
+    public ChannelInfoDto getNvrChannelList(int lUserId, HCNetSDK.NET_DVR_DEVICECFG_V40 devicecfgV40,String charset) {
         //仅处理ip通道
         IntByReference ibrBytesReturned = new IntByReference(0);//获取IP接入配置参数
         boolean bRet;
@@ -393,7 +404,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                 }
                 DeviceChannelEntity deviceChannel = new DeviceChannelEntity();
 
-                String sChanName = StringUtils.getGbkStringFromByte(picInfo.sChanName);
+                String sChanName = StringUtils.getStringFromByte(picInfo.sChanName,charset);
                 String name = sChanName;
                 deviceChannel.setChannelName(name);
                 deviceChannel.setManufacturer(MarkConstant.HIK_MANUFACTURER);
@@ -404,7 +415,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
                 deviceChannel.setIp(new String(m_strIpparaCfgi.struIPDevInfo[ipcInfoIndex].struIP.sIpV4).trim());
                 deviceChannel.setPort(m_strIpparaCfgi.struIPDevInfo[ipcInfoIndex].wDVRPort);
                 deviceChannel.setPassword(new String(m_strIpparaCfgi.struIPDevInfo[ipcInfoIndex].sPassword).trim());
-                deviceChannel.setOnline(m_strIpparaCfgi.struStreamMode[ipcInfoIndex].uGetStream.struChanInfo.byEnable);
+                deviceChannel.setOnline(m_strIpparaCfgi.struStreamMode[j].uGetStream.struChanInfo.byEnable);
                 deviceChannelList.add(deviceChannel);
             }
 
@@ -423,14 +434,14 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         strClientInfo.lChannel = channelNum;
         strClientInfo.hPlayWnd = 0;
         //0-主码流，1-子码流，2-三码流，3-虚拟码流，以此类推
-        strClientInfo.dwStreamType= dwStreamType;
+        strClientInfo.dwStreamType= 0;
         //连接方式：0- TCP方式，1- UDP方式，2- 多播方式，3- RTP方式，4- RTP/RTSP，5- RTP/HTTP，6- HRUDP（可靠传输） ，7- RTSP/HTTPS，8- NPQ
-        strClientInfo.dwLinkMode=4;
-        strClientInfo.bBlocked=1;
+        strClientInfo.dwLinkMode=0;
+        strClientInfo.bBlocked=0;
         strClientInfo.write();
 
         Pointer pointer = socketPointer.getPointer();
-        socketPointer.write();
+        socketPointer.read();
 
         lPreviewHandle = hCNetSDK.NET_DVR_RealPlay_V40(lUserId, strClientInfo, fRealDataCallBack , pointer);
         PlayInfoDto playInfoDto = new PlayInfoDto();
@@ -673,7 +684,7 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         struXMLInput.lpInBuffer = ptrInBuffer.getPointer();
         struXMLInput.dwInBufferSize = inputXml.length();
         struXMLInput.write();
-        HCNetSDK.BYTE_ARRAY stringXMLOut = new HCNetSDK.BYTE_ARRAY(8 * 1024);
+        HCNetSDK.BYTE_ARRAY stringXMLOut = new HCNetSDK.BYTE_ARRAY(255 * 1024);
         stringXMLOut.read();
         HCNetSDK.BYTE_ARRAY struXMLStatus = new HCNetSDK.BYTE_ARRAY(1024);
         struXMLStatus.read();
@@ -795,6 +806,20 @@ public class SdkCommderServiceImpl implements ISdkCommderService {
         if(!res){
             int error = hCNetSDK.NET_DVR_GetLastError();
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "回放控制操作", "回放控制操作，类型："+dwControlCode, error);
+            return error;
+        }
+        return 0;
+    }
+
+    @Override
+    public Integer remoteControl(int lUserId, int dwCommand,String loginHandle) {
+        boolean bRet = hCNetSDK.NET_DVR_RemoteControl(lUserId, dwCommand,null,0);
+
+        if(!bRet){
+            int error = hCNetSDK.NET_DVR_GetLastError();
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE, "远程控制操作", "远程控制操作，类型："+error, error);
+
+            loginHanderMap.remove(loginHandle);
             return error;
         }
         return 0;

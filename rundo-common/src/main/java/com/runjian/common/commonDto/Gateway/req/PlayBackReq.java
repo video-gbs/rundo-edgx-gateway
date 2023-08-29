@@ -17,4 +17,5 @@ public class PlayBackReq extends PlayReq{
      * 结束时间
      */
     String endTime;
+
 }
