@@ -88,7 +88,7 @@ public class PlayServiceImpl implements IplayService {
         playToolEntity.setDevicepassword(data.getDevicepassword());
         playToolEntity.setDeviceUser(data.getDeviceUser());
         playToolEntity.setChannelNum(data.getChannelNum());
-        playToolEntity.setMediaIp(playReq.getSsrcInfo().getIp());
+        playToolEntity.setMediaIp(playReq.getSsrcInfo().getSdpIp());
         playToolEntity.setMediaGb28181Port(playReq.getSsrcInfo().getPort());
         playToolEntity.setStreamMode(playReq.getStreamMode());
         CommonResponse<Integer> integerCommonResponse = mediaToolRestfulApiService.liveStreamDeal(playToolEntity);
@@ -157,7 +157,7 @@ public class PlayServiceImpl implements IplayService {
         playToolEntity.setDevicepassword(data.getDevicepassword());
         playToolEntity.setDeviceUser(data.getDeviceUser());
         playToolEntity.setChannelNum(data.getChannelNum());
-        playToolEntity.setMediaIp(playBackReq.getSsrcInfo().getIp());
+        playToolEntity.setMediaIp(playBackReq.getSsrcInfo().getSdpIp());
         playToolEntity.setMediaGb28181Port(playBackReq.getSsrcInfo().getPort());
         playToolEntity.setStreamMode(playBackReq.getStreamMode());
         playToolEntity.setStartTime(playBackReq.getStartTime());
