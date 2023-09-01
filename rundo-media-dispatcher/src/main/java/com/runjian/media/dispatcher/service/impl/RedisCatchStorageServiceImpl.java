@@ -220,7 +220,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     }
 
     @Override
-    public Boolean businessSceneLogDb(StreamBusinessSceneResp businessSceneResp, List<String> msgStrings) {
+    public synchronized Boolean businessSceneLogDb(StreamBusinessSceneResp businessSceneResp, List<String> msgStrings) {
 
         GatewayTask gatewayTask = gatewayTaskMapper.getOneByBusinessKey(businessSceneResp.getBusinessSceneKey());
         if(ObjectUtils.isEmpty(gatewayTask)){

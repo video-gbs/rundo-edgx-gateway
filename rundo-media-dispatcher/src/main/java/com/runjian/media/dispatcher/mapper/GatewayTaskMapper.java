@@ -51,7 +51,7 @@ public interface GatewayTaskMapper {
      * @param businessKey
      * @return
      */
-    @Select("SELECT * FROM "+TABLE+" WHERE business_key= #{businessKey} and status = 0")
+    @Select("SELECT * FROM "+TABLE+" WHERE business_key= #{businessKey} and status = 0 order by id desc  limit 1")
     GatewayTask getOneByBusinessKey(String businessKey);
 
     /**
