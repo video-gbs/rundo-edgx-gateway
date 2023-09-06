@@ -30,6 +30,7 @@ import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.manager.conf.UserSetting;
 import com.runjian.media.manager.conf.mq.DispatcherSignInConf;
 import com.runjian.media.manager.controller.hook.*;
+import com.runjian.media.manager.dto.dto.hook.OnPublishDto;
 import com.runjian.media.manager.dto.dto.hook.StreamChangeDto;
 import com.runjian.media.manager.dto.entity.MediaServerEntity;
 import com.runjian.media.manager.dto.entity.OnlineStreamsEntity;
@@ -434,7 +435,18 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         }
 
     }
-    public synchronized void exceptionStreamBye(String streamId,OnlineStreamsEntity oneBystreamId){
+
+    @Override
+    public void streamPublish(OnPublishDto req) {
+        OnlineStreamsEntity oneBystreamId = onlineStreamsService.getOneBystreamId(req.getStreamId());
+        if(ObjectUtils.isEmpty(oneBystreamId)){
+            //推流鉴权不通过
+            MediaServerEntity oneMedia = mediaServerService.getOne(oneBystreamId.getMediaServerId());
+            mediaRestfulApiService.closeRtpServer(req.getKey(),oneMedia);
+        }
+    }
+
+    public synchronized void exceptionStreamBye(String streamId, OnlineStreamsEntity oneBystreamId){
         //主动管理流的关闭
         if(!ObjectUtils.isEmpty(oneBystreamId)){
             if(oneBystreamId.getStreamType() == 0){

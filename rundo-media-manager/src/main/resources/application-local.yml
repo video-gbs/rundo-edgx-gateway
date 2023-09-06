@@ -73,12 +73,12 @@ media:
     # [必须修改] zlm服务器唯一id，用于触发hook时区别是哪台服务器,general.mediaServerId
     id: LORVY158beilorvy
     # [必须修改] zlm服务器的内网IP
-    ip: 172.20.0.94
+    ip: 172.20.0.161
 
     # [可选] 返回流地址时的ip，置空使用 media.ip
-    stream-ip: 172.20.0.94
+    stream-ip: 172.20.0.161
     # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
-    sdp-ip: 172.20.0.94
+    sdp-ip: 172.20.0.161
     # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
     hook-ip: 172.20.0.99
     # [必须修改] zlm服务器的http.port
