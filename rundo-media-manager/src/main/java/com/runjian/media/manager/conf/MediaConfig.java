@@ -47,19 +47,19 @@ public class MediaConfig {
     @Value("${media.enable-https:0}")
     private Integer enableHttps;
 
-    @Value("${media.rtmp-port:0}")
+    @Value("${media.rtmp-port:1935}")
     private Integer rtmpPort = 0;
 
-    @Value("${media.rtmp-ssl-port:0}")
+    @Value("${media.rtmp-ssl-port:1935}")
     private Integer rtmpSslPort = 0;
 
     @Value("${media.rtp-proxy-port:0}")
     private Integer rtpProxyPort = 0;
 
-    @Value("${media.rtsp-port:0}")
+    @Value("${media.rtsp-port:554}")
     private Integer rtspPort = 0;
 
-    @Value("${media.rtsp-ssl-port:0}")
+    @Value("${media.rtsp-ssl-port:554}")
     private Integer rtspSslPort = 0;
 
     @Value("${media.auto-config:true}")
