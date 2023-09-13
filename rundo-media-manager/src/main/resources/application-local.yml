@@ -119,6 +119,8 @@ mediaApi:
     startSendRtp: /index/api/startSendRtp
     #关闭国标发送端口
     stopSendRtp: /index/api/stopSendRtp
+    #回放流控制
+    controlStream: /index/api/controlStream
     TokenHeader: secret
 
 # [可选] 日志配置, 一般不需要改

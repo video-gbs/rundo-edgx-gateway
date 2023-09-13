@@ -81,4 +81,12 @@ public interface IMediaRestfulApiService {
      */
     Boolean closeRtpServer(Integer key,MediaServerEntity mediaServerEntity);
 
+
+    /**
+     * 回放流控  pause.resume
+     * @param key
+     * @param command
+     */
+    void backStreamControl(Integer key,String command,MediaServerEntity mediaServerEntity);
+
 }

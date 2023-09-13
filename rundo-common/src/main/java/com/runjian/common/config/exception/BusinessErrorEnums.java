@@ -144,6 +144,7 @@ public enum BusinessErrorEnums {
     MEDIA_SERVER_RESUME_ERROR(500,23306,"流媒体服务恢复失败"),
     MEDIA_SERVER_SOCKET_ERROR(500,23307,"流媒体服务socket连接失败"),
     MEDIA_PROTOCAL_ERROR(400,23308,"流媒体传输协议不存在"),
+    MEDIA_STREAM_CONTROL_ERROR(500,23309,"流媒体回放控制失败"),
 
 
     /**************************** 对外api类型异常,PREFIX:模块名 CODE:3xxxx ****************************/

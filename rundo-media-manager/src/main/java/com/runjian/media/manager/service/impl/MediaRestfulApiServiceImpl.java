@@ -67,6 +67,9 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
     @Value("${mediaApi.stopSendRtp}")
     private String stopSendRtpApi;
 
+    @Value("${mediaApi.controlStream}")
+    private String controlStream;
+
     @Value("${mediaApi.TokenHeader}")
     private String tokenHeader;
 
@@ -249,6 +252,25 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
         }
         CommonResponse commonResponse = JSONObject.parseObject(result, CommonResponse.class);
         return commonResponse.getCode() == BusinessErrorEnums.SUCCESS.getErrCode();
+    }
+
+    @Override
+    public void backStreamControl(Integer key, String command,MediaServerEntity mediaServerEntity) {
+        String url = String.format("http://%s:%s%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), controlStream);
+        HashMap<String, Object> stringStringHashMap = new HashMap<>();
+        stringStringHashMap.put("key",key);
+
+        String result = RestTemplateUtil.getWithParams(url, makeTokenHeader(mediaServerEntity.getSecret()),stringStringHashMap, restTemplate);
+        if (ObjectUtils.isEmpty(result)) {
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务连接","连接业务异常",result);
+
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR);
+        }
+        CommonResponse commonResponse = JSONObject.parseObject(result, CommonResponse.class);
+        if(commonResponse.getCode() != BusinessErrorEnums.SUCCESS.getErrCode()){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"流媒体服务回放控制","操作异常",result);
+            throw new BusinessException(BusinessErrorEnums.MEDIA_ZLM_COLLECT_ERROR,commonResponse.getMsg());
+        }
     }
 
     public Map<String, String> makeTokenHeader(String secret) {
