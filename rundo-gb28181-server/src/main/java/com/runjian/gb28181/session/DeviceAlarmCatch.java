@@ -13,6 +13,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author chenjialing
+ */
 @Component
 public class DeviceAlarmCatch {
 
@@ -26,7 +29,7 @@ public class DeviceAlarmCatch {
     /**
      * 聚合过期时间
      */
-    @Value("${AlarmConfig.polymerization-expire:2}")
+    @Value("${AlarmConfig.polymerization-expire:1}")
     int polymerizationExpire;
 
 
