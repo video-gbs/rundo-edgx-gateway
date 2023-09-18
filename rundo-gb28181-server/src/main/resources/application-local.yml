@@ -189,3 +189,7 @@ gateway-info:
     serialNum: eb48104ddf2b4760be541783b3620001
     #a网关过期时间 默认3分钟
     expire: 180
+
+AlarmConfig:
+    #聚合告警周期 s
+    polymerization-expire: 2
