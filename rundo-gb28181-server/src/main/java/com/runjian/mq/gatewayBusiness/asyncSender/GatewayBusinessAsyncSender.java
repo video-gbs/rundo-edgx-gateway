@@ -67,11 +67,18 @@ public class GatewayBusinessAsyncSender {
         String businessSceneKey;
     }
     //全消息处理
-    public void sendforAllScene(GatewayBusinessSceneResp businessSceneResp, String businessSceneKey){
+    public void sendforAllScene(GatewayBusinessSceneResp businessSceneRespOne, String businessSceneKeyOne){
         GatewayBusinessSendBefore gatewayBusinessSendBefore = new GatewayBusinessSendBefore();
-        gatewayBusinessSendBefore.setBusinessSceneKey(businessSceneKey);
-        gatewayBusinessSendBefore.setBusinessSceneKey(businessSceneKey);
+        gatewayBusinessSendBefore.setBusinessSceneResp(businessSceneRespOne);
+        gatewayBusinessSendBefore.setBusinessSceneKey(businessSceneKeyOne);
+        taskQueue.offer(gatewayBusinessSendBefore);
         taskExecutor.execute(()->{
+            GatewayBusinessSendBefore poll = taskQueue.poll();
+            if(ObjectUtils.isEmpty(poll)){
+                return;
+            }
+            GatewayBusinessSceneResp businessSceneResp = poll.getBusinessSceneResp();
+            String businessSceneKey = poll.getBusinessSceneKey();
             GatewayBusinessMsgType gatewayMsgType = businessSceneResp.getGatewayMsgType();
             String msgId = businessSceneResp.getMsgId();
             CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix, msgId);

@@ -51,4 +51,8 @@ public class DeviceAlarmCatch {
         }
     }
 
+    public synchronized void push(DeviceAlarm deviceAlarm) {
+
+    }
+
 }
