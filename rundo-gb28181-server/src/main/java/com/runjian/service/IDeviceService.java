@@ -3,6 +3,9 @@ package com.runjian.service;
 import com.runjian.domain.req.DeviceReq;
 import com.runjian.gb28181.bean.Device;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 import java.util.List;
 
 public interface IDeviceService {
@@ -84,4 +87,10 @@ public interface IDeviceService {
      * @return 设备列表
      */
     List<Device> getAllOnlineDevice();
+
+    /**
+     * 布防
+     * @param deviceId
+     */
+    void guardAlarm(String deviceId,String guardCmdStr) throws InvalidArgumentException, ParseException, SipException;
 }

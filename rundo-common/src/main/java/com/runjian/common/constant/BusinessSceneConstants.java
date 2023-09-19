@@ -26,6 +26,12 @@ public class BusinessSceneConstants {
     public static final String  SELF_BUSINESS_LOCK_KEY = "SELF_BUSINESS_LOCK_KEY:";
     public static final String  SELF_STREAM_BUSINESS_KEY= "SELF_STREAM_BUSINESS_KEY:";
     public static final String  SELF_STREAM_BUSINESS_LISTS= "SELF_STREAM_BUSINESS_LISTS:";
+
+    /**
+     * alarm的告警
+     */
+    public static final String  ALARM_BUSINESS = "ALARM_BUSINESS:";
+    public static final String  ALARM_BUSINESS_LIST = "ALARM_BUSINESS_LIST:";
     /*
      * 设备信息缓存键
      */

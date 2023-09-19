@@ -26,6 +26,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -365,5 +368,11 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public List<Device> getAllOnlineDevice() {
         return deviceMapper.getOnlineDevices();
+    }
+
+    @Override
+    public void guardAlarm(String deviceId,String guardCmdStr) throws InvalidArgumentException, ParseException, SipException {
+        Device device = getDevice(deviceId);
+        sipCommander.guardCmd(device,guardCmdStr,null);
     }
 }

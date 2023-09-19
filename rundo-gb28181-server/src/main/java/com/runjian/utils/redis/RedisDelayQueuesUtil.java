@@ -37,14 +37,22 @@ public class RedisDelayQueuesUtil {
             RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
             RDelayedQueue<Object> delayedQueue = redissonClient.getDelayedQueue(blockingDeque);
             delayedQueue.offer(value, delay, timeUnit);
-
-            long l = timeUnit.toSeconds(delay);
-            log.info("(添加延时队列成功) 队列键：{}，队列值：{}，延迟时间：{}", queueCode, value,l + "秒");
         } catch (Exception e) {
             log.error("(添加延时队列失败) {}", e.getMessage());
             throw new RuntimeException("(添加延时队列失败)");
         }
     }
+
+    public boolean checkDelayQueueExist(String queueCode) {
+        synchronized (queueCode){
+            RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
+            RDelayedQueue<Object> delayedQueue = redissonClient.getDelayedQueue(blockingDeque);
+            boolean empty = delayedQueue.isEmpty();
+            return empty;
+        }
+
+    }
+
 
 //    public synchronized  <T> void changeDelayQueue(T value, long delay, TimeUnit timeUnit, String queueCode) {
 //        try {
@@ -67,7 +75,38 @@ public class RedisDelayQueuesUtil {
      * @return
      * @throws InterruptedException
      */
-    public <T> T getDelayQueue(String queueCode) throws InterruptedException {
+    public synchronized  <T> void addQueueList(String queueCode,T value)  {
+        RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
+        blockingDeque.addLast(value);
+    }
+
+    public <T> T getLastQueue(String queueCode)  {
+        RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
+        T value = (T) blockingDeque.pollLast();
+        return value;
+    }
+
+    public void clearQueue(String queueCode)  {
+        RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
+        blockingDeque.clear();
+    }
+
+    public <T> T getDelayQueueHold(String queueCode) throws InterruptedException {
+        RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
+        RDelayedQueue<Object> delayedQueue = redissonClient.getDelayedQueue(blockingDeque);
+        boolean empty1 = delayedQueue.isEmpty();
+        T value = (T) blockingDeque.takeLast();
+        return value;
+    }
+    /**
+     * 获取延迟队列
+     *
+     * @param queueCode
+     * @param <T>
+     * @return
+     * @throws InterruptedException
+     */
+    public <T> T getDelayQueue(String queueCode)  {
         RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
         RDelayedQueue<Object> delayedQueue = redissonClient.getDelayedQueue(blockingDeque);
         T value = (T) blockingDeque.poll();

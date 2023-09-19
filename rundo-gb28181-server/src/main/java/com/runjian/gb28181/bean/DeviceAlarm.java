@@ -3,18 +3,20 @@ package com.runjian.gb28181.bean;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @author lin
  */
 @Schema(description = "报警信息")
 @Data
-public class DeviceAlarm {
+public class DeviceAlarm implements Serializable {
 
 	/**
 	 * 数据库id
 	 */
 	@Schema(description = "数据库id")
-	private String id;
+	private Long id;
 
 	/**
 	 * 设备Id
