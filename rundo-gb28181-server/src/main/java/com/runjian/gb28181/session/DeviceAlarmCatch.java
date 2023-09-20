@@ -47,21 +47,32 @@ public class DeviceAlarmCatch {
         }
 
         final String alarmDelayKey = BusinessSceneConstants.ALARM_BUSINESS+alarmKey;
-//        final String alarmListKey = BusinessSceneConstants.ALARM_BUSINESS_LIST+alarmKey;
+        final String alarmHeartKey = BusinessSceneConstants.ALARM_HEART_BUSINESS+alarmKey;
         synchronized (alarmDelayKey){
             if(redisDelayQueuesUtil.checkDelayQueueExist(alarmDelayKey)){
                 //首次开始
                 redisDelayQueuesUtil.addDelayQueue(deviceAlarm, polymerizationExpire, TimeUnit.SECONDS,alarmDelayKey);
+                redisDelayQueuesUtil.addDelayQueue(deviceAlarm, 15, TimeUnit.SECONDS,alarmHeartKey);
                 Thread thread = new Thread(() -> {
                     while (true){
                         DeviceAlarm delayQueueOne = redisDelayQueuesUtil.getDelayQueue(alarmDelayKey);
                         if(ObjectUtils.isEmpty(delayQueueOne)){
-                            continue;
+                            DeviceAlarm heartQueueOne = redisDelayQueuesUtil.getDelayQueue(alarmHeartKey);
+                            if(!ObjectUtils.isEmpty(heartQueueOne)){
+                                //发送告警的心跳
+                                redisDelayQueuesUtil.addDelayQueue(deviceAlarm, 15, TimeUnit.SECONDS,alarmHeartKey);
+                                log.info("心跳："+JSON.toJSONString(heartQueueOne));
+
+                            }
                         }else {
                             log.info("结束："+JSON.toJSONString(delayQueueOne));
+                            //心跳队列移除
+                            redisDelayQueuesUtil.remove(alarmHeartKey);
                             break;
 
                         }
+
+
                     }
                 });
                 thread.start();

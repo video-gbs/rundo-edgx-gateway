@@ -31,6 +31,7 @@ public class BusinessSceneConstants {
      * alarm的告警
      */
     public static final String  ALARM_BUSINESS = "ALARM_BUSINESS:";
+    public static final String  ALARM_HEART_BUSINESS = "ALARM_HEART_BUSINESS:";
     public static final String  ALARM_BUSINESS_LIST = "ALARM_BUSINESS_LIST:";
     /*
      * 设备信息缓存键
