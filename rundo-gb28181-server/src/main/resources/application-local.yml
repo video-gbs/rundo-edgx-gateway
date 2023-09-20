@@ -192,4 +192,4 @@ gateway-info:
 
 AlarmConfig:
     #聚合告警周期 s
-    polymerization-expire: 20
+    polymerization-expire: 2

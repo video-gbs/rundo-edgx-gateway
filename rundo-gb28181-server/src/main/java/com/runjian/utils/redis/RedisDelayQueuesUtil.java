@@ -6,6 +6,7 @@ import org.redisson.api.RDelayedQueue;
 import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
@@ -119,11 +120,16 @@ public class RedisDelayQueuesUtil {
      * @return
      * @throws InterruptedException
      */
-    public Object remove(String queueCode) throws InterruptedException {
-        log.info("移除延时队列数据，req={}", queueCode);
+    public synchronized <T> T remove(String queueCode) {
         RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
         RDelayedQueue<Object> delayedQueue = redissonClient.getDelayedQueue(blockingDeque);
+        T value = null;
+        if(!ObjectUtils.isEmpty(delayedQueue)){
+            value = (T) delayedQueue.remove();
 
-        return delayedQueue.remove();
+        }else {
+            log.info("队列移除失败:"+queueCode);
+        }
+        return value;
     }
 }

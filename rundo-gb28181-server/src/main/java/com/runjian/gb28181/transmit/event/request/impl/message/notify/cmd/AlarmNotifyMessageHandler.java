@@ -113,7 +113,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                     if(!ObjectUtils.isEmpty(infoElem)){
                         deviceAlarm.setAlarmType(getText(infoElem, "AlarmType"));
                     }
-
+                    deviceAlarmCatch.addReady(deviceAlarm);
 
                 } catch (Exception e) {
                     logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "报警事件的处理失败", "收到报警通知", e);

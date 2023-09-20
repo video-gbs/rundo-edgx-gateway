@@ -1,6 +1,7 @@
 package com.runjian.gb28181.session;
 import com.alibaba.fastjson.JSON;
 import com.runjian.common.constant.BusinessSceneConstants;
+import com.runjian.common.utils.DateUtils;
 import com.runjian.gb28181.bean.*;
 import com.runjian.service.IDeviceAlarmService;
 import com.runjian.utils.redis.RedisDelayQueuesUtil;
@@ -38,43 +39,40 @@ public class DeviceAlarmCatch {
     int polymerizationExpire;
 
 
-    public synchronized void addReady(DeviceAlarm deviceAlarm) {
+    public  void addReady(DeviceAlarm deviceAlarm) {
         String alarmType = deviceAlarm.getAlarmType();
         String alarmKey = deviceAlarm.getDeviceId()+ BusinessSceneConstants.SCENE_STREAM_SPLICE_KEY +deviceAlarm.getChannelId()+BusinessSceneConstants.SCENE_STREAM_SPLICE_KEY+deviceAlarm.getAlarmMethod();
-        if(ObjectUtils.isEmpty(alarmType)){
+        if(!ObjectUtils.isEmpty(alarmType)){
             alarmKey = alarmKey+BusinessSceneConstants.SCENE_STREAM_SPLICE_KEY+alarmType;
         }
+
         final String alarmDelayKey = BusinessSceneConstants.ALARM_BUSINESS+alarmKey;
-        final String alarmListKey = BusinessSceneConstants.ALARM_BUSINESS_LIST+alarmKey;
-
-        if(redisDelayQueuesUtil.checkDelayQueueExist(alarmDelayKey)){
-            redisDelayQueuesUtil.addDelayQueue(deviceAlarm, polymerizationExpire, TimeUnit.SECONDS,alarmDelayKey);
-            Thread thread = new Thread(() -> {
-                while (true){
-                    DeviceAlarm delayQueueOne = redisDelayQueuesUtil.getDelayQueue(alarmDelayKey);
-                    if(ObjectUtils.isEmpty(delayQueueOne)){
-                        continue;
-                    }else {
-                        DeviceAlarm alarmListOne = redisDelayQueuesUtil.getLastQueue(alarmListKey);
-                        if(ObjectUtils.isEmpty(alarmListOne)){
-                            //只有一条告警数据
-                            log.info("开始:"+ JSON.toJSONString(delayQueueOne)+",结束："+JSON.toJSONString(delayQueueOne));
-                            break;
+//        final String alarmListKey = BusinessSceneConstants.ALARM_BUSINESS_LIST+alarmKey;
+        synchronized (alarmDelayKey){
+            if(redisDelayQueuesUtil.checkDelayQueueExist(alarmDelayKey)){
+                //首次开始
+                redisDelayQueuesUtil.addDelayQueue(deviceAlarm, polymerizationExpire, TimeUnit.SECONDS,alarmDelayKey);
+                Thread thread = new Thread(() -> {
+                    while (true){
+                        DeviceAlarm delayQueueOne = redisDelayQueuesUtil.getDelayQueue(alarmDelayKey);
+                        if(ObjectUtils.isEmpty(delayQueueOne)){
+                            continue;
                         }else {
-                            //清理已有的告警数据
-                            redisDelayQueuesUtil.clearQueue(alarmListKey);
-                            //聚合最后的告警信息，其他的丢掉
-                            log.info("开始:"+ JSON.toJSONString(delayQueueOne)+",结束："+JSON.toJSONString(alarmListOne));
+                            log.info("结束："+JSON.toJSONString(delayQueueOne));
                             break;
-                        }
 
+                        }
                     }
-                }
-            });
-            thread.start();
-        }else {
-            redisDelayQueuesUtil.addQueueList(alarmListKey,deviceAlarm);
+                });
+                thread.start();
+            }else {
+                //首次结束数据周期内到达
+                redisDelayQueuesUtil.remove(alarmDelayKey);
+                //比较时间范围的
+                redisDelayQueuesUtil.addDelayQueue(deviceAlarm, polymerizationExpire, TimeUnit.SECONDS,alarmDelayKey);
+            }
         }
+
 
 
 
