@@ -259,6 +259,7 @@ public class MediaRestfulApiServiceImpl implements IMediaRestfulApiService {
         String url = String.format("http://%s:%s%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), controlStream);
         HashMap<String, Object> stringStringHashMap = new HashMap<>();
         stringStringHashMap.put("key",key);
+        stringStringHashMap.put("command",command);
 
         String result = RestTemplateUtil.getWithParams(url, makeTokenHeader(mediaServerEntity.getSecret()),stringStringHashMap, restTemplate);
         if (ObjectUtils.isEmpty(result)) {

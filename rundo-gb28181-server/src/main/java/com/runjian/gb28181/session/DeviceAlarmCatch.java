@@ -61,7 +61,7 @@ public class DeviceAlarmCatch {
                             if(!ObjectUtils.isEmpty(heartQueueOne)){
                                 //发送告警的心跳
                                 redisDelayQueuesUtil.addDelayQueue(deviceAlarm, 15, TimeUnit.SECONDS,alarmHeartKey);
-                                log.info("心跳："+JSON.toJSONString(heartQueueOne));
+                                log.info("心跳："+alarmHeartKey);
 
                             }
                         }else {
