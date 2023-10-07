@@ -198,14 +198,16 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
         Boolean  aBoolean = false;
         try {
             //分布式锁 进行
-            aBoolean = lock.tryLock(10, 60, TimeUnit.MILLISECONDS);
+            aBoolean = lock.tryLock(10, userSetting.getBusinessSceneTimeout()-100, TimeUnit.MILLISECONDS);
             if(ObjectUtils.isEmpty(msgId)){
                 String sn = getSn(GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR);
                 msgId = GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix + sn;
             }
             StreamBusinessSceneResp<Object> objectStreamBusinessSceneResp = StreamBusinessSceneResp.addSceneReady(msgType, msgId, businessSceneKey,null);
             RedisCommonUtil.leftPush(redisTemplate,BusinessSceneConstants.SELF_STREAM_BUSINESS_LISTS+businessSceneKey,objectStreamBusinessSceneResp);
-            redisDelayQueuesUtil.addDelayQueue(objectStreamBusinessSceneResp, 30, TimeUnit.SECONDS,businessSceneKey);
+            if(aBoolean){
+                redisDelayQueuesUtil.addDelayQueue(objectStreamBusinessSceneResp, 10, TimeUnit.SECONDS,businessSceneKey);
+            }
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE,"处理网关业务状态","缓存添加执行失败",businessSceneKey,e);
