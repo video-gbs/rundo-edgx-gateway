@@ -135,6 +135,22 @@ public abstract class SIPRequestProcessorParent {
 		return response;
 	}
 
+	/**
+	 * 回复带sdp的200
+	 */
+	public SIPResponse responseSdpAck(SIPRequest request, String sdp) throws SipException, InvalidArgumentException, ParseException {
+
+		ContentTypeHeader contentTypeHeader = SipFactory.getInstance().createHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
+
+		// 兼容国标中的使用编码@域名作为RequestURI的情况
+		SipURI sipURI = (SipURI)request.getRequestURI();
+		ResponseAckExtraParam responseAckExtraParam = new ResponseAckExtraParam();
+		responseAckExtraParam.contentTypeHeader = contentTypeHeader;
+		responseAckExtraParam.content = sdp;
+		responseAckExtraParam.sipURI = sipURI;
+
+		return responseAck(request, Response.OK, null, responseAckExtraParam);
+	}
 
 	public Element getRootElement(RequestEvent evt) throws DocumentException {
 		return getRootElement(evt, "gb2312");

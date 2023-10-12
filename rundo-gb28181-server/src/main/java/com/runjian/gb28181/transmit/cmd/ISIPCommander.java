@@ -138,7 +138,7 @@ public interface ISIPCommander {
 	 * 
 	 * @param device  视频设备
 	 */
-	void audioBroadcastCmd(Device device, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+	void audioBroadcastCmd(Device device,String channelId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
 	void audioBroadcastCmd(Device device) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
