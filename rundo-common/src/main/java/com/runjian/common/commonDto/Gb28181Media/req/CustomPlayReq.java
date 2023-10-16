@@ -33,6 +33,18 @@ public class CustomPlayReq {
      * 流媒体id
      */
     private String mediaServerId;
+
+
+    /**
+     * 设备id
+     */
+    private String deviceId;
+
+    /**
+     * 通道id
+     */
+    private String channelId;
+
     /**
      * 端口
      */
