@@ -54,6 +54,9 @@ public enum GatewayBusinessMsgType {
     CHANNEL_3D_OPERATION("CHANNEL_PTZ_3D"),
 
 
+    //对讲
+    CHANNEL_TALK("CHANNEL_TALK"),
+
     /******调度服务调用网关业务队列场景*************/
     //点播
     PLAY("CHANNEL_PLAY"),

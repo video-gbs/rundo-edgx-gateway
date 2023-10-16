@@ -56,4 +56,6 @@ public interface IDeviceChannelService {
     删除恢复
      */
     void channelDeleteRecover(String deviceId, String channelId, String msgId);
+
+    void channelTalk(String deviceId, String channelId, String msgId);
 }

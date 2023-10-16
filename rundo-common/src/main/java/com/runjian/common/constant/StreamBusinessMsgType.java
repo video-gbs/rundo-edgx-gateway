@@ -43,8 +43,9 @@ public enum StreamBusinessMsgType {
     STREAM_RECORD_PLAY_START("STREAM_RECORD_PLAY_START"),
     //自定义直播
     STREAM_CUSTOM_LIVE_START("STREAM_CUSTOM_LIVE_START"),
-    //对讲
-    TALK_LIVE_START("TALK_LIVE_START"),
+    //rtc点播
+    STREAM_WEBRTC_LIVE_START("STREAM_WEBRTC_LIVE_START"),
+
     /******调度服务业务队列场景*************/
     ;
 

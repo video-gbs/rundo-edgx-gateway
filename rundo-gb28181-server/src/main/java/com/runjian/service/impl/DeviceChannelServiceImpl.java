@@ -217,11 +217,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     public void channelSoftDelete(String deviceId, String channelId, String msgId) {
         String businessSceneKey = GatewayBusinessMsgType.CHANNEL_DELETE_SOFT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceId+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
         try {
-            RLock lock = redissonClient.getLock(businessSceneKey);
             //阻塞型,默认是30s无返回参数
-            redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_DELETE_SOFT,msgId);
-            //尝试获取锁
-            boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100, TimeUnit.MILLISECONDS);
+            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_DELETE_SOFT,msgId);
             if(!b){
                 //加锁失败，不继续执行
                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备服务,软删除通道，合并全局的请求",msgId);
@@ -243,7 +240,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     public void channelDeleteRecover(String deviceId, String channelId, String msgId) {
         String businessSceneKey = GatewayBusinessMsgType.CHANNEL_DELETE_RECOVER.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceId+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
         try {
-            RLock lock = redissonClient.getLock(businessSceneKey);
             //阻塞型,默认是30s无返回参数
             redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_DELETE_RECOVER,msgId);
 
@@ -253,6 +249,25 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "软删除通道恢复", e);
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DELETE_RECOVER,BusinessErrorEnums.UNKNOWN_ERROR,null);
 
+        }
+    }
+
+    @Override
+    public void channelTalk(String deviceId, String channelId, String msgId) {
+        String businessSceneKey = GatewayBusinessMsgType.CHANNEL_TALK.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceId+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
+        try {
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_DELETE_RECOVER,msgId);
+            Device device = deviceService.getDevice(deviceId);
+            sipCommander.audioBroadcastCmd(device,channelId,event -> {
+                //广播指令下发失败
+                String errorMsg = String.format("广播指令下发失败，错误码： %s, %s", event.statusCode, event.msg);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_TALK,BusinessErrorEnums.UNKNOWN_ERROR,errorMsg);
+            });
+            //登陆invite的指令交互
+
+
+        }catch (Exception e){
+            log.info("语音广播",e);
         }
     }
 }
