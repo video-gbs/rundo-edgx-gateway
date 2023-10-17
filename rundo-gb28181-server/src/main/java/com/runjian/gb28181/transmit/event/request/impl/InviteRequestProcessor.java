@@ -1,8 +1,17 @@
 package com.runjian.gb28181.transmit.event.request.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.Gb28181Media.req.GatewayRtpSendReq;
+import com.runjian.common.commonDto.SsrcInfo;
+import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.exception.BusinessException;
+import com.runjian.common.config.response.CommonResponse;
+import com.runjian.common.constant.BusinessSceneConstants;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.RestTemplateUtil;
+import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.transmit.SIPProcessorObserver;
 import com.runjian.gb28181.transmit.event.request.ISIPRequestProcessor;
@@ -16,7 +25,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.client.RestTemplate;
 
 import javax.sdp.*;
@@ -50,6 +61,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Value("${mdeia-api-uri-list.stream-rtpSendInfo}")
     private String rtpSendInfoApi;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
     @Override
     public void afterPropertiesSet() throws Exception {
         // 添加消息处理的订阅
@@ -69,10 +83,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             SIPRequest request = (SIPRequest)evt.getRequest();
             logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "SIP命令INVITE请求处理", "收到请求信息", request.toString());
 
-            String channelId = SipUtils.getChannelIdFromRequest(request);
             String requesterId = SipUtils.getUserIdFromFromHeader(request);
-            CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
-            if (requesterId == null || channelId == null) {
+            if (requesterId == null) {
                 logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "SIP命令INVITE请求处理", "无法从FromHeader的Address中获取到平台id，返回400");
                 // 参数不全， 发400，请求错误
                 try {
@@ -96,11 +108,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
      * @return
      */
 
-    public SIPResponse inviteFromDeviceHandle(SIPRequest request, String requesterId) {
+    public SIPResponse inviteFromDeviceHandle(SIPRequest request, String deviceId) {
         // 非上级平台请求，查询是否设备请求（通常为接收语音广播的设备）
-        Device device = deviceService.getDevice(requesterId);
+        Device device = deviceService.getDevice(deviceId);
         if (device != null) {
-            logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "SIP命令INVITE请求处理", "收到设备的语音广播Invite请求", "设备：" + requesterId);
+            logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "SIP命令INVITE请求处理", "收到设备的语音广播Invite请求", "设备：" + deviceId);
             try {
                 responseAck(request, Response.TRYING);
             } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -163,49 +175,77 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }
                     return null;
                 }
-                //获取流媒体的转发信息
-//                String url = String.format("http://%s:%s%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), rtpSendInfoApi);
-////                String result = RestTemplateUtil.postString(url, JSON.toJSONString(mediaServerConfigDto),makeTokenHeader(mediaServerEntity.getSecret()), restTemplate);
-////                if(){
-////
-////                }
                 String username = sdp.getOrigin().getUsername();
                 String addressStr = sdp.getOrigin().getAddress();
-                logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "SIP命令INVITE请求处理", "设备请求语音流", "设备:" + username + " 地址：" + addressStr + " ssrc：" + ssrc);
+                //获取通道
 
-                StringBuffer content = new StringBuffer(200);
-                content.append("v=0\r\n");
-                content.append("o=34020000001320000211 0 0 IN IP4 172.20.0.104 \r\n");
-                content.append("s=Play\r\n");
-                content.append("c=IN IP4 172.20.0.104\r\n");
-                content.append("t=0 0\r\n");
-                // 非严格模式端口不统一, 增加兼容性，修改为一个不为0的端口
-
-
-                if (protocalKind == 0) {
-                    content.append("m=audio 30000 RTP/AVP 8\r\n");
-                }else {
-                    content.append("m=audio 30000 TCP/RTP/AVP 8\r\n");
-                    if(protocalKind == 1){
-                        content.append("a=setup:passive\r\n");
-                    }else {
-                        content.append("a=setup:active\r\n");
-                    }
+                String channelId = SipUtils.getChannelIdFromRequestInAudioSecene(request);
+                //获取流媒体的转发信息
+                String businessSceneKey = GatewayBusinessMsgType.CHANNEL_TALK.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceId+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
+                String dispatcherUrl = (String)RedisCommonUtil.get(redisTemplate, BusinessSceneConstants.GATEWAY_BUSINESS_KEY + businessSceneKey);
+                GatewayRtpSendReq gatewayRtpSendReq = new GatewayRtpSendReq();
+                gatewayRtpSendReq.setDeviceId(deviceId);
+                gatewayRtpSendReq.setSsrc(ssrc);
+                gatewayRtpSendReq.setChannelId(channelId);
+                gatewayRtpSendReq.setOnlyAudio(1);
+                gatewayRtpSendReq.setStreamMode(protocalKind);
+                if(protocalKind == 1 || protocalKind == 2){
+                    gatewayRtpSendReq.setDstUrl(addressStr);
+                    gatewayRtpSendReq.setDstPort(port);
                 }
-                content.append("a=sendonly\r\n");
-                content.append("a=rtpmap:8 PCMA/8000\r\n");
-                content.append("a=connection:new\r\n");
-                content.append("y=" + ssrc + "\r\n");
-                content.append("f=\r\n");
 
-                try {
-                    return responseSdpAck(request, content.toString());
-                } catch (SipException e) {
-                    logger.error("未处理的异常 ", e);
-                } catch (InvalidArgumentException e) {
-                    logger.error("未处理的异常 ", e);
-                } catch (ParseException e) {
-                    logger.error("未处理的异常 ", e);
+                String result = RestTemplateUtil.postString(dispatcherUrl, JSON.toJSONString(gatewayRtpSendReq),null, restTemplate);
+                if(ObjectUtils.isEmpty(result)){
+                    logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "获取己方流媒体的媒体信息失败", "null", result);
+                    try {
+                        responseAck(request, Response.SERVER_INTERNAL_ERROR); // 不支持的格式，发415
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "SIP命令INVITE请求处理", "命令发送失败, invite 不支持的媒体格式，返回415", e);
+                    }
+                    return null;
+                }else{
+                    CommonResponse commonResponse = JSONObject.parseObject(result, CommonResponse.class);
+                    if(commonResponse.getCode()!=0){
+                        logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "获取己方流媒体的媒体信息失败", commonResponse, result);
+                        try {
+                            responseAck(request, Response.SERVER_INTERNAL_ERROR); // 不支持的格式，发415
+                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                            logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "SIP命令INVITE请求处理", "命令发送失败, invite 不支持的媒体格式，返回415", e);
+                        }
+                        return null;
+                    }else {
+                        SsrcInfo ssrcInfo = JSONObject.parseObject(JSON.toJSONString(commonResponse.getData()), SsrcInfo.class);
+                        StringBuffer content = new StringBuffer(200);
+                        content.append("v=0\r\n");
+                        content.append("o="+channelId+" 0 0 IN IP4 "+ssrcInfo.getSdpIp()+" \r\n");
+                        content.append("s=Play\r\n");
+                        content.append("c=IN IP4 "+ssrcInfo.getSdpIp()+"\r\n");
+                        content.append("t=0 0\r\n");
+                        // 非严格模式端口不统一, 增加兼容性，修改为一个不为0的端口
+                        if (protocalKind == 1) {
+                            content.append("m=audio "+ssrcInfo.getPort()+" RTP/AVP 8\r\n");
+                        }else {
+                            content.append("m=audio "+ssrcInfo.getPort()+" TCP/RTP/AVP 8\r\n");
+                            if(protocalKind == 0){
+                                content.append("a=setup:passive\r\n");
+                            }else {
+                                content.append("a=setup:active\r\n");
+                            }
+                        }
+                        content.append("a=sendonly\r\n");
+                        content.append("a=rtpmap:8 PCMA/8000\r\n");
+                        content.append("a=connection:new\r\n");
+                        content.append("y=" + ssrc + "\r\n");
+                        content.append("f=\r\n");
+
+                        try {
+                            return responseSdpAck(request, content.toString());
+                        } catch (Exception e) {
+                            logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "SIP命令INVITE请求处理", "命令发送失败,成功的指令发送失败", e);
+                        }
+                        //todo 成功通知调度服务
+                    }
+
                 }
 
             } catch (SdpException e) {

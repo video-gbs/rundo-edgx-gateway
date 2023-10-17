@@ -18,8 +18,6 @@ public class GatewayRtpSendReq {
     @NotNull(message = "通道id不得为null")
     String channelId;
 
-    @Range(min = 0,max = 1,message = "媒体信息为0，1范围")
-    Integer mediaType;
 
     @Range(min = 0,max = 2,message = "媒体信息为0，2范围")
     Integer streamMode;
@@ -28,7 +26,7 @@ public class GatewayRtpSendReq {
 
     String dstUrl;
 
-    String dstPort;
+    Integer dstPort;
 
     /**
      * 来自请求方的ssrc

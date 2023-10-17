@@ -190,7 +190,7 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public void audioBroadcastCmd(Device device,String channelId, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void audioBroadcastCmd(Device device,String channelId, SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
         StringBuffer broadcastXml = new StringBuffer(200);
         String charset = device.getCharset();
         broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
@@ -204,7 +204,7 @@ public class SIPCommander implements ISIPCommander {
 
 
         Request request = headerProvider.createMessageRequest(device, broadcastXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(device.getTransport()));
-        sipSender.transmitRequest( request, errorEvent);
+        sipSender.transmitRequest( request, errorEvent,okEvent);
     }
 
     @Override

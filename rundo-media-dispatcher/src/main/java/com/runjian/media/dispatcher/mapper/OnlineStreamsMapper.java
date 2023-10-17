@@ -48,11 +48,10 @@ public interface OnlineStreamsMapper {
      * 查询流的信息
      * @param deviceId
      * @param channelId
-     * @param mediaType
      * @return
      */
-    @Select("select * from "+ONLINE_STREAMS+" where device_id = #{deviceId} and channel_id = #{channelId} and media_type = #{mediaType} limit 1")
-    OnlineStreamsEntity selectOne(String deviceId, String channelId, Integer mediaType);
+    @Select("select * from "+ONLINE_STREAMS+" where device_id = #{deviceId} and channel_id = #{channelId}  limit 1")
+    OnlineStreamsEntity selectOne(String deviceId, String channelId);
 
     /**
      * 流播放列表删除

@@ -27,7 +27,7 @@ public interface IOnlineStreamsService {
      */
     OnlineStreamsEntity getOneBystreamId(String streamId);
 
-    OnlineStreamsEntity streamByChannelInfo(String deviceId,String channelId,Integer mediaType);
+    OnlineStreamsEntity streamByChannelInfo(String deviceId,String channelId);
 
     /**
      * 移除流列表

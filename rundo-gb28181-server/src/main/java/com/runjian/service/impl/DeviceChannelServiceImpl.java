@@ -6,6 +6,7 @@ import com.runjian.common.constant.BusinessSceneConstants;
 import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.UserSetting;
 import com.runjian.dao.DeviceChannelMapper;
 import com.runjian.gb28181.bean.Device;
@@ -256,16 +257,17 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     public void channelTalk(String deviceId, String channelId,String dispacherUrl, String msgId) {
         String businessSceneKey = GatewayBusinessMsgType.CHANNEL_TALK.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceId+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
         try {
-            redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_DELETE_RECOVER,msgId,1);
             Device device = deviceService.getDevice(deviceId);
             sipCommander.audioBroadcastCmd(device,channelId,event -> {
                 //广播指令下发失败
                 String errorMsg = String.format("广播指令下发失败，错误码： %s, %s", event.statusCode, event.msg);
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,errorMsg);
+            },eventResult -> {
+                //成功进行缓存
+                RedisCommonUtil.set(redisTemplate,BusinessSceneConstants.GATEWAY_BUSINESS_KEY+businessSceneKey,dispacherUrl,10);
             });
-
         }catch (Exception e){
-            log.info("语音广播",e);
+            log.info(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "语音广播",e);
         }
     }
 }

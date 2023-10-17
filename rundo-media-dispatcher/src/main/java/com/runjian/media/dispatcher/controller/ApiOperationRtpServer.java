@@ -60,7 +60,7 @@ public class ApiOperationRtpServer {
     @PostMapping(value = "/media/rtpSendInfo",produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<SsrcInfo> rtpSendInfo(@RequestBody GatewayRtpSendReq gatewayRtpSendReq){
 
-        OnlineStreamsEntity oneBystreamId = onlineStreamsService.streamByChannelInfo(gatewayRtpSendReq.getDeviceId(), gatewayRtpSendReq.getChannelId(), gatewayRtpSendReq.getMediaType());
+        OnlineStreamsEntity oneBystreamId = onlineStreamsService.streamByChannelInfo(gatewayRtpSendReq.getDeviceId(), gatewayRtpSendReq.getChannelId());
         if(ObjectUtils.isEmpty(oneBystreamId)){
             throw  new BusinessException(BusinessErrorEnums.DB_NOT_FOUND,"推流信息获取失败");
 

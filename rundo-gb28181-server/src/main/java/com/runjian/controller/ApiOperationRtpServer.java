@@ -72,7 +72,7 @@ public class ApiOperationRtpServer {
 
         try {
             Device device = deviceService.getDevice(deviceId);
-            sipCommander.audioBroadcastCmd(device,channelId,null);
+            sipCommander.audioBroadcastCmd(device,channelId,null,null);
 
         }catch (Exception e){
             log.info("语音广播",e);
