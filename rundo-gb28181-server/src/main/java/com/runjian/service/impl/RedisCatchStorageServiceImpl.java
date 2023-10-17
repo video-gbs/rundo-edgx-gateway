@@ -168,7 +168,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
                 GatewayBusinessSceneResp businessSceneResp = (GatewayBusinessSceneResp) removeObj;
                 MqSendSceneEvent mqSendSceneEvent = new MqSendSceneEvent(this);
                 businessSceneResp.setData(data);
-                mqSendSceneEvent.setMqSendSceneDto(new MqSendSceneDto(businessSceneResp,businessErrorEnums,data));
+                mqSendSceneEvent.setMqSendSceneDto(new MqSendSceneDto(businessSceneResp,businessErrorEnums));
                 applicationEventPublisher.publishEvent(mqSendSceneEvent);
                 RLock lock = redissonClient.getLock( BusinessSceneConstants.SELF_BUSINESS_LOCK_KEY+businessSceneKey);
                 if(!ObjectUtils.isEmpty(lock)){

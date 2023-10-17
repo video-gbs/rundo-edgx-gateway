@@ -37,9 +37,6 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
     @Autowired
     GatewayTaskMapper gatewayTaskMapper;
 
-    @Autowired
-    RabbitMqSender rabbitMqSender;
-
     @Value("${mediaApi.callBackStreamNotify}")
     private String callBackStreamNotify;
     @Override
