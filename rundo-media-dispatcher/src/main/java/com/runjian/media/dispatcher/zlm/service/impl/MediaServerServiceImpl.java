@@ -8,6 +8,7 @@ import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.ZlmStreamDto;
 import com.runjian.common.commonDto.Gb28181Media.req.CustomPlayReq;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
+import com.runjian.common.commonDto.Gb28181Media.req.GatewayRtpSendReq;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamPlayDto;
@@ -596,5 +597,57 @@ public class MediaServerServiceImpl implements ImediaServerService {
 
     }
 
+    @Override
+    public SsrcInfo rtpSendServer(String mediaServerId,String app,String streamId, GatewayRtpSendReq gatewayRtpSendReq) {
+        MediaServerItem mediaInfo = this.getOne(mediaServerId);
+        if(ObjectUtils.isEmpty(mediaInfo)){
+            throw  new BusinessException(BusinessErrorEnums.MEDIA_SERVER_BUSINESS_ERROR,"流媒体信息不存在");
+        }
+        Integer streamMode = gatewayRtpSendReq.getStreamMode();
+        JSONObject jsonObject = null;
+        SsrcInfo ssrcInfo = new SsrcInfo();
 
+        if(streamMode == 0){
+            Map<String, Object> param = new HashMap<>(12);
+            param.put("vhost","__defaultVhost__");
+            param.put("app",app);
+            param.put("stream",streamId);
+            param.put("ssrc", gatewayRtpSendReq.getSsrc());
+            param.put("only_audio",gatewayRtpSendReq.getOnlyAudio());
+            jsonObject = zlmrtpServerFactory.startSendRtpStreamForPassive(mediaInfo, param);
+
+
+        }else if(streamMode == 1 || streamMode == 2){
+            //udp，tcp主动
+            Map<String, Object> param = new HashMap<>(12);
+            param.put("vhost","__defaultVhost__");
+            param.put("app",app);
+            param.put("stream",streamId);
+            param.put("ssrc", gatewayRtpSendReq.getSsrc());
+            param.put("dst_url",gatewayRtpSendReq.getDstUrl());
+            param.put("dst_port", gatewayRtpSendReq.getDstPort());
+            param.put("is_udp", streamMode==1?1:0);
+            param.put("only_audio", gatewayRtpSendReq.getOnlyAudio());
+            jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+
+        }
+        if(!ObjectUtils.isEmpty(jsonObject)){
+            Integer code = jsonObject.getInteger("code");
+            if(code != 0){
+                String msg = jsonObject.getString("msg");
+                throw  new BusinessException(BusinessErrorEnums.MEDIA_SERVER_BUSINESS_ERROR,msg);
+            }else {
+                Integer localPort = jsonObject.getInteger("local_port");
+                ssrcInfo.setMediaServerId(mediaServerId);
+                ssrcInfo.setPort(localPort);
+                ssrcInfo.setSsrc(gatewayRtpSendReq.getSsrc());
+                ssrcInfo.setSdpIp(mediaInfo.getSdpIp());
+                ssrcInfo.setStreamId(streamId);
+                ssrcInfo.setIp(mediaInfo.getIp());
+            }
+        }else {
+            throw  new BusinessException(BusinessErrorEnums.MEDIA_SERVER_BUSINESS_ERROR,"流媒体连接失败");
+        }
+        return ssrcInfo;
+    }
 }

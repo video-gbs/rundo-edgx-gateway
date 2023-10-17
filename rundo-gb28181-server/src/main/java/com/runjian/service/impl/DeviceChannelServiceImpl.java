@@ -171,7 +171,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             }
             Device device = deviceService.getDevice(deviceId);
             if(ObjectUtils.isEmpty(device)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.RECORD_INFO,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
                 return ;
             }
 
@@ -179,7 +179,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             sipCommander.recordInfoQuery(device, channelId, startTime, endTime, sn, null, null, null, null);
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.RECORD_INFO,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,null);
 
         }
         //在异步线程进行解锁
@@ -204,11 +204,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             //删除通道
             deviceChannelMapper.hardDeleteByDeviceId(deviceId,channelId);
 
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DELETE_HARD,BusinessErrorEnums.SUCCESS,true);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,true);
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "删除通道", e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DELETE_HARD,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,null);
 
         }
     }
@@ -227,11 +227,11 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             //软删除通道
 //            deviceChannelMapper.softDeleteByDeviceIdAndChannelId(deviceId,channelId);
 
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DELETE_SOFT,BusinessErrorEnums.SUCCESS,true);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,true);
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "软删除通道", e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DELETE_SOFT,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,null);
 
         }
     }
@@ -243,17 +243,17 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             //阻塞型,默认是30s无返回参数
             redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_DELETE_RECOVER,msgId);
 
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DELETE_RECOVER,BusinessErrorEnums.SUCCESS,true);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,true);
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "软删除通道恢复", e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DELETE_RECOVER,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,null);
 
         }
     }
 
     @Override
-    public void channelTalk(String deviceId, String channelId, String msgId) {
+    public void channelTalk(String deviceId, String channelId,String dispacherUrl, String msgId) {
         String businessSceneKey = GatewayBusinessMsgType.CHANNEL_TALK.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceId+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
         try {
             redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_DELETE_RECOVER,msgId);
@@ -261,10 +261,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             sipCommander.audioBroadcastCmd(device,channelId,event -> {
                 //广播指令下发失败
                 String errorMsg = String.format("广播指令下发失败，错误码： %s, %s", event.statusCode, event.msg);
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_TALK,BusinessErrorEnums.UNKNOWN_ERROR,errorMsg);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,errorMsg);
             });
-            //登陆invite的指令交互
-
 
         }catch (Exception e){
             log.info("语音广播",e);

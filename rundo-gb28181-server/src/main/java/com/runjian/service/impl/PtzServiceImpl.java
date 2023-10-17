@@ -105,7 +105,7 @@ public class PtzServiceImpl implements IPtzService {
             String deviceId = deviceControlReq.getDeviceId();
             Device device = deviceService.getDevice(deviceId);
             if(ObjectUtils.isEmpty(device)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
                 return;
 
             }
@@ -113,15 +113,15 @@ public class PtzServiceImpl implements IPtzService {
             if(!commomCodeArray.contains(cmdCode)){
 
                 log.error(LogTemplate.ERROR_LOG_TEMPLATE, "ptz服务", "ptz操作失败", deviceControlReq);
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL,BusinessErrorEnums.VALID_BIND_EXCEPTION_ERROR,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.VALID_BIND_EXCEPTION_ERROR,null);
                 return;
             }
             sipCommander.frontEndCmd(device, deviceControlReq.getChannelId(), cmdCode, deviceControlReq.getHorizonSpeed(), deviceControlReq.getVerticalSpeed(), deviceControlReq.getZoomSpeed());
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL,BusinessErrorEnums.SUCCESS,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,null);
 
         }catch (Exception e){
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ptz服务", "ptz操作失败", deviceControlReq);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,null);
         }
 
     }
@@ -145,17 +145,17 @@ public class PtzServiceImpl implements IPtzService {
             //查询通道数据
             Device device = deviceService.getDevice(channelPtzControlReq.getDeviceId());
             if(ObjectUtils.isEmpty(device)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
                 return;
             }
             //查询通道
             DeviceChannel channelOne = deviceChannelService.getOne(channelPtzControlReq.getDeviceId(), channelPtzControlReq.getChannelId());
             if(ObjectUtils.isEmpty(channelOne)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL,BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,null);
                 return;
             }
             if(ObjectUtils.isEmpty(ptzOperationTypeEnum)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL,BusinessErrorEnums.PTZ_OPERATION_TYPE_NOT_FOUND,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.PTZ_OPERATION_TYPE_NOT_FOUND,null);
                 return;
             }
 
@@ -170,108 +170,108 @@ public class PtzServiceImpl implements IPtzService {
                 case PRESET_SET:
                     //预置位设置
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, operationValue,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PRESET_INVOKE:
                     //预置位调用
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, operationValue,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PRESET_DEL:
                     //预置位删除
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, operationValue,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_LEFT:
                     //左转
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),operationValue, operationValue,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_RIGHT:
                     //右转
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),operationValue, operationValue,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_UP:
                     //上
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),operationValue, operationValue,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_DOWN:
                     //下
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),operationValue, operationValue,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_UPLEFT:
                     //左上
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),horizonSpeedValue, verticalSpeedValue,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_UPRIGHT:
                     //右上
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),horizonSpeedValue, verticalSpeedValue,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_DOWNLEFT:
                     //左下
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),horizonSpeedValue, verticalSpeedValue,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_DOWNRIGHT:
                     //右下
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),horizonSpeedValue, verticalSpeedValue,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case ZOOM_IN:
                     //倍率放大
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, 0,operationValue);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case ZOOM_OUT:
                     //倍率缩小
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, 0,operationValue);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case PTZ_STOP:
                     //ptz停止
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, 0,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case IRIS_REDUCE:
                     //光圈缩小
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, operationValue,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case IRIS_GROW:
                     //光圈放大
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, operationValue,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case FOCUS_FAR:
                     //聚焦近远
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),operationValue, 0,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case FOCUS_NEAR:
                     //聚焦近远
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),operationValue, 0,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
                 case IRISE_AND_FOCUS_STOP:
                     //F1停止
                     sipCommander.frontEndCmd(device, channelPtzControlReq.getChannelId(), ptzOperationTypeEnum.getCode(),0, 0,0);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL, BusinessErrorEnums.SUCCESS,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,null);
                     break;
 
                 default:
                     //信令操作异常
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL,BusinessErrorEnums.PTZ_OPERATION_TYPE_NOT_FOUND,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.PTZ_OPERATION_TYPE_NOT_FOUND,null);
                     break;
             }
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "ptz服务", "ptz操作失败", channelPtzControlReq,e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,null);
         }
 
     }
@@ -290,19 +290,19 @@ public class PtzServiceImpl implements IPtzService {
             }
             Device device = deviceService.getDevice(deviceId);
             if(ObjectUtils.isEmpty(device)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_PTZ_PRESET,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
                 return;
             }
             //查询通道
             DeviceChannel channelOne = deviceChannelService.getOne(deviceId, channelId);
             if(ObjectUtils.isEmpty(channelOne)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_PTZ_PRESET,BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,null);
                 return;
             }
             sipCommander.presetQuery(device,channelId,null);
         }catch (Exception e){
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ptz服务", "预置位查询失败", msgId);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_PTZ_PRESET,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,null);
         }
 
     }
@@ -327,17 +327,17 @@ public class PtzServiceImpl implements IPtzService {
             //查询通道数据
             Device device = deviceService.getDevice(dragZoomControlReq.getDeviceId());
             if(ObjectUtils.isEmpty(device)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
                 return;
             }
             //查询通道
             DeviceChannel channelOne = deviceChannelService.getOne(dragZoomControlReq.getDeviceId(), dragZoomControlReq.getChannelId());
             if(ObjectUtils.isEmpty(channelOne)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,null);
                 return;
             }
             if(ObjectUtils.isEmpty(dragRoomTypeEnumOne)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.PTZ_OPERATION_TYPE_NOT_FOUND,null);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.PTZ_OPERATION_TYPE_NOT_FOUND,null);
                 return;
             }
             StringBuffer cmdXml = null;
@@ -375,14 +375,14 @@ public class PtzServiceImpl implements IPtzService {
                     break;
                 default:
                     //信令操作异常
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.PTZ_OPERATION_TYPE_NOT_FOUND,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.PTZ_OPERATION_TYPE_NOT_FOUND,null);
                     break;
 
             }
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.SUCCESS,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,null);
         }catch (Exception e){
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "拉框服务", "拉框服务操作失败", dragZoomControlReq);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_3D_OPERATION,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,null);
         }
     }
 }

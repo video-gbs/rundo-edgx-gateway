@@ -27,12 +27,12 @@ public class ChannelTalkMsgServiceImpl implements InitializingBean, IMsgProcesso
     @Override
     public void process(CommonMqDto commonMqDto) {
         JSONObject dataJson = (JSONObject) commonMqDto.getData();
-        //实际的请求参数
-        JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
         //设备信息同步  获取设备信息
         String channelId = dataJson.getString("channelId");
         String deviceId = dataJson.getString("deviceId");
-        deviceChannelService.channelTalk(deviceId,channelId, commonMqDto.getMsgId());
+        String dispacherUrl = dataJson.getString("dispatchUrl");
+
+        deviceChannelService.channelTalk(deviceId,channelId, dispacherUrl,commonMqDto.getMsgId());
     }
 
 

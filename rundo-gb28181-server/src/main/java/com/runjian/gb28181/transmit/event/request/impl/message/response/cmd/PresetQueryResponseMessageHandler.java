@@ -95,7 +95,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
                     presetQuerySipReqList.add(presetQuerySipReq);
                 }
             }
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_PTZ_PRESET, BusinessErrorEnums.SUCCESS,presetQuerySipReqList);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey, BusinessErrorEnums.SUCCESS,presetQuerySipReqList);
             try {
                 responseAck(request, Response.OK);
             } catch (InvalidArgumentException | ParseException | SipException e) {

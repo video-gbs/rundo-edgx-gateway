@@ -122,7 +122,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                 storager.cleanChannelsForDevice(take.getDevice().getDeviceId());
                 catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
 
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CATALOG,BusinessErrorEnums.SUCCESS,new CatalogMqSyncDto());
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,new CatalogMqSyncDto());
             } else {
                 Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
                 if (deviceListIterator != null) {
@@ -163,7 +163,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     catalogMqSyncDto.setChannelDetailList(deviceChannels);
                                     //更新redis
 
-                                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CATALOG,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
+                                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
                                     catalogDataCatch.setChannelSyncEnd(catalogData.getDevice().getDeviceId(), null,0);
                                     return;
                                 }
@@ -188,7 +188,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         catalogMqSyncDto.setTotal(sumNum);
                         catalogMqSyncDto.setNum(sumNum);
                         catalogMqSyncDto.setChannelDetailList(deviceChannelsNew);
-                        redisCatchStorageService.editBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CATALOG,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
+                        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
                         //该结束状态用于删除之前的本地缓存数据
                         catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
                     }

@@ -2,6 +2,7 @@ package com.runjian.media.dispatcher.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +26,9 @@ public interface IOnlineStreamsService {
      * @return
      */
     OnlineStreamsEntity getOneBystreamId(String streamId);
+
+    OnlineStreamsEntity streamByChannelInfo(String deviceId,String channelId,Integer mediaType);
+
     /**
      * 移除流列表
      * @param streamId

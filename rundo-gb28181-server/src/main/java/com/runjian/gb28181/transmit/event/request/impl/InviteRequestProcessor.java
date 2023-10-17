@@ -1,6 +1,8 @@
 package com.runjian.gb28181.transmit.event.request.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.utils.RestTemplateUtil;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.transmit.SIPProcessorObserver;
 import com.runjian.gb28181.transmit.event.request.ISIPRequestProcessor;
@@ -13,7 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import javax.sdp.*;
 import javax.sip.InvalidArgumentException;
@@ -41,6 +45,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     @Autowired
     private IDeviceService deviceService;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Value("${mdeia-api-uri-list.stream-rtpSendInfo}")
+    private String rtpSendInfoApi;
     @Override
     public void afterPropertiesSet() throws Exception {
         // 添加消息处理的订阅
@@ -117,7 +126,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 Vector mediaDescriptions = sdp.getMediaDescriptions(true);
                 // 查看是否支持PS 负载96
                 int port = -1;
-                //协议类型0 为udp
+                //协议类型0 tcp被动 1 udp方式 2tcp主动
                 int protocalKind = 0;
                 for (int i = 0; i < mediaDescriptions.size(); i++) {
                     MediaDescription mediaDescription = (MediaDescription) mediaDescriptions.get(i);
@@ -132,13 +141,14 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             String setup = mediaDescription.getAttribute("setup");
                             if (setup != null) {
                                 if ("active".equals(setup)) {
-                                    protocalKind = 1;
-                                } else if ("passive".equals(setup)) {
                                     protocalKind = 2;
+                                } else if ("passive".equals(setup)) {
+                                    protocalKind = 0;
                                 }
                             }
                         }else {
-
+                            //udp方式
+                            protocalKind = 1;
                         }
                         break;
                     }
@@ -153,6 +163,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }
                     return null;
                 }
+                //获取流媒体的转发信息
+//                String url = String.format("http://%s:%s%s",  mediaServerEntity.getIp(), mediaServerEntity.getHttpPort(), rtpSendInfoApi);
+////                String result = RestTemplateUtil.postString(url, JSON.toJSONString(mediaServerConfigDto),makeTokenHeader(mediaServerEntity.getSecret()), restTemplate);
+////                if(){
+////
+////                }
                 String username = sdp.getOrigin().getUsername();
                 String addressStr = sdp.getOrigin().getAddress();
                 logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "SIP命令INVITE请求处理", "设备请求语音流", "设备:" + username + " 地址：" + addressStr + " ssrc：" + ssrc);

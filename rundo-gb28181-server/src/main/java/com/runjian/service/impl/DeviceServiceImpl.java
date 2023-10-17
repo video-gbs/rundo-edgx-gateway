@@ -106,7 +106,7 @@ public class DeviceServiceImpl implements IDeviceService {
                     sipCommander.deviceInfoQuery(device);
                 }catch (Exception e){
                     log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.REGISTER,BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
+                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
 
                 }
             }else {
@@ -115,7 +115,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 deviceMapper.update(device);
                 //发送mq设备上线信息
 
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.REGISTER,BusinessErrorEnums.SUCCESS,device);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,device);
 
             }
         }catch (Exception e){
@@ -163,7 +163,7 @@ public class DeviceServiceImpl implements IDeviceService {
         //发送mq设备上线信息
         DeviceSendDto deviceSendDto = new DeviceSendDto();
         BeanUtil.copyProperties(device,deviceSendDto);
-        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.REGISTER,BusinessErrorEnums.SUCCESS,deviceSendDto);
+        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,deviceSendDto);
 
     }
 
@@ -193,7 +193,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 catalogDataCatch.setChannelSyncEnd(device.getDeviceId(), errorMsg, BusinessErrorEnums.SIP_CATALOG_EXCEPTION.getErrCode());
             });
         }catch (Exception e){
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CATALOG,BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SIP_SEND_EXCEPTION,null);
 
         }
 
@@ -258,23 +258,23 @@ public class DeviceServiceImpl implements IDeviceService {
             }
             Device deviceDto = getDevice(deviceId);
             if(ObjectUtils.isEmpty(deviceDto)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE,BusinessErrorEnums.SUCCESS,true);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,true);
                 return ;
             }
             if(deviceDto.getOnline() == 0){
                 //可以删除
                 deviceMapper.remove(deviceId);
                 deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE,BusinessErrorEnums.SUCCESS,true);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,true);
 
             }else {
                 //不要删除
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE,BusinessErrorEnums.SUCCESS,false);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,false);
             }
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,null);
 
         }
 
@@ -296,18 +296,18 @@ public class DeviceServiceImpl implements IDeviceService {
             }
             Device deviceDto = getDevice(deviceId);
             if(ObjectUtils.isEmpty(deviceDto)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_SOFT,BusinessErrorEnums.SUCCESS,true);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,true);
                 return ;
             }
             //可以删除
             deviceMapper.softRemove(deviceId);
 //            deviceChannelMapper.softDeleteByDeviceId(deviceId);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_SOFT,BusinessErrorEnums.SUCCESS,true);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,true);
 
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_SOFT,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,null);
 
         }
     }
@@ -318,7 +318,7 @@ public class DeviceServiceImpl implements IDeviceService {
         String businessSceneKey = GatewayBusinessMsgType.DEVICE_DELETE_RECOVER.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+deviceId;
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息删除恢复请求",deviceId+"|"+msgId);
         try {
-            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_SOFT,msgId);
+            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_RECOVER,msgId);
             //尝试获取锁
             if(!b){
                 //加锁失败，不继续执行
@@ -327,18 +327,18 @@ public class DeviceServiceImpl implements IDeviceService {
             }
             Device deviceDto = getDevice(deviceId);
             if(ObjectUtils.isEmpty(deviceDto)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_RECOVER,BusinessErrorEnums.SUCCESS,true);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,true);
                 return ;
             }
             //可以删除
             deviceMapper.softRecover(deviceId);
             deviceChannelMapper.softDeleteRecoverByDeviceId(deviceId);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_RECOVER,BusinessErrorEnums.SUCCESS,true);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,true);
 
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "[命令发送失败] 查询设备信息", e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_RECOVER,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,null);
 
         }
     }
@@ -356,11 +356,11 @@ public class DeviceServiceImpl implements IDeviceService {
                 return;
             }
             List<DeviceSendDto> allDeviceList = deviceMapper.getAllDeviceList();
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_TOTAL_SYNC,BusinessErrorEnums.SUCCESS,allDeviceList);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,allDeviceList);
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "设备服务", "设备全量数据同步失败", e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_TOTAL_SYNC,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,null);
 
         }
     }

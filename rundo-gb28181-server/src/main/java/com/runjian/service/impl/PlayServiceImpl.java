@@ -128,7 +128,7 @@ public class PlayServiceImpl implements IplayService {
                 //todo 判断ssrc是否匹配
 
                 //传递ssrc进去，出现推流不成功的异常，进行相关逻辑处理
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY,BusinessErrorEnums.COMMDER_SEND_SUCESS,playReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.COMMDER_SEND_SUCESS,playReq);
                 streamSession.putSsrcTransaction(device.getDeviceId(), playReq.getChannelId(), "play", playReq.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.play,playReq.getDispatchUrl());
             },error->{
                 //失败业务处理
@@ -136,12 +136,12 @@ public class PlayServiceImpl implements IplayService {
                 //关闭推流端口
                 streamSession.removeSsrcTransaction(device.getDeviceId(), playReq.getChannelId(), playReq.getStreamId());
 
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY,BusinessErrorEnums.SIP_SEND_EXCEPTION,playReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SIP_SEND_EXCEPTION,playReq);
             });
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "点播服务", "点播失败", playReq,e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY,BusinessErrorEnums.UNKNOWN_ERROR,playReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,playReq);
         }
 
 
@@ -173,7 +173,7 @@ public class PlayServiceImpl implements IplayService {
                 //todo 判断ssrc是否匹配
 
                 //传递ssrc进去，出现推流不成功的异常，进行相关逻辑处理
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY_BACK,BusinessErrorEnums.COMMDER_SEND_SUCESS,playBackReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.COMMDER_SEND_SUCESS,playBackReq);
                 streamSession.putSsrcTransaction(device.getDeviceId(), playBackReq.getChannelId(), sipSender.getNewCallIdHeader(device.getTransport()).getCallId(), playBackReq.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.playback,playBackReq.getDispatchUrl());
             },error->{
                 //失败业务处理
@@ -181,11 +181,11 @@ public class PlayServiceImpl implements IplayService {
                 //剔除缓存
                 streamSession.removeSsrcTransaction(device.getDeviceId(), playBackReq.getChannelId(), playBackReq.getStreamId());
 
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY_BACK,BusinessErrorEnums.SIP_SEND_EXCEPTION,playBackReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SIP_SEND_EXCEPTION,playBackReq);
             });
         }catch (Exception e){
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播失败", playBackReq);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY_BACK,BusinessErrorEnums.UNKNOWN_ERROR,playBackReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,playBackReq);
         }
     }
 
@@ -202,17 +202,17 @@ public class PlayServiceImpl implements IplayService {
         //参数校验
         DeviceChannel deviceChannel = deviceChannelService.getOne(playReq.getDeviceId(), playReq.getChannelId());
         if(ObjectUtils.isEmpty(deviceChannel)){
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.DB_NOT_FOUND,playReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_NOT_FOUND,playReq);
             return null;
         }
         if(deviceChannel.getStatus() == 0){
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.CHANNEL_OFFLINE,playReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.CHANNEL_OFFLINE,playReq);
             return null;
         }
         //判断设备是否存在
         Device device = deviceService.getDevice(playReq.getDeviceId());
         if(ObjectUtils.isEmpty(device)){
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,playReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,playReq);
             return null;
 
         }
@@ -232,25 +232,7 @@ public class PlayServiceImpl implements IplayService {
     public void onStreamChanges(StreamInfo streamInfo) {
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "流注册事件", streamInfo);
 
-//        //获取点播的ssrc信息值
-//        SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamInfo.getStreamId());
-//        if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
-//            //拼接streamd的流返回值 封装返回请求体
-//            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "流注册失败，当前点播信息的缓存获取异常", streamInfo);
-//
-//            return;
-//        }
-//        String businessSceneKey = null;
-//        //判断类型
-//        if(streamSessionSsrcTransaction.getType().equals(VideoStreamSessionManager.SessionType.play)){
-//            businessSceneKey = GatewayMsgType.PLAY.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamSessionSsrcTransaction.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+streamSessionSsrcTransaction.getChannelId();
-//            //点播成功
-//            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.SUCCESS,streamInfo);
-//        }else if(streamSessionSsrcTransaction.getType().equals(VideoStreamSessionManager.SessionType.playback)){
-//            businessSceneKey = GatewayMsgType.PLAY_BACK.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamSessionSsrcTransaction.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+streamSessionSsrcTransaction.getChannelId();
-//            //点播成功
-//            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY_BACK,BusinessErrorEnums.SUCCESS,streamInfo);
-//        }
+
 
 
     }

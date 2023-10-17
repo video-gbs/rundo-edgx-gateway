@@ -4,6 +4,7 @@ import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.constant.GatewayBusinessMsgType;
+import com.runjian.common.constant.StreamBusinessMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.CircleArray;
 import com.runjian.conf.SsrcConfig;
@@ -51,20 +52,17 @@ public interface IRedisCatchStorageService {
     /**
      * 操作业务场景的redis修改
      * @param businessSceneKey
-     * @param GatewayBusinessMsgType
      * @param data
      */
-    void editBusinessSceneKey(String businessSceneKey, GatewayBusinessMsgType GatewayBusinessMsgType, BusinessErrorEnums businessErrorEnums, Object data);
+    void editBusinessSceneKey(String businessSceneKey, BusinessErrorEnums businessErrorEnums, Object data);
+
 
     /**
-     * 新增业务缓存
+     * redis的新增
      * @param businessSceneKey
-     * @param GatewayBusinessMsgType
+     * @param msgType
      * @param msgId
      */
-    Boolean addBusinessSceneKey(String businessSceneKey, GatewayBusinessMsgType GatewayBusinessMsgType, String msgId);
-
-
-    Boolean businessSceneLogDb(GatewayBusinessSceneResp businessSceneResp, List<String> msgStrings);
+    Boolean addBusinessSceneKey(String businessSceneKey, GatewayBusinessMsgType msgType, String msgId);
 
 }

@@ -10,9 +10,9 @@ public class BusinessSceneConstants {
      */
     public static final String  GATEWAY_BUSINESS_KEY= "gateway_business_keys:";
     public static final String  GATEWAY_BUSINESS_LISTS= "gateway_business_lists:";
-
+    public static final String  GATEWAY_BUSINESS_LOCK_KEY = "GATEWAY_BUSINESS_LOCK_KEY:";
     /**
-     * 调度服务 缓存key的全部场景值
+     * 调zlm度服务 缓存key的全部场景值
      */
     public static final String  STREAM_BUSINESS_KEY= "stream_business_keys:";
     public static final String  STREAM_BUSINESS_LISTS= "stream_business_lists:";

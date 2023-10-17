@@ -59,6 +59,11 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
     }
 
     @Override
+    public OnlineStreamsEntity streamByChannelInfo(String deviceId, String channelId, Integer mediaType) {
+        return onlineStreamsMapper.selectOne(deviceId, channelId, mediaType);
+    }
+
+    @Override
     public int remove(String streamId) {
         return onlineStreamsMapper.deleteBystreamId(streamId);
     }
