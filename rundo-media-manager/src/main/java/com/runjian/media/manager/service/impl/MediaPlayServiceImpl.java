@@ -285,24 +285,24 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
     }
 
     @Override
-    public void streamNotifyServer(GatewayStreamNotify gatewayStreamNotify) {
+    public void streamNotifyServer(GatewayBusinessSceneResp gatewayStreamNotify) {
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"点播通知", JSON.toJSONString(gatewayStreamNotify));
-        String streamId = gatewayStreamNotify.getStreamId();
-        GatewayBusinessSceneResp businessSceneResp = gatewayStreamNotify.getBusinessSceneResp();
+        String businessSceneKey = gatewayStreamNotify.getBusinessSceneKey();
+        String streamId = businessSceneKey.substring(businessSceneKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY) + 1);
+        GatewayBusinessSceneResp businessSceneResp = (GatewayBusinessSceneResp)gatewayStreamNotify.getData();
         //判断点播回放
         GatewayBusinessMsgType businessMsgType = businessSceneResp.getGatewayMsgType();
-        String businessKey;
         if(businessMsgType.equals(GatewayBusinessMsgType.PLAY)){
             //直播
-            businessKey = StreamBusinessMsgType.STREAM_LIVE_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
+            businessSceneKey = StreamBusinessMsgType.STREAM_LIVE_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         }else {
-            businessKey = StreamBusinessMsgType.STREAM_RECORD_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
+            businessSceneKey = StreamBusinessMsgType.STREAM_RECORD_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
         }
         BusinessErrorEnums oneBusinessNum = BusinessErrorEnums.getOneBusinessNum(businessSceneResp.getCode());
         if(oneBusinessNum.equals(BusinessErrorEnums.COMMDER_SEND_SUCESS) || oneBusinessNum.equals(BusinessErrorEnums.SUCCESS)){
             //网关正常通知
         }else {
-            redisCatchStorageService.editBusinessSceneKey(businessKey,oneBusinessNum,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,oneBusinessNum,null);
         }
 
     }

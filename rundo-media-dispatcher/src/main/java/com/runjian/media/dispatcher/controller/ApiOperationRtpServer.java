@@ -6,6 +6,7 @@ import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.config.response.CommonResponse;
+import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.validator.ValidatorService;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 import com.runjian.media.dispatcher.service.IMediaPlayService;
@@ -45,7 +46,7 @@ public class ApiOperationRtpServer {
      *  查看流是否存在
      */
     @PostMapping(value = "/media/streamNotify",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    public CommonResponse<Boolean> streamNotifyServer(@RequestBody GatewayStreamNotify gatewayStreamNotify){//获取zlm流媒体配置
+    public CommonResponse<Boolean> streamNotifyServer(@RequestBody GatewayBusinessSceneResp gatewayStreamNotify){//获取zlm流媒体配置
         validatorService.validateRequest(gatewayStreamNotify);
         mediaPlayService.streamNotifyServer(gatewayStreamNotify);
         return CommonResponse.success();

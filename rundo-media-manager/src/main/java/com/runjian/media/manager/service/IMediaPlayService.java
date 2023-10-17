@@ -10,6 +10,7 @@ import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamMediaInfoResp;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.config.response.StreamBusinessSceneResp;
 import com.runjian.media.manager.dto.dto.hook.OnPublishDto;
 import com.runjian.media.manager.dto.dto.hook.StreamChangeDto;
@@ -50,7 +51,7 @@ public interface IMediaPlayService {
      *
      * @param gatewayStreamNotify
      */
-    void streamNotifyServer(GatewayStreamNotify gatewayStreamNotify);
+    void streamNotifyServer(GatewayBusinessSceneResp gatewayStreamNotify);
 
     /**
      * sip成功，但是推流失败的处理

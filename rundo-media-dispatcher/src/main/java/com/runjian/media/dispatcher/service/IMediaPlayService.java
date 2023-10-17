@@ -11,6 +11,7 @@ import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayReq;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.config.response.StreamBusinessSceneResp;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.VideoManagerConstants;
@@ -55,7 +56,7 @@ public interface IMediaPlayService {
      *
      * @param gatewayStreamNotify
      */
-    void streamNotifyServer(GatewayStreamNotify gatewayStreamNotify);
+    void streamNotifyServer(GatewayBusinessSceneResp gatewayStreamNotify);
 
     /**
      * sip成功，但是推流失败的处理
