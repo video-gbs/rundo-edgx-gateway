@@ -13,7 +13,7 @@ import javax.validation.constraints.NotNull;
 public class GatewayStreamNotify {
 
     @NotNull(message= "流id不得为空")
-    String StreamId;
+    String streamId;
 
     @NotNull(message="业务dto不得为空")
     GatewayBusinessSceneResp businessSceneResp;

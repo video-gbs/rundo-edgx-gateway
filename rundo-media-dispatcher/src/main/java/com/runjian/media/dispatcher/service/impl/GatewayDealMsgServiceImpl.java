@@ -21,6 +21,7 @@ import com.runjian.media.dispatcher.service.IGatewayDealMsgService;
 import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -36,6 +37,11 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
     @Autowired
     GatewayTaskMapper gatewayTaskMapper;
 
+    @Autowired
+    RabbitMqSender rabbitMqSender;
+
+    @Value("${mediaApi.callBackStreamNotify}")
+    private String callBackStreamNotify;
     @Override
     public void sendGatewayPlayMsg(SsrcInfo playCommonSsrcInfo, MediaPlayReq playReq) {
         PlayReq gatewayPlayReq = new PlayReq();
@@ -43,26 +49,13 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
         gatewayPlayReq.setDeviceId(playReq.getDeviceId());
         gatewayPlayReq.setChannelId(playReq.getChannelId());
         gatewayPlayReq.setStreamMode(playReq.getStreamMode());
-        gatewayPlayReq.setDispatchUrl(playReq.getDispatchUrl());
+        gatewayPlayReq.setDispatchUrl(playReq.getDispatchUrl()+callBackStreamNotify);
         gatewayPlayReq.setStreamId(playReq.getStreamId());
         //将ssrcinfo通知网关
         CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayBusinessMsgType.PLAY.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,playReq.getMsgId());
         businessMqInfo.setData(gatewayPlayReq);
         rabbitMqSender.sendMsgByExchange(playReq.getGatewayMqExchange(), playReq.getGatewayMqRouteKey(), UuidUtil.toUuid(),businessMqInfo,true);
         //存储网关点播请求
-        //消息链路的数据库记录
-//        GatewayTask gatewayTask = new GatewayTask();
-//        gatewayTask.setMsgId(playReq.getMsgId());
-//        gatewayTask.setBusinessKey(GatewayBusinessMsgType.PLAY+playReq.getStreamId());
-//        gatewayTask.setCode(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrCode());
-//
-//        gatewayTask.setMsg(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrMsg());
-//        gatewayTask.setMsgType(GatewayBusinessMsgType.PLAY.getTypeName());
-//        gatewayTask.setStatus(0);
-//        gatewayTask.setSourceType(1);
-//        gatewayTask.setThreadId(Thread.currentThread().getId());
-//        gatewayTaskMapper.add(gatewayTask);
-
     }
 
     @Override
@@ -74,24 +67,12 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
         gatewayPlayBackReq.setDeviceId(mediaPlayBackReq.getDeviceId());
         gatewayPlayBackReq.setChannelId(mediaPlayBackReq.getChannelId());
         gatewayPlayBackReq.setStreamMode(mediaPlayBackReq.getStreamMode());
-        gatewayPlayBackReq.setDispatchUrl(mediaPlayBackReq.getDispatchUrl());
+        gatewayPlayBackReq.setDispatchUrl(mediaPlayBackReq.getDispatchUrl()+callBackStreamNotify);
         gatewayPlayBackReq.setStreamId(mediaPlayBackReq.getStreamId());
         gatewayPlayBackReq.setStartTime(mediaPlayBackReq.getStartTime());
         gatewayPlayBackReq.setEndTime(mediaPlayBackReq.getEndTime());
         businessMqInfo.setData(gatewayPlayBackReq);
         rabbitMqSender.sendMsgByExchange(mediaPlayBackReq.getGatewayMqExchange(), mediaPlayBackReq.getGatewayMqRouteKey(), UuidUtil.toUuid(),businessMqInfo,true);
-//消息链路的数据库记录
-//        GatewayTask gatewayTask = new GatewayTask();
-//        gatewayTask.setMsgId(mediaPlayBackReq.getMsgId());
-//        gatewayTask.setBusinessKey(GatewayBusinessMsgType.PLAY_BACK+mediaPlayBackReq.getStreamId());
-//        gatewayTask.setCode(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrCode());
-//
-//        gatewayTask.setMsg(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrMsg());
-//        gatewayTask.setMsgType(GatewayBusinessMsgType.PLAY_BACK.getTypeName());
-//        gatewayTask.setStatus(0);
-//        gatewayTask.setSourceType(1);
-//        gatewayTask.setThreadId(Thread.currentThread().getId());
-//        gatewayTaskMapper.add(gatewayTask);
     }
 
     @Override
@@ -103,15 +84,5 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
         byeMqInfo.setData(streamPlayDto);
         rabbitMqSender.sendMsgByExchange(oneBystreamId.getMqExchange(), oneBystreamId.getMqRouteKey(), UuidUtil.toUuid(),byeMqInfo,true);
         //消息链路的数据库记录
-//        GatewayTask gatewayTask = new GatewayTask();
-//        gatewayTask.setMsgId(msgId);
-//        gatewayTask.setBusinessKey(GatewayBusinessMsgType.STOP_PLAY+streamId);
-//        gatewayTask.setCode(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrCode());
-//        gatewayTask.setMsg(BusinessErrorEnums.BUSINESS_SCENE_RUNNING.getErrMsg());
-//        gatewayTask.setMsgType(GatewayBusinessMsgType.STOP_PLAY.getTypeName());
-//        gatewayTask.setStatus(0);
-//        gatewayTask.setSourceType(1);
-//        gatewayTask.setThreadId(Thread.currentThread().getId());
-//        gatewayTaskMapper.add(gatewayTask);
     }
 }

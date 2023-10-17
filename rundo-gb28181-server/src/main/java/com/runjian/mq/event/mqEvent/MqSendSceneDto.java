@@ -13,7 +13,6 @@ import lombok.Data;
 
 public class MqSendSceneDto {
 
-    GatewayBusinessSceneResp streamBusinessSceneResp;
+    GatewayBusinessSceneResp businessSceneResp;
     BusinessErrorEnums businessErrorEnums;
-    Object data;
 }

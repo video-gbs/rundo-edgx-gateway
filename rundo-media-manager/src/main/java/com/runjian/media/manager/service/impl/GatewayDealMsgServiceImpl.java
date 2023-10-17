@@ -16,6 +16,7 @@ import com.runjian.media.manager.service.IGatewayDealMsgService;
 import com.runjian.media.manager.service.IRedisCatchStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,6 +29,8 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
     @Autowired
     RabbitMqSender rabbitMqSender;
 
+    @Value("${mediaApi.callBackStreamNotify}")
+    private String callBackStreamNotify;
 
     @Override
     public void sendGatewayPlayMsg(SsrcInfo playCommonSsrcInfo, MediaPlayReq playReq) {
@@ -36,7 +39,7 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
         gatewayPlayReq.setDeviceId(playReq.getDeviceId());
         gatewayPlayReq.setChannelId(playReq.getChannelId());
         gatewayPlayReq.setStreamMode(playReq.getStreamMode());
-        gatewayPlayReq.setDispatchUrl(playReq.getDispatchUrl());
+        gatewayPlayReq.setDispatchUrl(playReq.getDispatchUrl()+callBackStreamNotify);
         gatewayPlayReq.setStreamId(playReq.getStreamId());
         //将ssrcinfo通知网关
         CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayBusinessMsgType.PLAY.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,playReq.getMsgId());
@@ -55,7 +58,7 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
         gatewayPlayBackReq.setDeviceId(mediaPlayBackReq.getDeviceId());
         gatewayPlayBackReq.setChannelId(mediaPlayBackReq.getChannelId());
         gatewayPlayBackReq.setStreamMode(mediaPlayBackReq.getStreamMode());
-        gatewayPlayBackReq.setDispatchUrl(mediaPlayBackReq.getDispatchUrl());
+        gatewayPlayBackReq.setDispatchUrl(mediaPlayBackReq.getDispatchUrl()+callBackStreamNotify);
         gatewayPlayBackReq.setStreamId(mediaPlayBackReq.getStreamId());
         gatewayPlayBackReq.setStartTime(mediaPlayBackReq.getStartTime());
         gatewayPlayBackReq.setEndTime(mediaPlayBackReq.getEndTime());

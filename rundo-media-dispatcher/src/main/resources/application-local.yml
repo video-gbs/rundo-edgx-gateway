@@ -179,4 +179,6 @@ user-settings:
     # 设备录像下载最大时间周期 30分钟
     device-download-time-cycle: 1800
 
-
+mediaApi:
+    #网关回调通知地址:
+    callBackStreamNotify: "/api/media/streamNotify"

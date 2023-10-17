@@ -94,7 +94,7 @@ public class PtzServiceImpl implements IPtzService {
         String businessSceneKey = GatewayBusinessMsgType.PTZ_CONTROL.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceControlReq.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+deviceControlReq.getChannelId();
         try {
             //阻塞型,默认是30s无返回参数
-            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL,deviceControlReq.getMsgId());
+            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL,deviceControlReq.getMsgId(),0);
             if(!b){
                 //加锁失败，不继续执行
                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求,加锁失败，合并全局的请求",deviceControlReq.getMsgId());
@@ -134,7 +134,7 @@ public class PtzServiceImpl implements IPtzService {
         String businessSceneKey = GatewayBusinessMsgType.PTZ_CONTROL.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+channelPtzControlReq.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+channelPtzControlReq.getChannelId()+BusinessSceneConstants.SCENE_STREAM_KEY+channelPtzControlReq.getCmdCode();
         try {
             //阻塞型,默认是30s无返回参数
-            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL,msgId);
+            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PTZ_CONTROL,msgId,0);
             //尝试获取锁
             if(!b){
                 //加锁失败，不继续执行
@@ -282,7 +282,7 @@ public class PtzServiceImpl implements IPtzService {
 
         try {
             //阻塞型,默认是30s无返回参数
-            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_PTZ_PRESET, msgId);
+            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_PTZ_PRESET, msgId,0);
             if (!b) {
                 //加锁失败，不继续执行
                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE, "设备信息同步请求,加锁失败，合并全局的请求", msgId);
@@ -317,7 +317,7 @@ public class PtzServiceImpl implements IPtzService {
 
         try {
             //阻塞型,默认是30s无返回参数
-            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_3D_OPERATION, msgId);
+            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_3D_OPERATION, msgId,0);
             if (!b) {
                 //加锁失败，不继续执行
                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE, "设备信息同步请求,加锁失败，合并全局的请求", msgId);

@@ -36,8 +36,7 @@ public class PlayMsgServiceImpl implements InitializingBean, IMsgProcessorServic
     @Autowired
     GatewayBusinessAsyncSender gatewayBusinessAsyncSender;
 
-    @Value("${mdeia-api-uri-list.stream-notify}")
-    private String streamNotifyApi;
+
 
     @Autowired
     RestTemplate restTemplate;
@@ -79,7 +78,7 @@ public class PlayMsgServiceImpl implements InitializingBean, IMsgProcessorServic
         gatewayStreamNotify.setBusinessSceneResp(businessSceneResp);
         //获取实体中的设备数据 转换为playreq
         //设备信息同步  获取设备信息
-        CommonResponse<Boolean> booleanCommonResponse = RestTemplateUtil.postStreamNotifyRespons(playReq.getDispatchUrl() + streamNotifyApi, gatewayStreamNotify, restTemplate);
+        CommonResponse<Boolean> booleanCommonResponse = RestTemplateUtil.postStreamNotifyRespons(playReq.getDispatchUrl(), gatewayStreamNotify, restTemplate);
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", booleanCommonResponse);
 
     }

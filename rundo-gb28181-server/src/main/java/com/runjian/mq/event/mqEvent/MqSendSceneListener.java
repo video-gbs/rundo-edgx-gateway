@@ -29,7 +29,7 @@ public class MqSendSceneListener implements ApplicationListener<MqSendSceneEvent
     public void onApplicationEvent(MqSendSceneEvent event) {
         MqSendSceneDto mqSendScene = event.getMqSendSceneDto();
         try {
-            businessAsyncSender.sendforAllScene(mqSendScene.getStreamBusinessSceneResp(),mqSendScene.getBusinessErrorEnums(),mqSendScene.getData());
+            businessAsyncSender.sendforAllScene(mqSendScene.getBusinessSceneResp(),mqSendScene.getBusinessErrorEnums());
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE,"处理网关业务状态","数据执行失败",mqSendScene,e);

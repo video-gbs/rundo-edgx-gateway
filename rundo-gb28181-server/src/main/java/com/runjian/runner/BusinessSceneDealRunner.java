@@ -80,7 +80,7 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                         Object delayQueue = redisDelayQueuesUtil.getDelayQueue(businessKey);
                         if(!ObjectUtils.isEmpty(delayQueue)){
                             GatewayBusinessSceneResp businessSceneResp = (GatewayBusinessSceneResp) delayQueue;
-                            gatewayBusinessAsyncSender.sendforAllScene(businessSceneResp, BusinessErrorEnums.MSG_OPERATION_TIMEOUT,null);
+                            gatewayBusinessAsyncSender.sendforAllScene(businessSceneResp, BusinessErrorEnums.MSG_OPERATION_TIMEOUT);
                             RLock lock = redissonClient.getLock( BusinessSceneConstants.GATEWAY_BUSINESS_LOCK_KEY+businessSceneResp.getBusinessSceneKey());
                             if(!ObjectUtils.isEmpty(lock)){
                                 lock.unlockAsync(businessSceneResp.getThreadId());

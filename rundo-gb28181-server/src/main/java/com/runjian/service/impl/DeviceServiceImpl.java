@@ -92,7 +92,7 @@ public class DeviceServiceImpl implements IDeviceService {
         // 第一次上线 或则设备之前是离线状态--进行通道同步和设备信息查询
         String businessSceneKey = GatewayBusinessMsgType.REGISTER.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
         try {
-            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.REGISTER,null);
+            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.REGISTER,null,0);
             if(!b){
                 //加锁失败，不继续执行
                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备上线,加锁失败，合并全局的请求",device);
@@ -138,7 +138,7 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void offline(Device device) {
         String businessSceneKey = GatewayBusinessMsgType.REGISTER.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+device.getDeviceId();
-        boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.REGISTER, null);
+        boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.REGISTER, null,0);
         if (!b) {
             //加锁失败，不继续执行
             log.info(LogTemplate.PROCESS_LOG_TEMPLATE, "设备离线,加锁失败，合并全局的请求", device);
@@ -179,7 +179,7 @@ public class DeviceServiceImpl implements IDeviceService {
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"通道信息同步请求",device);
         try {
             //阻塞型,默认是30s无返回参数
-            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CATALOG,msgId);
+            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CATALOG,msgId,0);
             if(!b){
                 //加锁失败，不继续执行
                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息同步请求,加锁失败，合并全局的请求",msgId);
@@ -249,7 +249,7 @@ public class DeviceServiceImpl implements IDeviceService {
         String businessSceneKey = GatewayBusinessMsgType.DEVICE_DELETE.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+deviceId;
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息删除请求",deviceId+"|"+msgId);
         try {
-            boolean b =  redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE,msgId);
+            boolean b =  redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE,msgId,0);
             //尝试获取锁
             if(!b){
                 //加锁失败，不继续执行
@@ -287,7 +287,7 @@ public class DeviceServiceImpl implements IDeviceService {
         String businessSceneKey = GatewayBusinessMsgType.DEVICE_DELETE_SOFT.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+deviceId;
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息删除请求",deviceId+"|"+msgId);
         try {
-            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_SOFT,msgId);
+            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_SOFT,msgId,0);
             //尝试获取锁
             if(!b){
                 //加锁失败，不继续执行
@@ -318,7 +318,7 @@ public class DeviceServiceImpl implements IDeviceService {
         String businessSceneKey = GatewayBusinessMsgType.DEVICE_DELETE_RECOVER.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+deviceId;
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备信息删除恢复请求",deviceId+"|"+msgId);
         try {
-            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_RECOVER,msgId);
+            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_DELETE_RECOVER,msgId,0);
             //尝试获取锁
             if(!b){
                 //加锁失败，不继续执行
@@ -348,7 +348,7 @@ public class DeviceServiceImpl implements IDeviceService {
         String businessSceneKey = GatewayBusinessMsgType.DEVICE_TOTAL_SYNC.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY;
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备全量数据同步",msgId);
         try {
-            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_TOTAL_SYNC,msgId);
+            boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_TOTAL_SYNC,msgId,0);
             //阻塞型,默认是30s无返回参数
             if(!b){
                 //加锁失败，不继续执行
