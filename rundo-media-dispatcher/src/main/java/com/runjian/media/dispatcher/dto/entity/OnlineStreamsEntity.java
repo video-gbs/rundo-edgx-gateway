@@ -87,4 +87,8 @@ public class OnlineStreamsEntity {
      * 0点播，1.自定义推流
      */
     private Integer streamType;
+    /**
+     * 视频流0，音频流1
+     */
+    private Integer mediaType;
 }

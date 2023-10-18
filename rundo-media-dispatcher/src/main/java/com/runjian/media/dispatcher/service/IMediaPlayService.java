@@ -4,10 +4,7 @@ package com.runjian.media.dispatcher.service;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gb28181Media.ZlmStreamDto;
-import com.runjian.common.commonDto.Gb28181Media.req.CustomPlayReq;
-import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
-import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayBackReq;
-import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayReq;
+import com.runjian.common.commonDto.Gb28181Media.req.*;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.response.BusinessSceneResp;
@@ -132,5 +129,12 @@ public interface IMediaPlayService {
      * @return
      */
     Boolean onStreamNoneReader(String app, String streamId);
+
+    /**
+     * webrtc推流返沪信息
+     * @param webRtcTalkReq
+     * @return
+     */
+    String webRtcTalk(WebRTCTalkReq webRtcTalkReq);
 
 }

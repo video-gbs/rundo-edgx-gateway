@@ -1,5 +1,6 @@
 package com.runjian.media.dispatcher.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.dto.GatewayTask;
 import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
@@ -7,6 +8,7 @@ import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayBackReq;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayReq;
+import com.runjian.common.commonDto.Gb28181Media.req.WebRTCTalkReq;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamPlayDto;
 import com.runjian.common.config.exception.BusinessErrorEnums;
@@ -39,6 +41,11 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
 
     @Value("${mediaApi.callBackStreamNotify}")
     private String callBackStreamNotify;
+
+    @Value("${mediaApi.streamRtpSendInfo}")
+    private String streamRtpSendInfoApi;
+
+
     @Override
     public void sendGatewayPlayMsg(SsrcInfo playCommonSsrcInfo, MediaPlayReq playReq) {
         PlayReq gatewayPlayReq = new PlayReq();
@@ -70,6 +77,18 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
         gatewayPlayBackReq.setEndTime(mediaPlayBackReq.getEndTime());
         businessMqInfo.setData(gatewayPlayBackReq);
         rabbitMqSender.sendMsgByExchange(mediaPlayBackReq.getGatewayMqExchange(), mediaPlayBackReq.getGatewayMqRouteKey(), UuidUtil.toUuid(),businessMqInfo,true);
+    }
+
+    @Override
+    public void sendGatewayWebrtcTalkMsg(WebRTCTalkReq webRtcTalkReq) {
+        CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayBusinessMsgType.PLAY_BACK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,webRtcTalkReq.getMsgId());
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("deviceId",webRtcTalkReq.getDeviceId());
+        jsonObject.put("channelId",webRtcTalkReq.getChannelId());
+        jsonObject.put("dispatchUrl",webRtcTalkReq.getDispatchUrl()+streamRtpSendInfoApi);
+
+        businessMqInfo.setData(jsonObject);
+        rabbitMqSender.sendMsgByExchange(webRtcTalkReq.getGatewayMqExchange(), webRtcTalkReq.getGatewayMqRouteKey(), UuidUtil.toUuid(),businessMqInfo,true);
     }
 
     @Override

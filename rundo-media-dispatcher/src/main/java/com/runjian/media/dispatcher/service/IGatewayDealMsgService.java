@@ -3,6 +3,7 @@ package com.runjian.media.dispatcher.service;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayBackReq;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayReq;
+import com.runjian.common.commonDto.Gb28181Media.req.WebRTCTalkReq;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
 
@@ -20,6 +21,12 @@ public interface IGatewayDealMsgService {
      * @param playReq
      */
     void sendGatewayPlayBackMsg(SsrcInfo playCommonSsrcInfo, MediaPlayBackReq playReq);
+
+
+    void sendGatewayWebrtcTalkMsg(WebRTCTalkReq webRtcTalkReq);
+
+
+
 
     /**
      * 网关bye消息通知

@@ -14,6 +14,7 @@ import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamCloseDto;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.config.response.StreamBusinessSceneResp;
@@ -133,7 +134,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
     }
 
     @Override
-    public StreamInfo playCustom(CustomPlayReq customPlayReq) {
+    public StreamInfo playCustom(CustomPlayReq customPlayReq){
         //复用流判断
         String streamId = customPlayReq.getStreamId();
         MediaServerItem oneMedia;
@@ -555,5 +556,55 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         }else {
             return false;
         }
+    }
+
+    @Override
+    public String webRtcTalk(WebRTCTalkReq webRtcTalkReq) {
+        String streamId = webRtcTalkReq.getStreamId();
+        MediaServerItem oneMedia;
+
+        OnlineStreamsEntity oneBystreamId = onlineStreamsService.getOneBystreamId(streamId);
+        if(!ObjectUtils.isEmpty(oneBystreamId)){
+            //判断流复用
+            oneMedia = mediaServerService.getOne(oneBystreamId.getMediaServerId());
+            if(!mediaServerService.checkRtpServer(oneMedia, streamId)){
+                //流其实不存在
+                onlineStreamsService.remove(streamId);
+
+            }else{
+                //流存在 关闭之前不允许再次推流
+                throw  new BusinessException(BusinessErrorEnums.MEDIA_STREAM_ALREADY_EXIST_ERROR);
+
+            }
+
+        }else {
+            //获取默认的zlm流媒体
+            oneMedia =  mediaServerService.getDefaultMediaServer();
+        }
+        //webrtc推流回调
+        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.PUSH_LIVE_APP, webRtcTalkReq.getStreamId(),true, VideoManagerConstants.GB28181_SCHEAM ,oneMedia.getId());
+        MediaServerItem finalOneMedia = oneMedia;
+        subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
+            //流注册处理  发送指定mq消息
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm的webrtc注册成功通知", "收到推流订阅消息", json.toJSONString());
+            //拼接拉流的地址
+            String pushStreamId = json.getString("stream");
+            //通知网关进行对讲流程开启
+            gatewayDealMsgService.sendGatewayWebrtcTalkMsg(webRtcTalkReq);
+            //流状态修改为成功
+            // hook响应
+            subscribe.removeSubscribe(hookSubscribe);
+        });
+        //流信息状态保存
+        OnlineStreamsEntity onlineStreamsEntity = new OnlineStreamsEntity();
+        BeanUtil.copyProperties(webRtcTalkReq,onlineStreamsEntity);
+        onlineStreamsEntity.setMediaServerId(oneMedia.getId());
+        onlineStreamsEntity.setStreamType(1);
+        onlineStreamsEntity.setMediaType(1);
+        onlineStreamsEntity.setMediaServerId(oneMedia.getId());
+        onlineStreamsEntity.setApp(VideoManagerConstants.PUSH_LIVE_APP);
+        onlineStreamsService.save(onlineStreamsEntity);
+        return String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=push", oneMedia.getStreamIp(), oneMedia.getHttpSslPort(), VideoManagerConstants.PUSH_LIVE_APP,  streamId);
+
     }
 }

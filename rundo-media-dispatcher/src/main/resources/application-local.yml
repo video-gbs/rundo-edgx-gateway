@@ -182,3 +182,4 @@ user-settings:
 mediaApi:
     #网关回调通知地址:
     callBackStreamNotify: "/api/media/streamNotify"
+    streamRtpSendInfo: "/api/media/rtpSendInfo"
