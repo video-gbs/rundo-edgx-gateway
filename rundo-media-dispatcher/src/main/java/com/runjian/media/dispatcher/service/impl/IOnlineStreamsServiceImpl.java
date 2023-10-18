@@ -60,7 +60,7 @@ public class IOnlineStreamsServiceImpl implements IOnlineStreamsService {
 
     @Override
     public OnlineStreamsEntity streamByChannelInfo(String deviceId, String channelId) {
-        return onlineStreamsMapper.selectOne(deviceId, channelId);
+        return onlineStreamsMapper.selectOneBychannelId(deviceId, channelId);
     }
 
     @Override

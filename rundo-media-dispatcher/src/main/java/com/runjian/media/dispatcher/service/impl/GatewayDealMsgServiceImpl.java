@@ -81,7 +81,7 @@ public class GatewayDealMsgServiceImpl implements IGatewayDealMsgService {
 
     @Override
     public void sendGatewayWebrtcTalkMsg(WebRTCTalkReq webRtcTalkReq) {
-        CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayBusinessMsgType.PLAY_BACK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,webRtcTalkReq.getMsgId());
+        CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(GatewayBusinessMsgType.CHANNEL_TALK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,webRtcTalkReq.getMsgId());
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("deviceId",webRtcTalkReq.getDeviceId());
         jsonObject.put("channelId",webRtcTalkReq.getChannelId());

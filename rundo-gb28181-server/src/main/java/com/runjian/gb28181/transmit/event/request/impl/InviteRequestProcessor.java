@@ -195,7 +195,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 }
 
                 String result = RestTemplateUtil.postString(dispatcherUrl, JSON.toJSONString(gatewayRtpSendReq),null, restTemplate);
-                if(ObjectUtils.isEmpty(result)){
+                if(ObjectUtils.isEmpty(result)) {
                     logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "获取己方流媒体的媒体信息失败", "null", result);
                     try {
                         responseAck(request, Response.SERVER_INTERNAL_ERROR); // 不支持的格式，发415
@@ -203,50 +203,50 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "SIP命令INVITE请求处理", "命令发送失败, invite 不支持的媒体格式，返回415", e);
                     }
                     return null;
-                }else{
-                    CommonResponse commonResponse = JSONObject.parseObject(result, CommonResponse.class);
-                    if(commonResponse.getCode()!=0){
-                        logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "获取己方流媒体的媒体信息失败", commonResponse, result);
-                        try {
-                            responseAck(request, Response.SERVER_INTERNAL_ERROR); // 不支持的格式，发415
-                        } catch (SipException | InvalidArgumentException | ParseException e) {
-                            logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "SIP命令INVITE请求处理", "命令发送失败, invite 不支持的媒体格式，返回415", e);
-                        }
-                        return null;
-                    }else {
-                        SsrcInfo ssrcInfo = JSONObject.parseObject(JSON.toJSONString(commonResponse.getData()), SsrcInfo.class);
-                        StringBuffer content = new StringBuffer(200);
-                        content.append("v=0\r\n");
-                        content.append("o="+channelId+" 0 0 IN IP4 "+ssrcInfo.getSdpIp()+" \r\n");
-                        content.append("s=Play\r\n");
-                        content.append("c=IN IP4 "+ssrcInfo.getSdpIp()+"\r\n");
-                        content.append("t=0 0\r\n");
-                        // 非严格模式端口不统一, 增加兼容性，修改为一个不为0的端口
-                        if (protocalKind == 1) {
-                            content.append("m=audio "+ssrcInfo.getPort()+" RTP/AVP 8\r\n");
-                        }else {
-                            content.append("m=audio "+ssrcInfo.getPort()+" TCP/RTP/AVP 8\r\n");
-                            if(protocalKind == 0){
-                                content.append("a=setup:passive\r\n");
-                            }else {
-                                content.append("a=setup:active\r\n");
-                            }
-                        }
-                        content.append("a=sendonly\r\n");
-                        content.append("a=rtpmap:8 PCMA/8000\r\n");
-                        content.append("a=connection:new\r\n");
-                        content.append("y=" + ssrc + "\r\n");
-                        content.append("f=\r\n");
-
-                        try {
-                            return responseSdpAck(request, content.toString());
-                        } catch (Exception e) {
-                            logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "SIP命令INVITE请求处理", "命令发送失败,成功的指令发送失败", e);
-                        }
-                        //todo 成功通知调度服务
-                    }
-
                 }
+                CommonResponse commonResponse = JSONObject.parseObject(result, CommonResponse.class);
+                if(commonResponse.getCode()!=0){
+                    logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "获取己方流媒体的媒体信息失败", commonResponse, result);
+                    try {
+                        responseAck(request, Response.SERVER_INTERNAL_ERROR); // 不支持的格式，发415
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "SIP命令INVITE请求处理", "命令发送失败, invite 不支持的媒体格式，返回415", e);
+                    }
+                    return null;
+                }else {
+                    SsrcInfo ssrcInfo = JSONObject.parseObject(JSON.toJSONString(commonResponse.getData()), SsrcInfo.class);
+                    StringBuffer content = new StringBuffer(200);
+                    content.append("v=0\r\n");
+                    content.append("o="+channelId+" 0 0 IN IP4 "+ssrcInfo.getSdpIp()+" \r\n");
+                    content.append("s=Play\r\n");
+                    content.append("c=IN IP4 "+ssrcInfo.getSdpIp()+"\r\n");
+                    content.append("t=0 0\r\n");
+                    // 非严格模式端口不统一, 增加兼容性，修改为一个不为0的端口
+                    if (protocalKind == 1) {
+                        content.append("m=audio "+ssrcInfo.getPort()+" RTP/AVP 8\r\n");
+                        content.append("a=setup:active\r\n");
+                    }else {
+                        content.append("m=audio "+ssrcInfo.getPort()+" TCP/RTP/AVP 8\r\n");
+                        if(protocalKind == 2){
+                            content.append("a=setup:passive\r\n");
+                        }else {
+                            content.append("a=setup:active\r\n");
+                        }
+                    }
+                    content.append("a=sendonly\r\n");
+                    content.append("a=rtpmap:8 PCMA/8000\r\n");
+                    content.append("a=connection:new\r\n");
+                    content.append("y=" + ssrc + "\r\n");
+                    content.append("f=\r\n");
+
+                    try {
+                        return responseSdpAck(request, content.toString());
+                    } catch (Exception e) {
+                        logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "SIP命令INVITE请求处理", "命令发送失败,成功的指令发送失败", e);
+                    }
+                    //todo 成功通知调度服务
+                }
+
 
             } catch (SdpException e) {
                 logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "SIP命令INVITE请求处理", "SDP解析异常", e);

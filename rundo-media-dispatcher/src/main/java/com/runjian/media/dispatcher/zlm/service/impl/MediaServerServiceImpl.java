@@ -607,7 +607,8 @@ public class MediaServerServiceImpl implements ImediaServerService {
         JSONObject jsonObject = null;
         SsrcInfo ssrcInfo = new SsrcInfo();
 
-        if(streamMode == 0){
+        if(streamMode == 2){
+            //tcp被动
             Map<String, Object> param = new HashMap<>(12);
             param.put("vhost","__defaultVhost__");
             param.put("app",app);
@@ -617,7 +618,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
             jsonObject = zlmrtpServerFactory.startSendRtpStreamForPassive(mediaInfo, param);
 
 
-        }else if(streamMode == 1 || streamMode == 2){
+        }else if(streamMode == 1 || streamMode == 0){
             //udp，tcp主动
             Map<String, Object> param = new HashMap<>(12);
             param.put("vhost","__defaultVhost__");

@@ -572,9 +572,8 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 onlineStreamsService.remove(streamId);
 
             }else{
-                //流存在 关闭之前不允许再次推流
-                throw  new BusinessException(BusinessErrorEnums.MEDIA_STREAM_ALREADY_EXIST_ERROR);
 
+                return String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=push", oneMedia.getStreamIp(), oneMedia.getHttpSslPort(), VideoManagerConstants.PUSH_LIVE_APP,  streamId);
             }
 
         }else {
@@ -587,8 +586,6 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
             //流注册处理  发送指定mq消息
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm的webrtc注册成功通知", "收到推流订阅消息", json.toJSONString());
-            //拼接拉流的地址
-            String pushStreamId = json.getString("stream");
             //通知网关进行对讲流程开启
             gatewayDealMsgService.sendGatewayWebrtcTalkMsg(webRtcTalkReq);
             //流状态修改为成功
@@ -603,6 +600,9 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         onlineStreamsEntity.setMediaType(1);
         onlineStreamsEntity.setMediaServerId(oneMedia.getId());
         onlineStreamsEntity.setApp(VideoManagerConstants.PUSH_LIVE_APP);
+        onlineStreamsEntity.setMqExchange(webRtcTalkReq.getGatewayMqExchange());
+        onlineStreamsEntity.setMqQueueName(webRtcTalkReq.getGatewayMqRouteKey());
+        onlineStreamsEntity.setMqRouteKey(webRtcTalkReq.getGatewayMqRouteKey());
         onlineStreamsService.save(onlineStreamsEntity);
         return String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=push", oneMedia.getStreamIp(), oneMedia.getHttpSslPort(), VideoManagerConstants.PUSH_LIVE_APP,  streamId);
 

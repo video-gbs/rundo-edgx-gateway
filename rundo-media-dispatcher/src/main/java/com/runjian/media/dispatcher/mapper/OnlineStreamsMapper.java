@@ -51,7 +51,7 @@ public interface OnlineStreamsMapper {
      * @return
      */
     @Select("select * from "+ONLINE_STREAMS+" where device_id = #{deviceId} and channel_id = #{channelId}  limit 1")
-    OnlineStreamsEntity selectOne(String deviceId, String channelId);
+    OnlineStreamsEntity selectOneBychannelId(String deviceId, String channelId);
 
     /**
      * 流播放列表删除

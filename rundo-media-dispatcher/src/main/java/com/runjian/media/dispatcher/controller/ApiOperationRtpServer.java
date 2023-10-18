@@ -2,6 +2,7 @@ package com.runjian.media.dispatcher.controller;
 
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayRtpSendReq;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
+import com.runjian.common.commonDto.Gb28181Media.req.WebRTCTalkReq;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.exception.BusinessException;
@@ -69,6 +70,19 @@ public class ApiOperationRtpServer {
             //进行流媒体的流转发
             return CommonResponse.success(ssrcInfo);
         }
+    }
+
+
+    /**
+     * rtp推流
+     * @param webRtcTalkReq
+     * @return
+     */
+    @PostMapping(value = "/media/webRtcTalk",produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<String> webRtcTalk(@RequestBody WebRTCTalkReq webRtcTalkReq){
+
+        return CommonResponse.success(mediaPlayService.webRtcTalk(webRtcTalkReq));
+
     }
 
 }
