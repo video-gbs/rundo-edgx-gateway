@@ -79,4 +79,17 @@ public class ApiOperationRtpServer {
         }
         return CommonResponse.success();
     }
+
+    @GetMapping(value = "/test/testCatalogSync",produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<Boolean> testCatalogSync(@RequestParam String deviceId){
+
+        try {
+            Device device = deviceService.getDevice(deviceId);
+            deviceService.sync(device,null);
+
+        }catch (Exception e){
+            log.info("通道同步",e);
+        }
+        return CommonResponse.success();
+    }
 }
