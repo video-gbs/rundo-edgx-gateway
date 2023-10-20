@@ -3,6 +3,7 @@ package com.runjian.service;
 import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
 import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.StreamInfo;
+import com.runjian.common.commonDto.StreamPlayDto;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
 
@@ -36,7 +37,7 @@ public interface IplayService {
      * @param streamId
      * @param msgId
      */
-    void streamBye(String streamId,String msgId);
+    void streamBye(StreamPlayDto streamPlayDto, String msgId);
 
 
     /**

@@ -187,6 +187,41 @@ public class SIPRequestHeaderProvider {
 		return request;
 	}
 
+	public Request createTalkByeRequest(Device device, String channelId, SipTransactionInfo transactionInfo) throws ParseException, InvalidArgumentException, PeerUnavailableException {
+		Request request = null;
+		//请求行  requestLine 对方的
+		SipURI requestLine = sipFactory.createAddressFactory().createSipURI(device.getDeviceId(), device.getHostAddress());
+		// via  己方的平台信息和路径
+		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
+		ViaHeader viaHeader = sipFactory.createHeaderFactory().createViaHeader(sipConfig.getIp(), sipConfig.getPort(), device.getTransport(), SipUtils.getNewViaTag());
+		viaHeaders.add(viaHeader);
+		//from  对方invite信息from原封不动返回
+		SipURI fromSipURI = sipFactory.createAddressFactory().createSipURI(device.getDeviceId(),sipConfig.getDomain());
+		Address fromAddress = sipFactory.createAddressFactory().createAddress(fromSipURI);
+		FromHeader fromHeader = sipFactory.createHeaderFactory().createFromHeader(fromAddress, transactionInfo.getFromTag());
+		//to   对方invite信息to原封不动返回
+		SipURI toSipURI = sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), device.getHostAddress());
+		Address toAddress = sipFactory.createAddressFactory().createAddress(toSipURI);
+		ToHeader toHeader = sipFactory.createHeaderFactory().createToHeader(toAddress,	transactionInfo.getToTag());
+
+		//Forwards  默认70
+		MaxForwardsHeader maxForwards = sipFactory.createHeaderFactory().createMaxForwardsHeader(70);
+
+		//ceq   己方的平台自增
+		CSeqHeader cSeqHeader = sipFactory.createHeaderFactory().createCSeqHeader(redisCatchStorage.getCSEQ(), Request.BYE);
+		CallIdHeader callIdHeader = sipFactory.createHeaderFactory().createCallIdHeader(transactionInfo.getCallId());
+		request = sipFactory.createMessageFactory().createRequest(requestLine, Request.BYE, callIdHeader, cSeqHeader,fromHeader, toHeader, viaHeaders, maxForwards);
+		//user Agent 己方的信息
+		request.addHeader(SipUtils.createUserAgentHeader(sipFactory));
+		//contact 己方的信息
+		Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), sipConfig.getIp()+":"+sipConfig.getPort()));
+		request.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
+
+		request.addHeader(SipUtils.createUserAgentHeader(sipFactory));
+
+		return request;
+	}
+
 	public Request createSubscribeRequest(Device device, String content, SIPRequest requestOld, Integer expires, String event, CallIdHeader callIdHeader) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;
 		// sipuri

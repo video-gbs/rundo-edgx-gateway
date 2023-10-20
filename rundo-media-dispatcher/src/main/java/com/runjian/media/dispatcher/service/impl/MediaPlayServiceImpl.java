@@ -321,7 +321,12 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 }
 
                 //网关流注销通知
-                gatewayDealMsgService.sendGatewayStreamBye(streamId,msgId,oneBystreamId);
+                gatewayDealMsgService.sendGatewayStreamBye(oneBystreamId,msgId,oneBystreamId);
+            }else {
+                //针对语音对讲下发的bye指令
+                if(oneBystreamId.getMediaType() == 1){
+                    gatewayDealMsgService.sendGatewayStreamBye(oneBystreamId,msgId,oneBystreamId);
+                }
             }
         }
 
@@ -392,8 +397,14 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                         }
 
                     }else {
-                        //自定义推流
-                        streamCloseSend(streamId,false);
+                        //自定义推流  针对语音对讲需要下发bye的指令
+                        if(oneBystreamId.getMediaType() == 1){
+                            streamCloseSend(streamId,true);
+
+                        }else {
+                            streamCloseSend(streamId,false);
+
+                        }
                     }
 
 
@@ -427,7 +438,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 //清除点播请求
                 onlineStreamsService.remove(streamId);
                 //网关流注销通知
-                gatewayDealMsgService.sendGatewayStreamBye(streamId,null,oneBystreamId);
+                gatewayDealMsgService.sendGatewayStreamBye(oneBystreamId,null,oneBystreamId);
             }
         }
 
@@ -488,7 +499,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 //清除点播请求
                 onlineStreamsService.remove(onlineStreamsEntity.getStreamId());
                 //网关流注销通知
-                gatewayDealMsgService.sendGatewayStreamBye(onlineStreamsEntity.getStreamId(),null,onlineStreamsEntity);
+                gatewayDealMsgService.sendGatewayStreamBye(onlineStreamsEntity,null,onlineStreamsEntity);
 
             });
         }
@@ -572,7 +583,17 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 onlineStreamsService.remove(streamId);
 
             }else{
-
+                OnlineStreamsEntity onlineStreamsEntity = new OnlineStreamsEntity();
+                BeanUtil.copyProperties(webRtcTalkReq,onlineStreamsEntity);
+                onlineStreamsEntity.setMediaServerId(oneMedia.getId());
+                onlineStreamsEntity.setStreamType(1);
+                onlineStreamsEntity.setMediaType(1);
+                onlineStreamsEntity.setMediaServerId(oneMedia.getId());
+                onlineStreamsEntity.setApp(VideoManagerConstants.PUSH_LIVE_APP);
+                onlineStreamsEntity.setMqExchange(webRtcTalkReq.getGatewayMqExchange());
+                onlineStreamsEntity.setMqQueueName(webRtcTalkReq.getGatewayMqRouteKey());
+                onlineStreamsEntity.setMqRouteKey(webRtcTalkReq.getGatewayMqRouteKey());
+                onlineStreamsService.update(onlineStreamsEntity);
                 return String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=push", oneMedia.getStreamIp(), oneMedia.getHttpSslPort(), VideoManagerConstants.PUSH_LIVE_APP,  streamId);
             }
 

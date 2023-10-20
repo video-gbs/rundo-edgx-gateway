@@ -5,6 +5,7 @@ import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.PlayCommonSsrcInfo;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
+import com.runjian.common.commonDto.StreamPlayDto;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.BusinessSceneConstants;
@@ -299,12 +300,19 @@ public class PlayServiceImpl implements IplayService {
 
 
     @Override
-    public void streamBye(String streamId,String msgId) {
-        log.info(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "流停止请求进入， 发送BYE", streamId);
-        SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamId);
+    public void streamBye(StreamPlayDto streamPlayDto, String msgId) {
+        log.info(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "流停止请求进入， 发送BYE", streamPlayDto);
+        SsrcTransaction streamSessionSsrcTransaction;
+        if(streamPlayDto.getMediaType() == 1){
+            streamSessionSsrcTransaction = streamSession.getTalkSsrcTransaction(streamPlayDto.getDeviceId(), streamPlayDto.getChannelId(),"talk");
+
+        }else {
+            streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamPlayDto.getStreamId());
+
+        }
         if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
             //todo 重要，缓存异常，点播失败需要人工介入
-            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,点播缓存异常", streamId);
+            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,点播缓存异常", streamPlayDto);
             return;
         }
 
@@ -313,22 +321,37 @@ public class PlayServiceImpl implements IplayService {
             Device device = deviceService.getDevice(streamSessionSsrcTransaction.getDeviceId());
             if(ObjectUtils.isEmpty(device)){
                 //todo 重要，缓存异常，点播失败需要人工介入
-                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,设备信息未找到", streamId);
+                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,设备信息未找到", streamPlayDto);
                 return;
 
             }
-            sipCommander.streamByeCmd(streamSessionSsrcTransaction,device,streamSessionSsrcTransaction.getChannelId(),error->{
-                //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
-                ResponseEvent responseEvent = (ResponseEvent) error.event;
-                SIPResponse response = (SIPResponse) responseEvent.getResponse();
-                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令点播失败", response);
+            if(streamPlayDto.getMediaType() == 1){
+                //对讲
+                sipCommander.TalkByeCmd(streamSessionSsrcTransaction,device,streamSessionSsrcTransaction.getChannelId(),error->{
+                    //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
+                    ResponseEvent responseEvent = (ResponseEvent) error.event;
+                    SIPResponse response = (SIPResponse) responseEvent.getResponse();
+                    log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止对讲", "bye指令点播失败", response);
 
-            },ok->{
+                },ok->{
 
-            });
+                });
+            }else {
+                //视频流
+                sipCommander.streamByeCmd(streamSessionSsrcTransaction,device,streamSessionSsrcTransaction.getChannelId(),error->{
+                    //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
+                    ResponseEvent responseEvent = (ResponseEvent) error.event;
+                    SIPResponse response = (SIPResponse) responseEvent.getResponse();
+                    log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令点播失败", response);
 
-            //剔除缓存
-            streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
+                },ok->{
+
+                });
+                //剔除缓存
+                streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
+            }
+
+
 
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "[命令发送失败] 停止点播， 发送BYE", e);

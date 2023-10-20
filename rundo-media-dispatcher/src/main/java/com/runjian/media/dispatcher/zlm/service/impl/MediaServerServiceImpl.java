@@ -573,31 +573,6 @@ public class MediaServerServiceImpl implements ImediaServerService {
     }
 
     @Override
-    public StreamInfo getRtpInfo(String mediaServerId, String streamId,String app) {
-        MediaServerItem mediaInfo = this.getOne(mediaServerId);
-        StreamInfo streamInfo = null;
-        if(ObjectUtils.isEmpty(mediaInfo)){
-            return null;
-        }
-        JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaInfo, streamId);
-        logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "获取流存在信息服务", rtpInfo);
-        if(rtpInfo.getInteger("code") == 0){
-            if (rtpInfo.getBoolean("exist")) {
-                //判断是否正常
-                streamInfo = getStreamInfoByAppAndStream(mediaInfo, app ,streamId);
-                //流直接返回
-                StreamPlayDto streamPlayResult = new StreamPlayDto();
-                streamPlayResult.setStreamId(streamId);
-                streamPlayResult.setIsSuccess(true);
-                String businessSceneKey = StreamBusinessMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_PLAY_RESULT,BusinessErrorEnums.SUCCESS,streamPlayResult);
-            }
-        }
-        return streamInfo;
-
-    }
-
-    @Override
     public SsrcInfo rtpSendServer(String mediaServerId,String app,String streamId, GatewayRtpSendReq gatewayRtpSendReq) {
         MediaServerItem mediaInfo = this.getOne(mediaServerId);
         if(ObjectUtils.isEmpty(mediaInfo)){

@@ -30,9 +30,9 @@ public interface IGatewayDealMsgService {
 
     /**
      * 网关bye消息通知
-     * @param streamId
+     * @param onlineStreamsEntity
      * @param msgId
      * @param oneBystreamId
      */
-    void sendGatewayStreamBye(String streamId, String msgId, OnlineStreamsEntity oneBystreamId);
+    void sendGatewayStreamBye(OnlineStreamsEntity onlineStreamsEntity, String msgId, OnlineStreamsEntity oneBystreamId);
 }

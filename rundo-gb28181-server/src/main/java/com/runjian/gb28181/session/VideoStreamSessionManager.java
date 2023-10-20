@@ -14,6 +14,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
+import javax.sip.header.FromHeader;
 import java.util.List;
 
 /**    
@@ -31,7 +32,8 @@ public class VideoStreamSessionManager {
 	public enum SessionType {
 		play,
 		playback,
-		download
+		download,
+		talk
 	}
 
 	private final Logger logger = LoggerFactory.getLogger(VideoStreamSessionManager.class);
@@ -61,6 +63,37 @@ public class VideoStreamSessionManager {
 		RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + MarkConstant.MARK_SPLIT_RAIL +  deviceId + MarkConstant.MARK_SPLIT_RAIL + channelId + MarkConstant.MARK_SPLIT_RAIL + callId + MarkConstant.MARK_SPLIT_RAIL + stream, ssrcTransaction);
 	}
 
+	public void putTalkSsrcTransaction(String deviceId, String channelId, String callId, String streamTag, String ssrc, String mediaServerId, SIPResponse response, SessionType type){
+		SsrcTransaction ssrcTransaction = new SsrcTransaction();
+		ssrcTransaction.setDeviceId(deviceId);
+		ssrcTransaction.setChannelId(channelId);
+		ssrcTransaction.setSipTransactionInfo(new SipTransactionInfo(response));
+		ssrcTransaction.setCallId(callId);
+		ssrcTransaction.setSsrc(ssrc);
+		ssrcTransaction.setMediaServerId(mediaServerId);
+		ssrcTransaction.setType(type);
+		FromHeader from = response.getFrom();
+		RedisCommonUtil.set(redisTemplate,VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + MarkConstant.MARK_SPLIT_RAIL +  deviceId + MarkConstant.MARK_SPLIT_RAIL + channelId + MarkConstant.MARK_SPLIT_RAIL + streamTag, ssrcTransaction);
+	}
+
+	public SsrcTransaction getTalkSsrcTransaction(String deviceId, String channelId, String streamTag){
+
+		if (ObjectUtils.isEmpty(deviceId)) {
+			deviceId ="*";
+		}
+		if (ObjectUtils.isEmpty(channelId)) {
+			channelId ="*";
+		}
+		if (ObjectUtils.isEmpty(streamTag)) {
+			streamTag ="*";
+		}
+		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + MarkConstant.MARK_SPLIT_RAIL +  deviceId + MarkConstant.MARK_SPLIT_RAIL + channelId  + MarkConstant.MARK_SPLIT_RAIL + streamTag;
+		List<Object> scanResult = RedisCommonUtil.scan(redisTemplate,key);
+		if (scanResult.size() == 0) {
+			return null;
+		}
+		return (SsrcTransaction)RedisCommonUtil.get(redisTemplate, (String) scanResult.get(0));
+	}
 	/**
 	 * 获取点播相关的视频流信息
 	 * @param deviceId

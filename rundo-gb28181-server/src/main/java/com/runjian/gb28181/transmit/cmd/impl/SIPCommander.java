@@ -129,6 +129,12 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
+    public void TalkByeCmd(SsrcTransaction ssrcTransaction,Device device,String channelId,SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
+        Request byteRequest = headerProvider.createTalkByeRequest(device, channelId, ssrcTransaction.getSipTransactionInfo());
+        sipSender.transmitRequest( byteRequest, errorEvent, okEvent);
+    }
+
+    @Override
     public void playPauseCmd(Device device, SsrcTransaction streamSessionSsrcTransaction) throws InvalidArgumentException, ParseException, SipException {
         StringBuffer content = new StringBuffer(200);
         content.append("PAUSE RTSP/1.0\r\n");

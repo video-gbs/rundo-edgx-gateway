@@ -61,15 +61,6 @@ public interface ImediaServerService {
 
     void update(MediaServerItem mediaSerItem);
 
-    /**
-     *
-     * @param mediaServerId
-     * @param streamId
-     * @param app
-     * @return
-     */
-    StreamInfo getRtpInfo(String mediaServerId, String streamId,String app);
-
 
 
     void add(MediaServerItem mediaSerItem);

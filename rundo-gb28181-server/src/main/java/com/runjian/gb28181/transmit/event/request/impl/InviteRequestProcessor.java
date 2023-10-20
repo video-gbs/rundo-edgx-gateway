@@ -13,6 +13,7 @@ import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.RestTemplateUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.gb28181.bean.Device;
+import com.runjian.gb28181.session.VideoStreamSessionManager;
 import com.runjian.gb28181.transmit.SIPProcessorObserver;
 import com.runjian.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.runjian.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -64,6 +65,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+
+    @Autowired
+    private VideoStreamSessionManager streamSession;
+
+
     @Override
     public void afterPropertiesSet() throws Exception {
         // 添加消息处理的订阅
@@ -240,11 +247,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     content.append("f=\r\n");
 
                     try {
-                        return responseSdpAck(request, content.toString());
+                        SIPResponse sipResponse = responseSdpAck(request, content.toString());
+                        CallIdHeader callId = request.getCallId();
+                        streamSession.putTalkSsrcTransaction(device.getDeviceId(), channelId, callId.getCallId(), "talk", ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), sipResponse, VideoStreamSessionManager.SessionType.talk);
+                        return sipResponse;
                     } catch (Exception e) {
                         logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "SIP命令INVITE请求处理", "命令发送失败,成功的指令发送失败", e);
                     }
                     //todo 成功通知调度服务
+
                 }
 
 

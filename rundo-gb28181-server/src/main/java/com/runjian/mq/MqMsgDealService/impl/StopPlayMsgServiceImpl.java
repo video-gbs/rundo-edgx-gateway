@@ -1,7 +1,9 @@
 package com.runjian.mq.MqMsgDealService.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.req.DeviceControlReq;
+import com.runjian.common.commonDto.StreamPlayDto;
 import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.mq.domain.CommonMqDto;
@@ -31,9 +33,9 @@ public class StopPlayMsgServiceImpl implements InitializingBean, IMsgProcessorSe
     public void process(CommonMqDto commonMqDto) {
         JSONObject dataJson = (JSONObject) commonMqDto.getData();
         //实际的请求参数
-        JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
         String streamId = dataJson.getString("streamId");
-        iplayService.streamBye(streamId, commonMqDto.getMsgId());
+        StreamPlayDto streamPlayDto = JSONObject.parseObject(JSON.toJSONString(dataJson), StreamPlayDto.class);
+        iplayService.streamBye(streamPlayDto, commonMqDto.getMsgId());
     }
 
 
