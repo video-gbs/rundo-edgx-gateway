@@ -40,13 +40,11 @@ public enum StreamBusinessMsgType {
     //直播迁移
     STREAM_LIVE_PLAY_START("STREAM_LIVE_PLAY_START"),
     //webrtc对讲
-    STREAM_WEBRTC_TALK("STREAM_WEBRTC_TALK"),
+    STREAM_WEBRTC_TALK("STREAM_WEBRTC_AUDIO"),
     //录播迁移
     STREAM_RECORD_PLAY_START("STREAM_RECORD_PLAY_START"),
     //自定义直播
     STREAM_CUSTOM_LIVE_START("STREAM_CUSTOM_LIVE_START"),
-    //rtc点播
-    STREAM_WEBRTC_LIVE_START("STREAM_WEBRTC_LIVE_START"),
 
     /******调度服务业务队列场景*************/
     ;
