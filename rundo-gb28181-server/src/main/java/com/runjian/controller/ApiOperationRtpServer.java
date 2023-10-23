@@ -1,6 +1,7 @@
 package com.runjian.controller;
 
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
+import com.runjian.common.commonDto.StreamPlayDto;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.validator.ValidatorService;
 import com.runjian.gb28181.bean.Device;
@@ -86,6 +87,18 @@ public class ApiOperationRtpServer {
         try {
             Device device = deviceService.getDevice(deviceId);
             deviceService.sync(device,null);
+
+        }catch (Exception e){
+            log.info("通道同步",e);
+        }
+        return CommonResponse.success();
+    }
+
+    @PostMapping(value = "/test/testBye",produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<Boolean> testBye(@RequestBody StreamPlayDto streamPlayDto){
+
+        try {
+            iplayService.streamBye(streamPlayDto,null);
 
         }catch (Exception e){
             log.info("通道同步",e);

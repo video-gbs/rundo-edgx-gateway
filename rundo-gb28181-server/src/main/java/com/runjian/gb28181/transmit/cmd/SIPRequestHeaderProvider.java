@@ -196,11 +196,11 @@ public class SIPRequestHeaderProvider {
 		ViaHeader viaHeader = sipFactory.createHeaderFactory().createViaHeader(sipConfig.getIp(), sipConfig.getPort(), device.getTransport(), SipUtils.getNewViaTag());
 		viaHeaders.add(viaHeader);
 		//from  对方invite信息from原封不动返回
-		SipURI fromSipURI = sipFactory.createAddressFactory().createSipURI(device.getDeviceId(),sipConfig.getDomain());
+		SipURI fromSipURI = sipFactory.createAddressFactory().createSipURI(device.getDeviceId(), sipConfig.getDomain());
 		Address fromAddress = sipFactory.createAddressFactory().createAddress(fromSipURI);
 		FromHeader fromHeader = sipFactory.createHeaderFactory().createFromHeader(fromAddress, transactionInfo.getFromTag());
 		//to   对方invite信息to原封不动返回
-		SipURI toSipURI = sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), device.getHostAddress());
+		SipURI toSipURI = sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), sipConfig.getIp()+":"+sipConfig.getPort());
 		Address toAddress = sipFactory.createAddressFactory().createAddress(toSipURI);
 		ToHeader toHeader = sipFactory.createHeaderFactory().createToHeader(toAddress,	transactionInfo.getToTag());
 
