@@ -60,8 +60,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     @Autowired
     private RestTemplate restTemplate;
 
-    @Value("${mdeia-api-uri-list.stream-rtpSendInfo}")
-    private String rtpSendInfoApi;
 
     @Autowired
     private RedisTemplate redisTemplate;
