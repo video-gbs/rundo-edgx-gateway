@@ -84,7 +84,7 @@ public class GatewayBusinessAsyncSender {
                         GatewayBusinessMsgType gatewayMsgType = oneResp.getGatewayMsgType();
                         String msgId = oneResp.getMsgId();
                         CommonMqDto mqInfo = mqInfoCommonDto.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix, msgId);
-                        mqInfo.setData(oneResp.getData());
+                        mqInfo.setData(businessSceneKeyPoll.getData());
                         mqInfo.setCode(businessErrorEnums.getErrCode());
                         mqInfo.setMsg(businessErrorEnums.getErrMsg());
                         String mqGetQueue = gatewaySignInConf.getMqSetQueue();
