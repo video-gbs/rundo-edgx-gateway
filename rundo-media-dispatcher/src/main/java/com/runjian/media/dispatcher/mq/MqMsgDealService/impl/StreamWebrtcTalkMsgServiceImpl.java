@@ -67,13 +67,9 @@ public class StreamWebrtcTalkMsgServiceImpl implements InitializingBean, IMsgPro
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm的webrtc注册失败", "失败信息", e);
         }
         //进行消息返回
-        StreamInfo streamInfo = new StreamInfo();
-        streamInfo.setRtc(webRtcTalkUrl);
-        streamInfo.setRtcs(webRtcTalkUrl);
-
         String mqGetQueue = dispatcherSignInConf.getMqSetQueue();
         //通知调度中心成功
-        businessMqInfo.setData(streamInfo);
+        businessMqInfo.setData(webRtcTalkUrl);
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm的webrtc注册发送", "发送信息为:", businessMqInfo);
         rabbitMqSender.sendMsgByExchange(dispatcherSignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(),businessMqInfo,true);
 
