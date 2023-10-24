@@ -147,22 +147,7 @@ public class ZLMHttpHookListener {
 
 		JSONObject json = (JSONObject)JSON.toJSON(param);
 		logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ZLM HOOK", "on_play API调用", JSON.toJSONString(param));
-		String mediaServerId = param.getMediaServerId();
-		ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_play, json);
-		if (subscribe != null ) {
-			MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
-			if (mediaInfo != null) {
-				subscribe.response(mediaInfo, json);
-			}
-		}
 		JSONObject ret = new JSONObject();
-		if (!"rtp".equals(param.getApp())) {
-			Map<String, String> paramMap = urlParamToMap(param.getParams());
-
-			return ret;
-
-		}
-
 		ret.put("code", 0);
 		ret.put("msg", "success");
 		return ret;
