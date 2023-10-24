@@ -24,6 +24,7 @@ import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
+import com.runjian.media.dispatcher.conf.DynamicTask;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.conf.mq.DispatcherSignInConf;
 import com.runjian.media.dispatcher.dto.entity.OnlineStreamsEntity;
@@ -38,6 +39,7 @@ import com.runjian.media.dispatcher.zlm.dto.HookSubscribeForStreamChange;
 import com.runjian.media.dispatcher.zlm.dto.HookType;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
+import com.runjian.media.dispatcher.zlm.service.impl.MediaServerServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -92,6 +94,10 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
     @Autowired
     DispatcherSignInConf dispatcherSignInConf;
+
+
+    @Autowired
+    private DynamicTask dynamicTask;
     @Override
     public void play(MediaPlayReq playReq) {
         //不做redisson并发请求控制
@@ -614,6 +620,16 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             // hook响应
             subscribe.removeSubscribe(hookSubscribe);
         });
+        dynamicTask.startDelay("webrtc:"+streamId, ()->{
+            OnlineStreamsEntity oneBystreamId1 = onlineStreamsService.getOneBystreamId(streamId);
+            if(ObjectUtils.isEmpty(oneBystreamId1)){
+                streamCloseSend(streamId,true);
+            }else {
+                if(oneBystreamId1.getStatus() != 1){
+                    streamCloseSend(streamId,true);
+                }
+            }
+        },2000);
         //流信息状态保存
         OnlineStreamsEntity onlineStreamsEntity = new OnlineStreamsEntity();
         BeanUtil.copyProperties(webRtcTalkReq,onlineStreamsEntity);
