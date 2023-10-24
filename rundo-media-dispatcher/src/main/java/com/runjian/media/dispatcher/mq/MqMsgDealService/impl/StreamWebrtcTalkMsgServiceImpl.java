@@ -69,6 +69,7 @@ public class StreamWebrtcTalkMsgServiceImpl implements InitializingBean, IMsgPro
         //进行消息返回
         StreamInfo streamInfo = new StreamInfo();
         streamInfo.setRtc(webRtcTalkUrl);
+        streamInfo.setRtcs(webRtcTalkUrl);
 
         String mqGetQueue = dispatcherSignInConf.getMqSetQueue();
         //通知调度中心成功
