@@ -326,6 +326,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 //针对语音对讲下发的bye指令
                 if(oneBystreamId.getMediaType() == 1){
                     gatewayDealMsgService.sendGatewayStreamBye(oneBystreamId,msgId,oneBystreamId);
+                    onlineStreamsService.remove(streamId);
                 }
             }
         }
