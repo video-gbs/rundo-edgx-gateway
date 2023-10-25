@@ -43,6 +43,8 @@ public class WebRTCTalkReq {
      * 路由
      */
     private String gatewayMqRouteKey;
+
+    private Boolean enableAudio = true;
     /**
      *
      */
