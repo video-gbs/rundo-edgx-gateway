@@ -44,7 +44,7 @@ public class OnlineStreamsEntity {
     /**
      * 默认不开启音频
      */
-    private Boolean enableAudio = false;
+    private Boolean enableAudio = true;
 
     /**
      * 默认进行ssrc校验

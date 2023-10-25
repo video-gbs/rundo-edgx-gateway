@@ -629,7 +629,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                     streamCloseSend(streamId,true);
                 }
             }
-        },2000);
+        },5000);
         //流信息状态保存
         OnlineStreamsEntity onlineStreamsEntity = new OnlineStreamsEntity();
         BeanUtil.copyProperties(webRtcTalkReq,onlineStreamsEntity);
