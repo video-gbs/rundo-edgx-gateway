@@ -1,9 +1,17 @@
 package com.runjian.gb28181.session;
 import com.alibaba.fastjson.JSON;
-import com.runjian.common.constant.BusinessSceneConstants;
+import com.runjian.common.commonDto.Gateway.dto.AlarmSendDto;
+import com.runjian.common.config.exception.BusinessErrorEnums;
+import com.runjian.common.config.response.GatewayBusinessSceneResp;
+import com.runjian.common.constant.*;
+import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.DateUtils;
+import com.runjian.conf.UserSetting;
+import com.runjian.domain.dto.DeviceSendDto;
 import com.runjian.gb28181.bean.*;
+import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
 import com.runjian.service.IDeviceAlarmService;
+import com.runjian.service.IRedisCatchStorageService;
 import com.runjian.utils.redis.RedisDelayQueuesUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +40,15 @@ public class DeviceAlarmCatch {
 
     @Autowired
     RedisDelayQueuesUtil redisDelayQueuesUtil;
+
+
+    @Autowired
+    GatewayBusinessAsyncSender gatewayBusinessAsyncSender;
+
+    UserSetting userSetting;
+
+    @Autowired
+    IRedisCatchStorageService redisCatchStorageService;
     /**
      * 聚合过期时间
      */
@@ -53,18 +70,23 @@ public class DeviceAlarmCatch {
                 //首次开始
                 redisDelayQueuesUtil.addDelayQueue(deviceAlarm, polymerizationExpire, TimeUnit.SECONDS,alarmDelayKey);
                 redisDelayQueuesUtil.addDelayQueue(deviceAlarm, 15, TimeUnit.SECONDS,alarmHeartKey);
+                //开始
+                alarmMappingSend(deviceAlarm,AlarmEventTypeEnum.COMPOUND_START);
                 Thread thread = new Thread(() -> {
                     while (true){
                         DeviceAlarm delayQueueOne = redisDelayQueuesUtil.getDelayQueue(alarmDelayKey);
+                        delayQueueOne.setAlarmTime(DateUtils.getNow());
                         if(ObjectUtils.isEmpty(delayQueueOne)){
                             DeviceAlarm heartQueueOne = redisDelayQueuesUtil.getDelayQueue(alarmHeartKey);
                             if(!ObjectUtils.isEmpty(heartQueueOne)){
                                 //发送告警的心跳
                                 redisDelayQueuesUtil.addDelayQueue(deviceAlarm, 15, TimeUnit.SECONDS,alarmHeartKey);
+                                alarmMappingSend(heartQueueOne,AlarmEventTypeEnum.COMPOUND_HEARTBEAT);
                                 log.info("心跳："+alarmHeartKey);
 
                             }
                         }else {
+                            alarmMappingSend(delayQueueOne,AlarmEventTypeEnum.COMPOUND_END);
                             log.info("结束："+JSON.toJSONString(delayQueueOne));
                             //心跳队列移除
                             redisDelayQueuesUtil.remove(alarmHeartKey);
@@ -77,7 +99,7 @@ public class DeviceAlarmCatch {
                 });
                 thread.start();
             }else {
-                //首次结束数据周期内到达
+                //首次结束数据周期内到达  做聚合
                 redisDelayQueuesUtil.remove(alarmDelayKey);
                 //比较时间范围的
                 redisDelayQueuesUtil.addDelayQueue(deviceAlarm, polymerizationExpire, TimeUnit.SECONDS,alarmDelayKey);
@@ -90,8 +112,34 @@ public class DeviceAlarmCatch {
 
     }
 
-    public synchronized void push(DeviceAlarm deviceAlarm) {
+    public synchronized void alarmMappingSend(DeviceAlarm deviceAlarm, AlarmEventTypeEnum alarmEventTypeEnum) {
+        AlarmSendDto alarmSendDto = new AlarmSendDto();
+        BeanUtil.copyProperties(deviceAlarm,alarmSendDto);
+        alarmSendDto.setEventTime(deviceAlarm.getAlarmTime());
+        alarmSendDto.setEventMsgType(alarmEventTypeEnum.getCode());
+        if("5".equals(deviceAlarm.getAlarmMethod())){
+            switch (deviceAlarm.getAlarmType()){
+                case "2":
+                    alarmSendDto.setEventCode(AlarmEventCodeEnum.MOVE_ALARM.getCode());
+                    alarmSendDto.setEventDesc("移动侦测");
+                    break;
+                case "6":
+                    alarmSendDto.setEventCode(AlarmEventCodeEnum.REGIONAL_ALARM.getCode());
+                    alarmSendDto.setEventDesc("区域入侵");
+                    break;
+                case "5":
+                    alarmSendDto.setEventCode(AlarmEventCodeEnum.TRIPPING_WIRE_ALARM.getCode());
+                    alarmSendDto.setEventDesc("绊线入侵");
+                    break;
+                default:
 
+                    break;
+            }
+            String businessSceneKey = GatewayBusinessMsgType.ALARM_MSG_NOTIFICATION.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+deviceAlarm.getDeviceId();
+            redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.ALARM_MSG_NOTIFICATION,null,0);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,alarmSendDto);
+
+        }
     }
 
 }
