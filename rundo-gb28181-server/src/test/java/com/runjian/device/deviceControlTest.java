@@ -1,7 +1,10 @@
 package com.runjian.device;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
+import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.DateUtils;
 import com.runjian.gb28181.bean.DeviceAlarm;
 import com.runjian.gb28181.session.DeviceAlarmCatch;
@@ -12,7 +15,10 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.ObjectUtils;
 
+import java.util.HashMap;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @SpringBootTest
@@ -60,6 +66,31 @@ public class deviceControlTest {
             Thread.sleep(3000);
         }
 
+
+    }
+
+    @Test
+    public void testDefenses() throws InterruptedException {
+        String jsonMsg = "{\"code\":0,\"data\":{\"dataMap\":{\"34020000001130000245\":[\"34020000001320000211\",\"34020000001320000203\"]}},\"error\":false,\"msgId\":\"63540\",\"msgType\":\"CHANNEL_DEFENSES_DEPLOY\",\"serialNum\":\"eb48104ddf2b4760be541783b3620001\",\"time\":\"2023-10-31 10:01:45\"}";
+        CommonMqDto commonMqDto = JSON.parseObject(jsonMsg, CommonMqDto.class);
+        JSONObject dataJson = (JSONObject) commonMqDto.getData();
+        log.info("布防={}",dataJson);
+
+        JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
+        if(!ObjectUtils.isEmpty(dataMapJson)){
+            for(String key: dataMapJson.keySet()){
+                JSONArray channelArr = dataMapJson.getJSONArray(key);
+                if(!ObjectUtils.isEmpty(channelArr)){
+                    channelArr.forEach(obj->{
+                        log.info("实际通道={}",obj);
+                    });
+                }
+
+            }
+
+        }
+
+        log.info("转义后={}",dataMapJson);
 
     }
 

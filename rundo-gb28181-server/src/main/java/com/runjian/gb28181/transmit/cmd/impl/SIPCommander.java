@@ -229,14 +229,14 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public void guardCmd(Device device, String guardCmdStr, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void guardCmd(Device device,String channelId, String guardCmdStr, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
         cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         cmdXml.append("<Control>\r\n");
         cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
         cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
-        cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+        cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
         cmdXml.append("<GuardCmd>" + guardCmdStr + "</GuardCmd>\r\n");
         cmdXml.append("</Control>\r\n");
 

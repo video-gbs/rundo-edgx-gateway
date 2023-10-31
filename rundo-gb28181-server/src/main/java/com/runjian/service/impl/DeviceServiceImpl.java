@@ -12,6 +12,7 @@ import com.runjian.dao.DeviceCompatibleMapper;
 import com.runjian.dao.DeviceMapper;
 import com.runjian.domain.dto.DeviceSendDto;
 import com.runjian.gb28181.bean.Device;
+import com.runjian.gb28181.event.SipSubscribe;
 import com.runjian.gb28181.session.CatalogDataCatch;
 import com.runjian.gb28181.transmit.cmd.ISIPCommander;
 import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
@@ -371,8 +372,8 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public void guardAlarm(String deviceId,String guardCmdStr) throws InvalidArgumentException, ParseException, SipException {
+    public void guardAlarm(String deviceId,String channelId, String guardCmdStr, SipSubscribe.Event errorEvent) throws InvalidArgumentException, ParseException, SipException {
         Device device = getDevice(deviceId);
-        sipCommander.guardCmd(device,guardCmdStr,null);
+        sipCommander.guardCmd(device,channelId,guardCmdStr,errorEvent);
     }
 }

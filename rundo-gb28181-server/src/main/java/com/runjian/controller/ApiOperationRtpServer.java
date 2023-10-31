@@ -53,10 +53,10 @@ public class ApiOperationRtpServer {
      * @return
      */
     @GetMapping(value = "/test/testAlarm",produces = MediaType.APPLICATION_JSON_VALUE)
-    public CommonResponse<Boolean> testAlarm(@RequestParam String deviceId,@RequestParam String guardCmdStr){
+    public CommonResponse<Boolean> testAlarm(@RequestParam String deviceId,@RequestParam String channelId,@RequestParam String guardCmdStr){
 
         try {
-            deviceService.guardAlarm(deviceId,guardCmdStr);
+            deviceService.guardAlarm(deviceId,channelId,guardCmdStr,null);
         }catch (Exception e){
             log.info("布防指令",e);
         }

@@ -2,6 +2,7 @@ package com.runjian.service;
 
 import com.runjian.domain.req.DeviceReq;
 import com.runjian.gb28181.bean.Device;
+import com.runjian.gb28181.event.SipSubscribe;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -92,5 +93,5 @@ public interface IDeviceService {
      * 布防
      * @param deviceId
      */
-    void guardAlarm(String deviceId,String guardCmdStr) throws InvalidArgumentException, ParseException, SipException;
+    void guardAlarm(String deviceId,String channelId, String guardCmdStr, SipSubscribe.Event errorEvent) throws InvalidArgumentException, ParseException, SipException;
 }

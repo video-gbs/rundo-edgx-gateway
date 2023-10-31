@@ -174,7 +174,7 @@ public interface ISIPCommander {
 	 * 
 	 * @param device  	视频设备
 	 */
-	void guardCmd(Device device, String guardCmdStr, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
+	void guardCmd(Device device,String channelId, String guardCmdStr, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 报警复位命令
