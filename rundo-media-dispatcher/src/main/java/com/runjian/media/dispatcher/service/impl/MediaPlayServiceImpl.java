@@ -179,6 +179,16 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
     }
 
+    @Override
+    public void playRecordDownload(MediaRecordDownloadReq req) {
+
+    }
+
+    @Override
+    public void playPictureDownload(MediaPictureDownloadReq req) {
+
+    }
+
     private SsrcInfo playCommonProcess(String businessSceneKey, StreamBusinessMsgType msgType, MediaPlayReq playReq, boolean isPlay) throws InterruptedException {
         Boolean aBoolean = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, msgType, playReq.getMsgId());
         //尝试获取锁

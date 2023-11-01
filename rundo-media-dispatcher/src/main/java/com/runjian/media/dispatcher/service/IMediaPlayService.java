@@ -42,6 +42,18 @@ public interface IMediaPlayService {
     void playBack(MediaPlayBackReq mediaPlayBackReq);
 
     /**
+     * 录播下载
+     * @param req
+     */
+    void playRecordDownload(MediaRecordDownloadReq req);
+
+    /**
+     * 图片下载
+     * @param mediaPlayBackReq
+     */
+    void playPictureDownload(MediaPictureDownloadReq req);
+
+    /**
      * 自定义直播
      *
      * @param customPlayReq

@@ -18,7 +18,7 @@ public class AlarmSendDto {
 	/**
 	 * 通道Id
 	 */
-	private long channelId;
+	private String channelId;
 	/**
 	 * 事件编码
 	 *     //移动侦测

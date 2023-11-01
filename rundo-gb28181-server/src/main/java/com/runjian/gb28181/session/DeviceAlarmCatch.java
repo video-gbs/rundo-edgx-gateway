@@ -4,11 +4,16 @@ import com.runjian.common.commonDto.Gateway.dto.AlarmSendDto;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.constant.*;
+import com.runjian.common.mq.RabbitMqSender;
+import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.DateUtils;
+import com.runjian.common.utils.UuidUtil;
 import com.runjian.conf.UserSetting;
+import com.runjian.conf.mq.GatewaySignInConf;
 import com.runjian.domain.dto.DeviceSendDto;
 import com.runjian.gb28181.bean.*;
+import com.runjian.mq.MqMsgDealService.MqInfoCommonDto;
 import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
 import com.runjian.service.IDeviceAlarmService;
 import com.runjian.service.IRedisCatchStorageService;
@@ -49,6 +54,15 @@ public class DeviceAlarmCatch {
 
     @Autowired
     IRedisCatchStorageService redisCatchStorageService;
+
+    @Autowired
+    MqInfoCommonDto mqInfoCommonDto;
+
+
+    @Autowired
+    GatewaySignInConf gatewaySignInConf;
+    @Autowired
+    RabbitMqSender rabbitMqSender;
     /**
      * 聚合过期时间
      */
@@ -89,7 +103,6 @@ public class DeviceAlarmCatch {
                             alarmMappingSend(delayQueueOne,AlarmEventTypeEnum.COMPOUND_END);
                             log.info("结束："+JSON.toJSONString(delayQueueOne));
                             //心跳队列移除
-                            redisDelayQueuesUtil.remove(alarmHeartKey);
                             break;
 
                         }
@@ -117,8 +130,8 @@ public class DeviceAlarmCatch {
         BeanUtil.copyProperties(deviceAlarm,alarmSendDto);
         alarmSendDto.setEventTime(deviceAlarm.getAlarmTime());
         alarmSendDto.setEventMsgType(alarmEventTypeEnum.getCode());
-        if("5".equals(deviceAlarm.getAlarmMethod())){
-            switch (deviceAlarm.getAlarmType()){
+        if("5".equals(deviceAlarm.getAlarmMethod())) {
+            switch (deviceAlarm.getAlarmType()) {
                 case "2":
                     alarmSendDto.setEventCode(AlarmEventCodeEnum.MOVE_ALARM.getCode());
                     alarmSendDto.setEventDesc("移动侦测");
@@ -135,11 +148,15 @@ public class DeviceAlarmCatch {
 
                     break;
             }
-            String businessSceneKey = GatewayBusinessMsgType.ALARM_MSG_NOTIFICATION.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+deviceAlarm.getDeviceId();
-            redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.ALARM_MSG_NOTIFICATION,null,0);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,alarmSendDto);
-
+            CommonMqDto mqInfo = mqInfoCommonDto.getMqInfo(GatewayBusinessMsgType.ALARM_MSG_NOTIFICATION.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix, null);
+            mqInfo.setData(alarmSendDto);
+            mqInfo.setCode(BusinessErrorEnums.SUCCESS.getErrCode());
+            mqInfo.setMsg(BusinessErrorEnums.SUCCESS.getErrMsg());
+            String mqGetQueue = gatewaySignInConf.getMqSetQueue();
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "告警消息-mq信令发送处理", mqInfo);
+            rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
         }
+
     }
 
 }

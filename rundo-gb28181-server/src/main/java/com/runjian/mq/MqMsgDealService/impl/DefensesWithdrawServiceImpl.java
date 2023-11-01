@@ -41,7 +41,7 @@ public class DefensesWithdrawServiceImpl implements InitializingBean, IMsgProces
     String control = "ResetGuard";
     @Override
     public void afterPropertiesSet() throws Exception {
-        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.CHANNEL_DEFENSES_DEPLOY.getTypeName(),this);
+        iMqMsgDealServer.addRequestProcessor(GatewayBusinessMsgType.CHANNEL_DEFENSES_WITHDRAW.getTypeName(),this);
     }
 
     @Override
