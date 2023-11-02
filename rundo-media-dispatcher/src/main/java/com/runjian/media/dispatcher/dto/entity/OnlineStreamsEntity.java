@@ -91,4 +91,14 @@ public class OnlineStreamsEntity {
      * 视频流0，音频流1
      */
     private Integer mediaType;
+    /**
+     * 文件上传id
+     */
+    private String uploadId;
+
+    /**
+     * 文件上传url
+     */
+    private String uploadUrl;
+
 }

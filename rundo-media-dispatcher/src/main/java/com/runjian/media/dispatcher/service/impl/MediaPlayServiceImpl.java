@@ -22,6 +22,8 @@ import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.BeanUtil;
+import com.runjian.common.utils.DateUtils;
+import com.runjian.common.utils.RestTemplateUtil;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.DynamicTask;
@@ -44,12 +46,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,6 +108,10 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
 
     @Autowired
+    private RestTemplate restTemplate;
+
+
+    @Autowired
     private DynamicTask dynamicTask;
     @Override
     public void play(MediaPlayReq playReq) {
@@ -114,7 +129,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             gatewayDealMsgService.sendGatewayPlayMsg(playCommonSsrcInfo,playReq);
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "点播服务", "点播失败", playReq,e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_LIVE_PLAY_START,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_LIVE_PLAY_START,BusinessErrorEnums.UNKNOWN_ERROR,e.getMessage());
         }
     }
 
@@ -134,7 +149,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "点播回放服务", "回放失败", mediaPlayBackReq,e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_RECORD_PLAY_START,BusinessErrorEnums.UNKNOWN_ERROR,null);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_RECORD_PLAY_START,BusinessErrorEnums.UNKNOWN_ERROR,e.getMessage());
         }
 
     }
@@ -181,11 +196,163 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
     @Override
     public void playRecordDownload(MediaRecordDownloadReq req) {
+        //进行回放流的获取和录制
+        String businessSceneKey = StreamBusinessMsgType.STREAM_RECORD_DOWNLOAD.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+req.getStreamId();
+        try {
+            //阻塞型,默认是30s无返回参数
+            SsrcInfo playCommonSsrcInfo = playDownloadProcess(businessSceneKey, StreamBusinessMsgType.STREAM_RECORD_DOWNLOAD,req);
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播回放服务", "端口创建结果", playCommonSsrcInfo);
+            if(ObjectUtils.isEmpty(playCommonSsrcInfo)){
+                //流复用，不用通知网关
+                return;
+            }
+            MediaPlayBackReq mediaPlayBackReq = new MediaPlayBackReq();
+            BeanUtil.copyProperties(req,mediaPlayBackReq);
+            gatewayDealMsgService.sendGatewayPlayBackMsg(playCommonSsrcInfo,mediaPlayBackReq);
+
+            //流注册成功 回调
+            HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.GB28181_APP, req.getStreamId(),true, VideoManagerConstants.GB28181_SCHEAM ,playCommonSsrcInfo.getMediaServerId());
+            subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
+                //流注册处理  发送指定mq消息
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm推流注册成功通知", "收到推流订阅消息", json.toJSONString());
+                //发送调度服务的业务队列 通知流实际成功
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_RECORD_DOWNLOAD,BusinessErrorEnums.SUCCESS,"获取流成功,开始进行录像");
+
+                //流状态修改为成功
+                // hook响应
+                subscribe.removeSubscribe(hookSubscribe);
+            });
+
+            //流录像成功 回调
+            HookSubscribeForStreamChange hookSubscribeRecord = HookSubscribeFactory.onRecordMp4(VideoManagerConstants.GB28181_APP, req.getStreamId() ,playCommonSsrcInfo.getMediaServerId());
+            subscribe.addSubscribe(hookSubscribeRecord, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
+                //流注册处理  发送指定mq消息
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm录像mp4成功通知", "收到录像成功返回", json.toJSONString());
+                //发送调度服务的业务队列 通知流实际成功
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_RECORD_DOWNLOAD,BusinessErrorEnums.SUCCESS,"获取流成功,开始进行录像");
+
+
+                //流录像
+                String filePath = json.getString("filePath");
+                String streamId = json.getString("stream");
+                OnlineStreamsEntity oneBystreamId = onlineStreamsService.getOneBystreamId(streamId);
+                sendFile(filePath,oneBystreamId,2);
+
+                // hook响应
+                subscribe.removeSubscribe(hookSubscribe);
+            });
+
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "点播回放服务", "截图流程失败", req,e);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_RECORD_DOWNLOAD,BusinessErrorEnums.UNKNOWN_ERROR,e.getMessage());
+        }
+    }
+
+    private void sendFile(String fileUrl,OnlineStreamsEntity onlineStreamsEntity,int fileType){
+        try {
+            FileSystemResource fileResource = new FileSystemResource(fileUrl);
+            // 创建请求体参数
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("file", fileResource);
+            body.add("alarmMsgId", onlineStreamsEntity.getUploadId());
+            body.add("alarmDataType", fileType);
+            RestTemplateUtil.postFile(onlineStreamsEntity.getUploadUrl(),body,null,restTemplate);
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "文件上传失败", "截图流程失败", e);
+        }
+
 
     }
 
+    private static byte[] getFileBytes(File file) throws IOException {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            byte[] buffer = new byte[(int) file.length()];
+            fis.read(buffer);
+            return buffer;
+        }
+    }
     @Override
     public void playPictureDownload(MediaPictureDownloadReq req) {
+        String businessSceneKey = StreamBusinessMsgType.STREAM_PICTURE_DOWNLOAD.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+req.getStreamId();
+        try {
+            //阻塞型,默认是30s无返回参数
+            SsrcInfo playCommonSsrcInfo = playDownloadProcess(businessSceneKey, StreamBusinessMsgType.STREAM_PICTURE_DOWNLOAD,req);
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播回放服务", "端口创建结果", playCommonSsrcInfo);
+            if(ObjectUtils.isEmpty(playCommonSsrcInfo)){
+                //流复用，不用通知网关
+                return;
+            }
+            MediaPlayBackReq mediaPlayBackReq = new MediaPlayBackReq();
+            BeanUtil.copyProperties(req,mediaPlayBackReq);
+            mediaPlayBackReq.setStartTime(req.getTime());
+            mediaPlayBackReq.setEndTime(DateUtils.getStringTimeExpireNow(req.getTime(),5));
+            gatewayDealMsgService.sendGatewayPlayBackMsg(playCommonSsrcInfo,mediaPlayBackReq);
+
+            //流注册成功 回调
+            HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(VideoManagerConstants.GB28181_APP, req.getStreamId(),true, VideoManagerConstants.GB28181_SCHEAM ,playCommonSsrcInfo.getMediaServerId());
+            subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
+                //流注册处理  发送指定mq消息
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm推流注册成功通知", "收到推流订阅消息", json.toJSONString());
+                //发送调度服务的业务队列 通知流实际成功
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_PICTURE_DOWNLOAD,BusinessErrorEnums.SUCCESS,"获取流成功,开始进行截图");
+
+                //进行截图 并上传
+                String streamId = json.getString("stream");
+                String mediaServerId = playCommonSsrcInfo.getMediaServerId();
+                MediaServerItem mediaOne = mediaServerService.getOne(mediaServerId);
+                String path = "snap";
+                String fileName = streamId + ".jpg";
+                // 请求截图
+                log.info("[请求截图]: " + fileName);
+                zlmresTfulUtils.getSnap(mediaOne, streamId, 5, 1, path, fileName);
+
+                String filePath = path+ File.separator +fileName;
+                OnlineStreamsEntity oneBystreamId = onlineStreamsService.getOneBystreamId(streamId);
+                sendFile(filePath,oneBystreamId,1);
+
+                //流状态修改为成功
+                // hook响应
+                subscribe.removeSubscribe(hookSubscribe);
+            });
+
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "点播回放服务", "截图流程失败", req,e);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_PICTURE_DOWNLOAD,BusinessErrorEnums.UNKNOWN_ERROR,e.getMessage());
+        }
+    }
+
+    private SsrcInfo playDownloadProcess(String businessSceneKey, StreamBusinessMsgType msgType, MediaPlayReq playReq) throws InterruptedException {
+        Boolean aBoolean = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, msgType, playReq.getMsgId());
+        //尝试获取锁
+        if(!aBoolean){
+            log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"点播请求，合并全局的请求",businessSceneKey);
+            return null;
+        }
+        String streamId = playReq.getStreamId();
+        MediaServerItem oneMedia;
+        // 复用流判断 针对直播场景
+        //获取默认的zlm流媒体
+        oneMedia =  mediaServerService.getDefaultMediaServer();
+        String ssrc = "";
+        if(playReq.getSsrcCheck()){
+            SsrcConfig ssrcConfig = redisCatchStorageService.getSsrcConfig();
+            ssrc = ssrcConfig.getPlayBackSsrc();
+            //更新ssrc的缓存
+            redisCatchStorageService.setSsrcConfig(ssrcConfig);
+        }
+
+        SsrcInfo ssrcInfo = mediaServerService.openRTPServer(oneMedia, playReq.getStreamId(), ssrc, playReq.getSsrcCheck(), 0);
+        //流信息状态保存
+        OnlineStreamsEntity onlineStreamsEntity = new OnlineStreamsEntity();
+        BeanUtil.copyProperties(playReq,onlineStreamsEntity);
+        onlineStreamsEntity.setMediaServerId(oneMedia.getId());
+        onlineStreamsEntity.setMqExchange(playReq.getGatewayMqExchange());
+        onlineStreamsEntity.setMqQueueName(playReq.getGatewayMqRouteKey());
+        onlineStreamsEntity.setMqRouteKey(playReq.getGatewayMqRouteKey());
+        onlineStreamsEntity.setSsrc(ssrcInfo.getSsrc());
+        onlineStreamsEntity.setApp(VideoManagerConstants.GB28181_APP);
+        onlineStreamsService.save(onlineStreamsEntity);
+        return ssrcInfo;
 
     }
 

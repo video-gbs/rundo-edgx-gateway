@@ -207,6 +207,11 @@ public class DateUtils {
         return formatter.format(nowDateTime);
     }
 
+    public static String getStringTimeExpireNow(String dateTime,int expire) {
+        LocalDateTime localDateTime = LocalDateTime.from(DateUtils.DATE_TIME_FORMATTER.parse(dateTime));
+        return formatter.format(localDateTime.plusSeconds(expire));
+    }
+
     /**
      * 未来过期时间
      * @param expire
