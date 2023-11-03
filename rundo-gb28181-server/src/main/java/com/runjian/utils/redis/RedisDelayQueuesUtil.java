@@ -1,5 +1,6 @@
 package com.runjian.utils.redis;
 
+import com.runjian.common.constant.LogTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBlockingDeque;
 import org.redisson.api.RDelayedQueue;
@@ -108,9 +109,15 @@ public class RedisDelayQueuesUtil {
      * @throws InterruptedException
      */
     public <T> T getDelayQueue(String queueCode)  {
-        RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
-        RDelayedQueue<Object> delayedQueue = redissonClient.getDelayedQueue(blockingDeque);
-        T value = (T) blockingDeque.poll();
+        T value = null;
+        try {
+            RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
+            RDelayedQueue<Object> delayedQueue = redissonClient.getDelayedQueue(blockingDeque);
+            value = (T) blockingDeque.poll();
+        }catch (Exception e){
+            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"延迟队列获取异常",queueCode,e);
+        }
+
         return value;
     }
     /**

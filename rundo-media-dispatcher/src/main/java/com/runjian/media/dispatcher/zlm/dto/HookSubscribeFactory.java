@@ -27,8 +27,8 @@ public class HookSubscribeFactory {
         return hookSubscribe;
     }
 
-    public static HookSubscribeForStreamChange onRecordMp4(String app, String stream, String mediaServerId) {
-        HookSubscribeForStreamChange hookSubscribe = new HookSubscribeForStreamChange();
+    public static HookSubscribeForRecordMp4 onRecordMp4(String app, String stream, String mediaServerId) {
+        HookSubscribeForRecordMp4 hookSubscribe = new HookSubscribeForRecordMp4();
         JSONObject subscribeKey = new JSONObject();
         subscribeKey.put("app", app);
         subscribeKey.put("stream", stream);

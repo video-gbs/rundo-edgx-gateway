@@ -36,10 +36,7 @@ import com.runjian.media.dispatcher.service.IOnlineStreamsService;
 import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
 import com.runjian.media.dispatcher.zlm.ZLMRESTfulUtils;
 import com.runjian.media.dispatcher.zlm.ZlmHttpHookSubscribe;
-import com.runjian.media.dispatcher.zlm.dto.HookSubscribeFactory;
-import com.runjian.media.dispatcher.zlm.dto.HookSubscribeForStreamChange;
-import com.runjian.media.dispatcher.zlm.dto.HookType;
-import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
+import com.runjian.media.dispatcher.zlm.dto.*;
 import com.runjian.media.dispatcher.zlm.service.ImediaServerService;
 import com.runjian.media.dispatcher.zlm.service.impl.MediaServerServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -224,7 +221,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             });
 
             //流录像成功 回调
-            HookSubscribeForStreamChange hookSubscribeRecord = HookSubscribeFactory.onRecordMp4(VideoManagerConstants.GB28181_APP, req.getStreamId() ,playCommonSsrcInfo.getMediaServerId());
+            HookSubscribeForRecordMp4 hookSubscribeRecord = HookSubscribeFactory.onRecordMp4(VideoManagerConstants.GB28181_APP, req.getStreamId() ,playCommonSsrcInfo.getMediaServerId());
             subscribe.addSubscribe(hookSubscribeRecord, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
                 //流注册处理  发送指定mq消息
                 log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "zlm录像mp4成功通知", "收到录像成功返回", json.toJSONString());
@@ -233,17 +230,18 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
 
                 //流录像
-                String filePath = json.getString("filePath");
+                String filePath = json.getString("file_path");
                 String streamId = json.getString("stream");
                 OnlineStreamsEntity oneBystreamId = onlineStreamsService.getOneBystreamId(streamId);
                 sendFile(filePath,oneBystreamId,2);
-
+                //实际的录像通知完成之后  进行流删除
+                onlineStreamsService.remove(streamId);
                 // hook响应
-                subscribe.removeSubscribe(hookSubscribe);
+                subscribe.removeSubscribe(hookSubscribeRecord);
             });
 
         }catch (Exception e){
-            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "点播回放服务", "截图流程失败", req,e);
+            log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "点播回放服务", "录像流程失败", req,e);
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_RECORD_DOWNLOAD,BusinessErrorEnums.UNKNOWN_ERROR,e.getMessage());
         }
     }
@@ -298,13 +296,15 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
 
                 //进行截图 并上传
                 String streamId = json.getString("stream");
+                String app = json.getString("app");
                 String mediaServerId = playCommonSsrcInfo.getMediaServerId();
                 MediaServerItem mediaOne = mediaServerService.getOne(mediaServerId);
                 String path = "snap";
                 String fileName = streamId + ".jpg";
                 // 请求截图
                 log.info("[请求截图]: " + fileName);
-                zlmresTfulUtils.getSnap(mediaOne, streamId, 5, 1, path, fileName);
+                String streamUrl = String.format("rtsp://%s:%s/%s/%s", mediaOne.getIp(), mediaOne.getRtspPort(), app,  streamId);
+                zlmresTfulUtils.getSnap(mediaOne, streamUrl, 5, 1, path, fileName);
 
                 String filePath = path+ File.separator +fileName;
                 OnlineStreamsEntity oneBystreamId = onlineStreamsService.getOneBystreamId(streamId);
@@ -497,7 +497,10 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                         //释放ssrc
                         redisCatchStorageService.ssrcRelease(oneBystreamId.getSsrc());
                         //清除点播请求
-                        onlineStreamsService.remove(streamId);
+                        if(oneBystreamId.getRecordState() != 0){
+                            onlineStreamsService.remove(streamId);
+                        }
+
                         // hook响应
                         subscribe.removeSubscribe(hookSubscribe);
                     });
@@ -620,7 +623,9 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 //释放ssrc
                 redisCatchStorageService.ssrcRelease(oneBystreamId.getSsrc());
                 //清除点播请求
-                onlineStreamsService.remove(streamId);
+                if(oneBystreamId.getRecordState() == 0){
+                    onlineStreamsService.remove(streamId);
+                }
                 //网关流注销通知
                 gatewayDealMsgService.sendGatewayStreamBye(oneBystreamId,null,oneBystreamId);
             }

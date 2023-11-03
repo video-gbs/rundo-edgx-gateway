@@ -176,7 +176,7 @@ public class ZLMHttpHookListener {
 		if(!ObjectUtils.isEmpty(oneBystreamId)){
 			ret.put("code", 0);
 			ret.put("msg", "success");
-			ret.put("enable_audio", true);
+			ret.put("enable_audio", oneBystreamId.getEnableAudio());
 			ret.put("enable_mp4", oneBystreamId.getRecordState() != 0);
 		}
 

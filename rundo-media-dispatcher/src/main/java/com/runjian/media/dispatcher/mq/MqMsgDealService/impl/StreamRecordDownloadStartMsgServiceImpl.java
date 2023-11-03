@@ -21,6 +21,9 @@ public class StreamRecordDownloadStartMsgServiceImpl implements InitializingBean
     @Autowired
     IMediaPlayService iMediaPlayService;
 
+    @Autowired
+    IMediaPlayService mediaPlayService;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         iMqMsgDealServer.addRequestProcessor(StreamBusinessMsgType.STREAM_RECORD_DOWNLOAD.getTypeName(),this);
@@ -42,7 +45,7 @@ public class StreamRecordDownloadStartMsgServiceImpl implements InitializingBean
         playReq.setDispatchUrl(dataMapJson.getString("mediaUrl"));
         playReq.setStreamMode(dataMapJson.getInteger("streamMode"));
 
-
+        mediaPlayService.playRecordDownload(playReq);
     }
 
 
