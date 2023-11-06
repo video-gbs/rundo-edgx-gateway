@@ -49,8 +49,7 @@ public class RedisDelayQueuesUtil {
         synchronized (queueCode){
             RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
             RDelayedQueue<Object> delayedQueue = redissonClient.getDelayedQueue(blockingDeque);
-            boolean empty = delayedQueue.isEmpty();
-            return empty;
+            return !delayedQueue.isEmpty();
         }
 
     }
@@ -110,13 +109,10 @@ public class RedisDelayQueuesUtil {
      */
     public <T> T getDelayQueue(String queueCode)  {
         T value = null;
-        try {
-            RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
-            RDelayedQueue<Object> delayedQueue = redissonClient.getDelayedQueue(blockingDeque);
-            value = (T) blockingDeque.poll();
-        }catch (Exception e){
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"延迟队列获取异常",queueCode,e);
-        }
+        RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
+        RDelayedQueue<Object> delayedQueue = redissonClient.getDelayedQueue(blockingDeque);
+        value = (T) blockingDeque.poll();
+
 
         return value;
     }

@@ -234,7 +234,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 String streamId = json.getString("stream");
                 OnlineStreamsEntity oneBystreamId = onlineStreamsService.getOneBystreamId(streamId);
                 sendFile(filePath,oneBystreamId,2);
-                //实际的录像通知完成之后  进行流删除
+                //实际的录像通知完成之后  进行流删除 录像先到 还是流注销先到 这里不确定
                 onlineStreamsService.remove(streamId);
                 // hook响应
                 subscribe.removeSubscribe(hookSubscribeRecord);
@@ -436,9 +436,8 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"点播通知", JSON.toJSONString(gatewayStreamNotify));
         String businessSceneKey = gatewayStreamNotify.getBusinessSceneKey();
         String streamId = businessSceneKey.substring(businessSceneKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY) + 1);
-        GatewayBusinessSceneResp businessSceneResp = (GatewayBusinessSceneResp)gatewayStreamNotify.getData();
         //判断点播回放
-        GatewayBusinessMsgType businessMsgType = businessSceneResp.getGatewayMsgType();
+        GatewayBusinessMsgType businessMsgType = gatewayStreamNotify.getGatewayMsgType();
         String businessKey;
         StreamBusinessMsgType gatewayType = StreamBusinessMsgType.STREAM_LIVE_PLAY_START;
         if(businessMsgType.equals(GatewayBusinessMsgType.PLAY)){
@@ -448,7 +447,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             businessKey = StreamBusinessMsgType.STREAM_RECORD_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
             gatewayType = StreamBusinessMsgType.STREAM_RECORD_PLAY_START;
         }
-        BusinessErrorEnums oneBusinessNum = BusinessErrorEnums.getOneBusinessNum(businessSceneResp.getCode());
+        BusinessErrorEnums oneBusinessNum = BusinessErrorEnums.getOneBusinessNum(gatewayStreamNotify.getCode());
         if(oneBusinessNum.equals(BusinessErrorEnums.COMMDER_SEND_SUCESS) || oneBusinessNum.equals(BusinessErrorEnums.SUCCESS)){
             //网关正常通知
         }else {

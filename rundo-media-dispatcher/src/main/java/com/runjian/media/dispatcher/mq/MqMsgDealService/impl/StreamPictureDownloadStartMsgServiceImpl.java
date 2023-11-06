@@ -1,6 +1,7 @@
 package com.runjian.media.dispatcher.mq.MqMsgDealService.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.Gb28181Media.req.MediaPictureDownloadReq;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayBackReq;
 import com.runjian.common.commonDto.Gb28181Media.req.MediaRecordDownloadReq;
 import com.runjian.common.constant.StreamBusinessMsgType;
@@ -35,7 +36,7 @@ public class StreamPictureDownloadStartMsgServiceImpl implements InitializingBea
         //实际的请求参数
         JSONObject dataMapJson = dataJson.getJSONObject("dataMap");
 
-        MediaRecordDownloadReq playReq = JSONObject.toJavaObject(dataMapJson, MediaRecordDownloadReq.class);
+        MediaPictureDownloadReq playReq = JSONObject.toJavaObject(dataMapJson, MediaPictureDownloadReq.class);
         playReq.setStreamId(dataJson.getString("streamId"));
         playReq.setMsgId(commonMqDto.getMsgId());
         playReq.setGatewayMqExchange(dataMapJson.getString("exchangeName"));
@@ -44,7 +45,7 @@ public class StreamPictureDownloadStartMsgServiceImpl implements InitializingBea
         playReq.setDispatchUrl(dataMapJson.getString("mediaUrl"));
         playReq.setStreamMode(dataMapJson.getInteger("streamMode"));
 
-        mediaPlayService.playRecordDownload(playReq);
+        mediaPlayService.playPictureDownload(playReq);
 
     }
 

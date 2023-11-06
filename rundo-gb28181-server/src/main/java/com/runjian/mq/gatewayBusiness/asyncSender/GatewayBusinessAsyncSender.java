@@ -88,20 +88,23 @@ public class GatewayBusinessAsyncSender {
                         mqInfo.setCode(businessErrorEnums.getErrCode());
                         mqInfo.setMsg(businessErrorEnums.getErrMsg());
                         String mqGetQueue = gatewaySignInConf.getMqSetQueue();
-                        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", mqInfo);
+                        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mqN信令发送处理", mqInfo);
                         if(oneResp.getSendType() == 0){
                             rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
 
                         }else {
-                            JSONObject objData = (JSONObject)businessSceneResp.getData();
-                            String dispatchUrl = objData.getString("dispatchUrl");
-                            String resultString = RestTemplateUtil.postString(dispatchUrl, JSON.toJSONString(objData), null, restTemplate);
+
+                            PlayReq objData = (PlayReq)businessSceneKeyPoll.getData();
+                            String dispatchUrl = objData.getDispatchUrl();
+                            businessSceneKeyPoll.setMsg(businessErrorEnums.getErrMsg());
+                            businessSceneKeyPoll.setCode(businessErrorEnums.getErrCode());
+                            String resultString = RestTemplateUtil.postString(dispatchUrl, JSON.toJSONString(businessSceneKeyPoll), null, restTemplate);
                             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", resultString);
                         }
                     };
 
                 }catch (Exception e){
-                    log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理--异常", "业务场景处理-mq信令发送处理", businessSceneResp);
+                    log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理--异常", businessSceneResp, e);
                 }
 
 

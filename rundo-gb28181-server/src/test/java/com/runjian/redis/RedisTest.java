@@ -3,12 +3,16 @@ package com.runjian.redis;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.constant.BusinessSceneConstants;
+import com.runjian.common.constant.GatewayBusinessMsgType;
 import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.service.IDeviceService;
+import com.runjian.service.IRedisCatchStorageService;
+import com.runjian.utils.redis.RedisDelayQueuesUtil;
 import com.runjian.utils.redis.RedissonLockUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -23,6 +27,7 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
@@ -124,10 +129,39 @@ public class RedisTest {
 
     }
 
+    @Autowired
+    IRedisCatchStorageService redisCatchStorageService;
+
+    @Autowired
+    RedisDelayQueuesUtil redisDelayQueuesUtil;
+
 
     @Test
-    public void testGetRedisHash(){
-        String businessSceneKey = "DEVICE_TOTAL_SYNC:";
+    public void testGetRedisHash() throws InterruptedException {
+        String key = GatewayBusinessMsgType.CHANNEL_DELETE_HARD.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+"test";
+        redisCatchStorageService.addBusinessSceneKey(key, GatewayBusinessMsgType.CHANNEL_DELETE_HARD,null,0);
+        new Thread(()->{
+            while (true) {
+                try {
+                    Set<String> keys = RedisCommonUtil.keys(redisTemplate, BusinessSceneConstants.GATEWAY_BUSINESS_LISTS + "*");
+                    if (!ObjectUtils.isEmpty(keys)) {
+                        for (String bKey : keys) {
+                            String businessKey = bKey.substring(bKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY) + 1);
+                            if(businessKey.equals("test")){
+                                Object delayQueue = redisDelayQueuesUtil.getDelayQueue(businessKey);
+
+                            }
+
+                        }
+
+                    }
+                } catch (Exception e) {
+                    log.error("(Redis延迟队列异常中断) {}", e.getMessage());
+                }
+            }
+        }).start();
+        Thread.sleep(8000);
+        redisCatchStorageService.editBusinessSceneKey(key,BusinessErrorEnums.SUCCESS,"test");
 
 
 

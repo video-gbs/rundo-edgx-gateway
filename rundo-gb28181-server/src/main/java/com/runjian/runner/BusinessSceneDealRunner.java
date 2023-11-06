@@ -77,6 +77,9 @@ public class BusinessSceneDealRunner implements CommandLineRunner {
                 if(!ObjectUtils.isEmpty(keys)){
                     for(String bKey : keys){
                         String businessKey = bKey.substring(bKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY) + 1);
+//                        if(!redisDelayQueuesUtil.checkDelayQueueExist(businessKey)){
+//                            RedisCommonUtil.del(redisTemplate,bKey);
+//                        }
                         Object delayQueue = redisDelayQueuesUtil.getDelayQueue(businessKey);
                         if(!ObjectUtils.isEmpty(delayQueue)){
                             GatewayBusinessSceneResp businessSceneResp = (GatewayBusinessSceneResp) delayQueue;

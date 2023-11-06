@@ -63,7 +63,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
-        logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "报警事件的处理", "收到报警通知", "设备id:" + device.getDeviceId());
+//        logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "报警事件的处理", "收到报警通知", "设备id:" + device.getDeviceId());
         taskQueue.offer(new SipMsgInfo(evt, device, rootElement));
         // 回复200 OK
         try {

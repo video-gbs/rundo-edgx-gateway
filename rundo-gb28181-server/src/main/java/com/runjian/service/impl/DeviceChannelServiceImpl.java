@@ -68,7 +68,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public synchronized List<DeviceChannel> resetChannelsForcatalog(String deviceId, List<DeviceChannel> deviceChannelList) {
         //获取通道原有数据
-        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"通道同步",deviceChannelList);
         return resetChannelsForcatalogLock(deviceId,deviceChannelList);
     }
 
@@ -107,7 +106,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                         idList.add(id);
                     }
                 }
-                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"通道下线",idList);
                 deviceChannelMapper.cleanChannelsByChannelIdList(idList);
             }
 
@@ -118,7 +116,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                         addDeviceChannels.add(deviceChannel);
                     }
                 }
-                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE,"通道新增",addDeviceChannels,deviceChannelList);
                 deviceChannelMapper.batchAdd(addDeviceChannels);
             }
             if(!CollectionUtils.isEmpty(updateCollects)){
@@ -131,7 +128,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     }
                 }
                 if(!CollectionUtils.isEmpty(deviceChannelsUpdate)){
-                    log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"通道编辑",deviceChannelsUpdate);
                     deviceChannelMapper.batchUpdate(deviceChannelsUpdate);
 
                 }
@@ -194,9 +190,8 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         try {
             RLock lock = redissonClient.getLock(businessSceneKey);
             //阻塞型,默认是30s无返回参数
-            redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_DELETE_HARD,msgId,0);
+            Boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_DELETE_HARD, msgId, 0);
             //尝试获取锁
-            boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100, TimeUnit.MILLISECONDS);
             if(!b){
                 //加锁失败，不继续执行
                 log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备服务,删除通道，合并全局的请求",msgId);

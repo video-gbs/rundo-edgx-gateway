@@ -1,5 +1,6 @@
 package com.runjian.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
 import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.PlayCommonSsrcInfo;
@@ -151,7 +152,7 @@ public class PlayServiceImpl implements IplayService {
 
     @Override
     public void playBack(PlayBackReq playBackReq) {
-        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播请求进入", playBackReq);
+        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播请求进入", JSON.toJSON(playBackReq));
         String businessSceneKey = GatewayBusinessMsgType.PLAY_BACK.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+playBackReq.getStreamId();
         try {
             PlayCommonSsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayBusinessMsgType.PLAY_BACK, playBackReq,false);
@@ -165,7 +166,7 @@ public class PlayServiceImpl implements IplayService {
             device.setDeviceId(playCommonSsrcInfo.getDeviceId());
             sipCommander.playbackStreamCmd(playBackReq.getStreamMode(),ssrcInfo,device, playBackReq.getChannelId(),playBackReq.getStartTime(),playBackReq.getEndTime(), ok->{
                 //成功业务处理
-                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播成功", playBackReq);
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播成功", JSON.toJSON(playBackReq));
                 //缓存当前的sip推拉流信息
                 ResponseEvent responseEvent = (ResponseEvent) ok.event;
                 SIPResponse response = (SIPResponse) responseEvent.getResponse();
@@ -191,10 +192,8 @@ public class PlayServiceImpl implements IplayService {
     }
 
     private PlayCommonSsrcInfo playCommonProcess(String businessSceneKey, GatewayBusinessMsgType gatewayMsgType, PlayReq playReq,boolean isPlay) throws InterruptedException {
-        redisCatchStorageService.addBusinessSceneKey(businessSceneKey,gatewayMsgType,playReq.getMsgId(),1);
+        Boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, gatewayMsgType, playReq.getMsgId(), 1);
         //尝试获取锁
-        RLock lock = redissonClient.getLock(businessSceneKey);
-        boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100, TimeUnit.MILLISECONDS);
         if(!b){
             //加锁失败，不继续执行
             log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备点播服务,加锁失败，合并全局的请求",playReq);

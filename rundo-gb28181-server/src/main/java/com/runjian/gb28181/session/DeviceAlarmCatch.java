@@ -80,7 +80,7 @@ public class DeviceAlarmCatch {
         final String alarmDelayKey = BusinessSceneConstants.ALARM_BUSINESS+alarmKey;
         final String alarmHeartKey = BusinessSceneConstants.ALARM_HEART_BUSINESS+alarmKey;
         synchronized (alarmDelayKey){
-            if(redisDelayQueuesUtil.checkDelayQueueExist(alarmDelayKey)){
+            if(!redisDelayQueuesUtil.checkDelayQueueExist(alarmDelayKey)){
                 //首次开始
                 redisDelayQueuesUtil.addDelayQueue(deviceAlarm, polymerizationExpire, TimeUnit.SECONDS,alarmDelayKey);
                 redisDelayQueuesUtil.addDelayQueue(deviceAlarm, 15, TimeUnit.SECONDS,alarmHeartKey);

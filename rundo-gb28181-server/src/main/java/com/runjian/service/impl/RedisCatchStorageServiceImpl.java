@@ -170,7 +170,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
                 businessSceneResp.setData(data);
                 mqSendSceneEvent.setMqSendSceneDto(new MqSendSceneDto(businessSceneResp,businessErrorEnums));
                 applicationEventPublisher.publishEvent(mqSendSceneEvent);
-                RLock lock = redissonClient.getLock( BusinessSceneConstants.SELF_BUSINESS_LOCK_KEY+businessSceneKey);
+                RLock lock = redissonClient.getLock( BusinessSceneConstants.GATEWAY_BUSINESS_LOCK_KEY+businessSceneKey);
                 if(!ObjectUtils.isEmpty(lock)){
                     lock.unlockAsync(businessSceneResp.getThreadId());
                 }
@@ -197,7 +197,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
             GatewayBusinessSceneResp<Object> objectStreamBusinessSceneResp = GatewayBusinessSceneResp.addSceneReady(msgType, msgId, businessSceneKey,null,sendType);
             RedisCommonUtil.leftPush(redisTemplate,BusinessSceneConstants.GATEWAY_BUSINESS_LISTS+businessSceneKey,objectStreamBusinessSceneResp);
             if(aBoolean){
-                redisDelayQueuesUtil.addDelayQueue(objectStreamBusinessSceneResp, 10, TimeUnit.SECONDS,businessSceneKey);
+                redisDelayQueuesUtil.addDelayQueue(objectStreamBusinessSceneResp, 20, TimeUnit.SECONDS,businessSceneKey);
             }
 
         }catch (Exception e){
