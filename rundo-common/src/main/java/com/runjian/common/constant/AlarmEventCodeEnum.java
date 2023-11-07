@@ -14,13 +14,13 @@ import lombok.ToString;
 @AllArgsConstructor
 public enum AlarmEventCodeEnum {
     //移动侦测
-    MOVE_ALARM("1"),
+    MOVE_ALARM("gb28181-move"),
     //遮挡告警
-    COVER_ALARM("2"),
+    COVER_ALARM("gb28181-cover"),
     //区域入侵
-    REGIONAL_ALARM("3"),
+    REGIONAL_ALARM("gb28181-regional"),
     //绊线入侵
-    TRIPPING_WIRE_ALARM("4")
+    TRIPPING_WIRE_ALARM("gb28181-tripping-wire")
 
     ;
     //调度服务的消息  end

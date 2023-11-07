@@ -67,6 +67,7 @@ public class GatewayBusinessAsyncSender {
     RestTemplate restTemplate;
     @Autowired
     MqInfoCommonDto mqInfoCommonDto;
+    @Async
     //全消息处理
     public void sendforAllScene(GatewayBusinessSceneResp businessSceneResp,BusinessErrorEnums businessErrorEnums){
         //判断业务网关是否初始化

@@ -59,6 +59,6 @@ public interface IRedisCatchStorageService {
      * @param msgType
      * @param msgId
      */
-    Boolean addBusinessSceneKey(String businessSceneKey, GatewayBusinessMsgType msgType, String msgId,Integer sendType);
+    Boolean addBusinessSceneKey(String businessSceneKey, GatewayBusinessMsgType msgType, String msgId,Integer sendType,Object data);
 
 }

@@ -192,7 +192,7 @@ public class PlayServiceImpl implements IplayService {
     }
 
     private PlayCommonSsrcInfo playCommonProcess(String businessSceneKey, GatewayBusinessMsgType gatewayMsgType, PlayReq playReq,boolean isPlay) throws InterruptedException {
-        Boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, gatewayMsgType, playReq.getMsgId(), 1);
+        Boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, gatewayMsgType, playReq.getMsgId(), 1,playReq);
         //尝试获取锁
         if(!b){
             //加锁失败，不继续执行

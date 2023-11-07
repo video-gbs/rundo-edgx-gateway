@@ -59,7 +59,7 @@ public class DefensesDeployServiceImpl implements InitializingBean, IMsgProcesso
         String msgId = commonMqDto.getMsgId();
 
         String businessSceneKey = GatewayBusinessMsgType.CHANNEL_DEFENSES_DEPLOY.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+msgId;
-        redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DEFENSES_DEPLOY,msgId,0);
+        redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.CHANNEL_DEFENSES_DEPLOY,msgId,0,null);
         if(!ObjectUtils.isEmpty(dataMapJson)){
             HashMap<String, List<String>> stringArraysHashMap = new HashMap<>();
             for(String key: dataMapJson.keySet()){

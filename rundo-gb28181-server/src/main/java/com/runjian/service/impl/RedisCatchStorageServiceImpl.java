@@ -183,7 +183,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     }
 
     @Override
-    public  Boolean addBusinessSceneKey(String businessSceneKey, GatewayBusinessMsgType msgType, String msgId,Integer sendType) {
+    public  Boolean addBusinessSceneKey(String businessSceneKey, GatewayBusinessMsgType msgType, String msgId,Integer sendType,Object data) {
         String redisLockKey = BusinessSceneConstants.GATEWAY_BUSINESS_LOCK_KEY+businessSceneKey;
         RLock lock = redissonClient.getLock(redisLockKey);
         Boolean  aBoolean = false;
@@ -194,7 +194,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
                 String sn = getSn(GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR);
                 msgId = GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix + sn;
             }
-            GatewayBusinessSceneResp<Object> objectStreamBusinessSceneResp = GatewayBusinessSceneResp.addSceneReady(msgType, msgId, businessSceneKey,null,sendType);
+            GatewayBusinessSceneResp<Object> objectStreamBusinessSceneResp = GatewayBusinessSceneResp.addSceneReady(msgType, msgId, businessSceneKey,data,sendType);
             RedisCommonUtil.leftPush(redisTemplate,BusinessSceneConstants.GATEWAY_BUSINESS_LISTS+businessSceneKey,objectStreamBusinessSceneResp);
             if(aBoolean){
                 redisDelayQueuesUtil.addDelayQueue(objectStreamBusinessSceneResp, 20, TimeUnit.SECONDS,businessSceneKey);

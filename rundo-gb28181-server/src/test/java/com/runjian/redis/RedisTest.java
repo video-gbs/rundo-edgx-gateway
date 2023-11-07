@@ -139,7 +139,7 @@ public class RedisTest {
     @Test
     public void testGetRedisHash() throws InterruptedException {
         String key = GatewayBusinessMsgType.CHANNEL_DELETE_HARD.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+"test";
-        redisCatchStorageService.addBusinessSceneKey(key, GatewayBusinessMsgType.CHANNEL_DELETE_HARD,null,0);
+        redisCatchStorageService.addBusinessSceneKey(key, GatewayBusinessMsgType.CHANNEL_DELETE_HARD,null,0,null);
         new Thread(()->{
             while (true) {
                 try {
