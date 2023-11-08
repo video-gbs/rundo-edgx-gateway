@@ -89,17 +89,19 @@ public class DeviceAlarmCatch {
                 Thread thread = new Thread(() -> {
                     while (true){
                         DeviceAlarm delayQueueOne = redisDelayQueuesUtil.getDelayQueue(alarmDelayKey);
-                        delayQueueOne.setAlarmTime(DateUtils.getNow());
                         if(ObjectUtils.isEmpty(delayQueueOne)){
                             DeviceAlarm heartQueueOne = redisDelayQueuesUtil.getDelayQueue(alarmHeartKey);
                             if(!ObjectUtils.isEmpty(heartQueueOne)){
                                 //发送告警的心跳
+
                                 redisDelayQueuesUtil.addDelayQueue(deviceAlarm, 15, TimeUnit.SECONDS,alarmHeartKey);
+                                heartQueueOne.setAlarmTime(DateUtils.getNow());
                                 alarmMappingSend(heartQueueOne,AlarmEventTypeEnum.COMPOUND_HEARTBEAT);
                                 log.info("心跳："+alarmHeartKey);
 
                             }
                         }else {
+                            delayQueueOne.setAlarmTime(DateUtils.getNow());
                             alarmMappingSend(delayQueueOne,AlarmEventTypeEnum.COMPOUND_END);
                             log.info("结束："+JSON.toJSONString(delayQueueOne));
                             //心跳队列移除
@@ -154,7 +156,7 @@ public class DeviceAlarmCatch {
             mqInfo.setMsg(BusinessErrorEnums.SUCCESS.getErrMsg());
             String mqGetQueue = gatewaySignInConf.getMqSetQueue();
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "告警消息-mq信令发送处理", mqInfo);
-            rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
+//            rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
         }
 
     }

@@ -1,5 +1,6 @@
 package com.runjian.redis;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
@@ -10,6 +11,8 @@ import com.runjian.common.constant.GatewayMsgType;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.gb28181.bean.Device;
+import com.runjian.gb28181.bean.DeviceAlarm;
+import com.runjian.gb28181.session.DeviceAlarmCatch;
 import com.runjian.service.IDeviceService;
 import com.runjian.service.IRedisCatchStorageService;
 import com.runjian.utils.redis.RedisDelayQueuesUtil;
@@ -168,5 +171,21 @@ public class RedisTest {
         //把其中全部的请求状态修改成一致
 
 
+    }
+
+
+    @Autowired
+    private DeviceAlarmCatch deviceAlarmCatch;
+
+    @Test
+    public void testAlarm() throws InterruptedException {
+        String alarmStr = "{\"alarmDescription\":\"\",\"alarmMethod\":\"5\",\"alarmPriority\":\"4\",\"alarmTime\":\"2023-11-07 10:57:20\",\"alarmType\":\"2\",\"channelId\":\"34020000001320000203\",\"deviceId\":\"34020000001130000245\",\"latitude\":0.0,\"longitude\":0.0}";
+        DeviceAlarm deviceAlarm = JSONObject.parseObject(alarmStr, DeviceAlarm.class);
+
+        for (int i = 0; i < 100; i++) {
+            deviceAlarm.setAlarmType(String.valueOf(i%12));
+            deviceAlarmCatch.addReady(deviceAlarm);
+
+        }
     }
 }
