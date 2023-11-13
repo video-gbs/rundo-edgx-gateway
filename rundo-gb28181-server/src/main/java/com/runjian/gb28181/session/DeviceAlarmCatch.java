@@ -156,7 +156,7 @@ public class DeviceAlarmCatch {
             mqInfo.setMsg(BusinessErrorEnums.SUCCESS.getErrMsg());
             String mqGetQueue = gatewaySignInConf.getMqSetQueue();
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "告警消息-mq信令发送处理", mqInfo);
-//            rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
+            rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
         }
 
     }
