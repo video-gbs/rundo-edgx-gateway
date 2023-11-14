@@ -34,7 +34,7 @@ public class RedissonConfig {
         Config config = Config.fromYAML(new ClassPathResource("redisson-single.yml").getInputStream());
         config.useSingleServer()
                 .setAddress("redis://" + redisHost + ":" + redisPort)
-                .setDatabase(redisDatabase);
+                .setDatabase(redisDatabase).setConnectTimeout(30000).setSubscriptionsPerConnection(5000);
         if(!ObjectUtils.isEmpty(password)){
             config.useSingleServer().setPassword(password);
         }
