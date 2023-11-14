@@ -45,6 +45,7 @@ public class RedisDelayQueuesUtil {
         }
     }
 
+
     public boolean checkDelayQueueExist(String queueCode) {
         synchronized (queueCode){
             RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
@@ -111,6 +112,7 @@ public class RedisDelayQueuesUtil {
         T value = null;
         RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque(queueCode);
         RDelayedQueue<Object> delayedQueue = redissonClient.getDelayedQueue(blockingDeque);
+
         value = (T) blockingDeque.poll();
 
 

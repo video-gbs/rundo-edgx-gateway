@@ -30,8 +30,12 @@ public class BusinessSceneConstants {
     /**
      * alarm的告警
      */
-    public static final String  ALARM_BUSINESS = "ALARM_BUSINESS:";
-    public static final String  ALARM_HEART_BUSINESS = "ALARM_HEART_BUSINESS:";
+    public static final String  REDISSON_DELAY_QUEUE_PREFIX = "redisson_delay_queue:";
+
+    public static final String  ALARM_DELAY_PREFIX = "ALARM_DELAY";
+    public static final String  ALARM_BUSINESS = ALARM_DELAY_PREFIX+"_BUSINESS:";
+    public static final String  ALARM_DELAY_BUSINESS = "ALARM_DELAY_BUSINESS";
+    public static final String  ALARM_HEART_BUSINESS = ALARM_DELAY_PREFIX+"_HEART_BUSINESS:";
     public static final String  ALARM_BUSINESS_LIST = "ALARM_BUSINESS_LIST:";
     /*
      * 设备信息缓存键

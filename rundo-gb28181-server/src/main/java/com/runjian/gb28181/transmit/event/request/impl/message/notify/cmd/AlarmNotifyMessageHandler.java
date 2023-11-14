@@ -109,6 +109,10 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                     } else {
                         deviceAlarm.setLatitude(0.00);
                     }
+                    String alarmInfo = getText(sipMsgInfo.getRootElement(), "AlarmInfo");
+                    if(!ObjectUtils.isEmpty(alarmInfo)){
+                        deviceAlarm.setAlarmType(alarmInfo);
+                    }
                     Element infoElem = sipMsgInfo.getRootElement().element("Info");
                     if(!ObjectUtils.isEmpty(infoElem)){
                         deviceAlarm.setAlarmType(getText(infoElem, "AlarmType"));
