@@ -77,32 +77,28 @@ public class GatewayBusinessAsyncSender {
             GatewayBusinessSceneResp businessSceneKeyPoll = taskQueue.poll();
             if(!ObjectUtils.isEmpty(businessSceneKeyPoll)){
                 try {
-                    String businessSceneKey = businessSceneResp.getBusinessSceneKey();
-                    while (!ObjectUtils.isEmpty(RedisCommonUtil.rangListAll(redisTemplate,BusinessSceneConstants.GATEWAY_BUSINESS_LISTS + businessSceneKey))){
 
-                        GatewayBusinessSceneResp oneResp = (GatewayBusinessSceneResp)RedisCommonUtil.leftPop(redisTemplate, BusinessSceneConstants.GATEWAY_BUSINESS_LISTS + businessSceneKey);
-                        //进行消息通知
-                        GatewayBusinessMsgType gatewayMsgType = oneResp.getGatewayMsgType();
-                        String msgId = oneResp.getMsgId();
-                        CommonMqDto mqInfo = mqInfoCommonDto.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix, msgId);
-                        mqInfo.setData(businessSceneKeyPoll.getData());
-                        mqInfo.setCode(businessErrorEnums.getErrCode());
-                        mqInfo.setMsg(businessErrorEnums.getErrMsg());
-                        String mqGetQueue = gatewaySignInConf.getMqSetQueue();
-                        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mqN信令发送处理", mqInfo);
-                        if(oneResp.getSendType() == 0){
-                            rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
+                    //进行消息通知
+                    GatewayBusinessMsgType gatewayMsgType = businessSceneKeyPoll.getGatewayMsgType();
+                    String msgId = businessSceneKeyPoll.getMsgId();
+                    CommonMqDto mqInfo = mqInfoCommonDto.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix, msgId);
+                    mqInfo.setData(businessSceneKeyPoll.getData());
+                    mqInfo.setCode(businessErrorEnums.getErrCode());
+                    mqInfo.setMsg(businessErrorEnums.getErrMsg());
+                    String mqGetQueue = gatewaySignInConf.getMqSetQueue();
+                    log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mqN信令发送处理", mqInfo);
+                    if(businessSceneKeyPoll.getSendType() == 0){
+                        rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
 
-                        }else {
+                    }else {
 
-                            PlayReq objData = (PlayReq)businessSceneKeyPoll.getData();
-                            String dispatchUrl = objData.getDispatchUrl();
-                            businessSceneKeyPoll.setMsg(businessErrorEnums.getErrMsg());
-                            businessSceneKeyPoll.setCode(businessErrorEnums.getErrCode());
-                            String resultString = RestTemplateUtil.postString(dispatchUrl, JSON.toJSONString(businessSceneKeyPoll), null, restTemplate);
-                            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", resultString);
-                        }
-                    };
+                        PlayReq objData = (PlayReq)businessSceneKeyPoll.getData();
+                        String dispatchUrl = objData.getDispatchUrl();
+                        businessSceneKeyPoll.setMsg(businessErrorEnums.getErrMsg());
+                        businessSceneKeyPoll.setCode(businessErrorEnums.getErrCode());
+                        String resultString = RestTemplateUtil.postString(dispatchUrl, JSON.toJSONString(businessSceneKeyPoll), null, restTemplate);
+                        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", resultString);
+                    }
 
                 }catch (Exception e){
                     log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理--异常", businessSceneResp, e);

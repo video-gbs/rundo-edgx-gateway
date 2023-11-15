@@ -188,7 +188,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
         String businessSceneKey = GatewayBusinessMsgType.CHANNEL_DELETE_HARD.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+deviceId+ BusinessSceneConstants.SCENE_STREAM_KEY+channelId;
         try {
-            RLock lock = redissonClient.getLock(businessSceneKey);
             //阻塞型,默认是30s无返回参数
             Boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.CHANNEL_DELETE_HARD, msgId, 0,null);
             //尝试获取锁

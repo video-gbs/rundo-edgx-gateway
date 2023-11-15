@@ -1,8 +1,6 @@
 package com.runjian.service.impl;
 
 
-import com.alibaba.fastjson.JSONObject;
-import com.runjian.common.commonDto.Gateway.dto.GatewayTask;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.GatewayBusinessSceneResp;
@@ -17,7 +15,6 @@ import com.runjian.conf.UserSetting;
 import com.runjian.dao.GatewayTaskMapper;
 import com.runjian.mq.event.mqEvent.MqSendSceneDto;
 import com.runjian.mq.event.mqEvent.MqSendSceneEvent;
-import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
 import com.runjian.service.IRedisCatchStorageService;
 import com.runjian.utils.redis.RedisDelayQueuesUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -32,13 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @author chenjialing
@@ -76,6 +67,8 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
 
     @Autowired
     private ApplicationEventPublisher applicationEventPublisher;
+
+
 
 
     @Override
@@ -160,9 +153,10 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     public synchronized   void editBusinessSceneKey(String businessSceneKey,BusinessErrorEnums businessErrorEnums,Object data) {
         try {
             //超时时间内返回，处理全部的消息聚合的消息
-            Object removeObj = redisDelayQueuesUtil.remove(businessSceneKey);
+            Object removeObj = RedisCommonUtil.get(redisTemplate, businessSceneKey);
             if(ObjectUtils.isEmpty(removeObj)){
                 //队列删除失败
+                log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE,"处理网关业务状态","缓存数据获取失败",businessSceneKey);
             }else {
                 //异步进行全局锁解锁
                 GatewayBusinessSceneResp businessSceneResp = (GatewayBusinessSceneResp) removeObj;
@@ -170,10 +164,6 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
                 businessSceneResp.setData(data);
                 mqSendSceneEvent.setMqSendSceneDto(new MqSendSceneDto(businessSceneResp,businessErrorEnums));
                 applicationEventPublisher.publishEvent(mqSendSceneEvent);
-                RLock lock = redissonClient.getLock( BusinessSceneConstants.GATEWAY_BUSINESS_LOCK_KEY+businessSceneKey);
-                if(!ObjectUtils.isEmpty(lock)){
-                    lock.unlockAsync(businessSceneResp.getThreadId());
-                }
             }
 
         }catch (Exception e){
@@ -184,21 +174,17 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
 
     @Override
     public  Boolean addBusinessSceneKey(String businessSceneKey, GatewayBusinessMsgType msgType, String msgId,Integer sendType,Object data) {
-        String redisLockKey = BusinessSceneConstants.GATEWAY_BUSINESS_LOCK_KEY+businessSceneKey;
-        RLock lock = redissonClient.getLock(redisLockKey);
-        Boolean  aBoolean = false;
+        Boolean  aBoolean = true;
         try {
             //分布式锁 进行
-            aBoolean = lock.tryLock(10, userSetting.getBusinessSceneTimeout()-100, TimeUnit.MILLISECONDS);
+//            aBoolean = lock.tryLock(10, userSetting.getBusinessSceneTimeout()-100, TimeUnit.MILLISECONDS);
             if(ObjectUtils.isEmpty(msgId)){
                 String sn = getSn(GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR);
                 msgId = GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix + sn;
             }
             GatewayBusinessSceneResp<Object> objectStreamBusinessSceneResp = GatewayBusinessSceneResp.addSceneReady(msgType, msgId, businessSceneKey,data,sendType);
-            RedisCommonUtil.leftPush(redisTemplate,BusinessSceneConstants.GATEWAY_BUSINESS_LISTS+businessSceneKey,objectStreamBusinessSceneResp);
-            if(aBoolean){
-                redisDelayQueuesUtil.addDelayQueue(objectStreamBusinessSceneResp, 20, TimeUnit.SECONDS,businessSceneKey);
-            }
+
+            RedisCommonUtil.set(redisTemplate,businessSceneKey,objectStreamBusinessSceneResp,15);
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE,"处理网关业务状态","缓存添加执行失败",businessSceneKey,e);

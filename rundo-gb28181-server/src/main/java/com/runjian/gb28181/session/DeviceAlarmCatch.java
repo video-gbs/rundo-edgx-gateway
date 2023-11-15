@@ -66,31 +66,31 @@ public class DeviceAlarmCatch {
 
 
     public  void addReady(DeviceAlarm deviceAlarm) {
-        String alarmType = deviceAlarm.getAlarmType();
-        String alarmKey = deviceAlarm.getDeviceId()+ BusinessSceneConstants.SCENE_STREAM_SPLICE_KEY +deviceAlarm.getChannelId()+BusinessSceneConstants.SCENE_STREAM_SPLICE_KEY+deviceAlarm.getAlarmMethod();
-        if(!ObjectUtils.isEmpty(alarmType)){
-            alarmKey = alarmKey+BusinessSceneConstants.SCENE_STREAM_SPLICE_KEY+alarmType;
-        }
-
-
-
-        final String alarmDelayKey = BusinessSceneConstants.ALARM_BUSINESS+alarmKey;
-        final String alarmHeartKey = BusinessSceneConstants.ALARM_HEART_BUSINESS+alarmKey;
-        synchronized (alarmDelayKey){
-            if(!redisDelayQueuesUtil.checkDelayQueueExist(alarmDelayKey)){
-                //首次开始
-                redisDelayQueuesUtil.addDelayQueue(deviceAlarm, polymerizationExpire, TimeUnit.SECONDS,alarmDelayKey);
-                redisDelayQueuesUtil.addDelayQueue(deviceAlarm, 15, TimeUnit.SECONDS,alarmHeartKey);
-                //开始
-                alarmMappingSend(deviceAlarm,AlarmEventTypeEnum.COMPOUND_START);
-
-            }else {
-                //首次结束数据周期内到达  做聚合
-                redisDelayQueuesUtil.remove(alarmDelayKey);
-                //比较时间范围的
-                redisDelayQueuesUtil.addDelayQueue(deviceAlarm, polymerizationExpire, TimeUnit.SECONDS,alarmDelayKey);
-            }
-        }
+//        String alarmType = deviceAlarm.getAlarmType();
+//        String alarmKey = deviceAlarm.getDeviceId()+ BusinessSceneConstants.SCENE_STREAM_SPLICE_KEY +deviceAlarm.getChannelId()+BusinessSceneConstants.SCENE_STREAM_SPLICE_KEY+deviceAlarm.getAlarmMethod();
+//        if(!ObjectUtils.isEmpty(alarmType)){
+//            alarmKey = alarmKey+BusinessSceneConstants.SCENE_STREAM_SPLICE_KEY+alarmType;
+//        }
+//
+//
+//
+//        final String alarmDelayKey = BusinessSceneConstants.ALARM_BUSINESS+alarmKey;
+//        final String alarmHeartKey = BusinessSceneConstants.ALARM_HEART_BUSINESS+alarmKey;
+//        synchronized (alarmDelayKey){
+//            if(!redisDelayQueuesUtil.checkDelayQueueExist(alarmDelayKey)){
+//                //首次开始
+//                redisDelayQueuesUtil.addDelayQueue(deviceAlarm, polymerizationExpire, TimeUnit.SECONDS,alarmDelayKey);
+//                redisDelayQueuesUtil.addDelayQueue(deviceAlarm, 15, TimeUnit.SECONDS,alarmHeartKey);
+//                //开始
+//                alarmMappingSend(deviceAlarm,AlarmEventTypeEnum.COMPOUND_START);
+//
+//            }else {
+//                //首次结束数据周期内到达  做聚合
+//                redisDelayQueuesUtil.remove(alarmDelayKey);
+//                //比较时间范围的
+//                redisDelayQueuesUtil.addDelayQueue(deviceAlarm, polymerizationExpire, TimeUnit.SECONDS,alarmDelayKey);
+//            }
+//        }
 
 
 

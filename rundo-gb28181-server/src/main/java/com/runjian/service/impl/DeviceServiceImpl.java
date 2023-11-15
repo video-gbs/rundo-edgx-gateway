@@ -350,12 +350,6 @@ public class DeviceServiceImpl implements IDeviceService {
         log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备全量数据同步",msgId);
         try {
             boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.DEVICE_TOTAL_SYNC,msgId,0,null);
-            //阻塞型,默认是30s无返回参数
-            if(!b){
-                //加锁失败，不继续执行
-                log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备全量数据同步,加锁失败，合并全局的请求",msgId);
-                return;
-            }
             List<DeviceSendDto> allDeviceList = deviceMapper.getAllDeviceList();
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,allDeviceList);
 
