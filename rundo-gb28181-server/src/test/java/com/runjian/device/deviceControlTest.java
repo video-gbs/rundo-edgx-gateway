@@ -19,6 +19,8 @@ import org.springframework.util.ObjectUtils;
 
 import java.util.HashMap;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @SpringBootTest
@@ -29,6 +31,8 @@ public class deviceControlTest {
     RedisDelayQueuesUtil redisDelayQueuesUtil;
     @Autowired
     DeviceAlarmCatch deviceAlarmCatch;
+
+    private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     @Test
     public void testRecordInfo() throws InterruptedException {
 
@@ -50,22 +54,20 @@ public class deviceControlTest {
 
     @Test
     public void testAlarm() throws InterruptedException {
+        // 模拟不断接收告警消息
+
         for (int i = 0; i < 30; i++) {
             DeviceAlarm deviceAlarm = new DeviceAlarm();
             deviceAlarm.setId((long) i);
-            deviceAlarm.setDeviceId("123");
+            deviceAlarm.setDeviceId(String.valueOf(i%3));
             deviceAlarm.setChannelId("321");
             deviceAlarm.setAlarmMethod("5");
             deviceAlarm.setAlarmType("2");
             deviceAlarm.setAlarmTime(DateUtils.getNow());
             deviceAlarmCatch.addReady(deviceAlarm);
-
-        }
-        while (true){
-            System.out.println(DateUtils.getNow());
             Thread.sleep(3000);
-        }
 
+        }
 
     }
 

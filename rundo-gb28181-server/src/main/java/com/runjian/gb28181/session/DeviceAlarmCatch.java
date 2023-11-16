@@ -6,6 +6,7 @@ import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.UuidUtil;
+import com.runjian.conf.DynamicTask;
 import com.runjian.conf.UserSetting;
 import com.runjian.conf.mq.GatewaySignInConf;
 import com.runjian.gb28181.bean.*;
@@ -15,15 +16,18 @@ import com.runjian.service.IDeviceAlarmService;
 import com.runjian.service.IRedisCatchStorageService;
 import com.runjian.utils.redis.RedisDelayQueuesUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * @author chenjialing
@@ -36,9 +40,6 @@ public class DeviceAlarmCatch {
 
     @Autowired
     IDeviceAlarmService deviceAlarmService;
-
-    @Autowired
-    RedisDelayQueuesUtil redisDelayQueuesUtil;
 
 
     @Autowired
@@ -58,12 +59,22 @@ public class DeviceAlarmCatch {
     @Autowired
     RabbitMqSender rabbitMqSender;
 
+    @Autowired
+    DynamicTask dynamicTask;
+
     /**
      * 聚合过期时间
      */
     @Value("${AlarmConfig.polymerization-expire:1}")
     int polymerizationExpire;
 
+    @Autowired
+    RedissonClient redissonClient;
+
+    private ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture<?> renewalTask;
+
+    private Map<String, DeviceAlarm> alarmMap = new ConcurrentHashMap<>();
 
     public  void addReady(DeviceAlarm deviceAlarm) {
         String alarmType = deviceAlarm.getAlarmType();
@@ -71,15 +82,40 @@ public class DeviceAlarmCatch {
         if(!ObjectUtils.isEmpty(alarmType)){
             alarmKey = alarmKey+BusinessSceneConstants.SCENE_STREAM_SPLICE_KEY+alarmType;
         }
-
-
-
-        final String alarmDelayKey = BusinessSceneConstants.ALARM_BUSINESS+alarmKey;
-        final String alarmHeartKey = BusinessSceneConstants.ALARM_HEART_BUSINESS+alarmKey;
-        alarmMappingSend(deviceAlarm,AlarmEventTypeEnum.COMPOUND_START);
-
-
-
+        DeviceAlarm deviceAlarmOld = alarmMap.get(alarmKey);
+        deviceAlarm.setLastExpireTime(System.currentTimeMillis());
+        if(ObjectUtils.isEmpty(deviceAlarmOld)){
+            //首次存在 发送开始 并放入map中
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "开始", alarmKey);
+            alarmMappingSend(deviceAlarm,AlarmEventTypeEnum.COMPOUND_START);
+            deviceAlarm.setLastHeartTime(System.currentTimeMillis()+15000);
+            alarmMap.put(alarmKey,deviceAlarm);
+        }else {
+            long lastHeartTime = deviceAlarmOld.getLastHeartTime();
+            deviceAlarm.setLastHeartTime(lastHeartTime);
+            alarmMap.put(alarmKey,deviceAlarm);
+        }
+        if(renewalTask == null){
+            renewalTask = executorService.scheduleAtFixedRate(() -> {
+                alarmMap.forEach((key,value) ->{
+                    long lastExpireTime = value.getLastExpireTime();
+                    long lastHeartTime = value.getLastHeartTime();
+                    long currentTime = System.currentTimeMillis();
+                    if(currentTime>=lastHeartTime){
+                        //可以发送心跳数据了
+                        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "心跳", key);
+                        alarmMappingSend(value,AlarmEventTypeEnum.COMPOUND_HEARTBEAT);
+                        value.setLastHeartTime(currentTime+15000);
+                    }
+                    if(currentTime - lastExpireTime >= polymerizationExpire* 1000L){
+                        //数据过期，删除，并发送end消息
+                        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "结束", key);
+                        alarmMap.remove(key);
+                        alarmMappingSend(value,AlarmEventTypeEnum.COMPOUND_END);
+                    }
+                });
+            }, 0, 1000, TimeUnit.MILLISECONDS); // 每5秒检查一次消息状态
+        }
 
     }
 
@@ -116,7 +152,7 @@ public class DeviceAlarmCatch {
             mqInfo.setMsg(BusinessErrorEnums.SUCCESS.getErrMsg());
             String mqGetQueue = gatewaySignInConf.getMqSetQueue();
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "告警消息-mq信令发送处理", mqInfo);
-            rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
+//            rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
         }
 
     }

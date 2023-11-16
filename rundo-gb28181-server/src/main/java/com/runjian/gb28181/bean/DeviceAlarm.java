@@ -97,4 +97,13 @@ public class DeviceAlarm implements Serializable {
 	@Schema(description = "报警类型")
 	private String alarmType;
 
+	/**
+	 * 待过期时间
+	 */
+	private long lastExpireTime;
+
+	/**
+	 * 心跳时间间隔
+	 */
+	private long lastHeartTime;
 }
