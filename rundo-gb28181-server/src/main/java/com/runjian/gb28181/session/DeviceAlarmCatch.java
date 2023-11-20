@@ -5,6 +5,7 @@ import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.BeanUtil;
+import com.runjian.common.utils.DateUtils;
 import com.runjian.common.utils.UuidUtil;
 import com.runjian.conf.DynamicTask;
 import com.runjian.conf.UserSetting;
@@ -101,6 +102,7 @@ public class DeviceAlarmCatch {
                     long lastExpireTime = value.getLastExpireTime();
                     long lastHeartTime = value.getLastHeartTime();
                     long currentTime = System.currentTimeMillis();
+                    value.setAlarmTime(DateUtils.getNow());
                     if(currentTime>=lastHeartTime){
                         //可以发送心跳数据了
                         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "心跳", key);
