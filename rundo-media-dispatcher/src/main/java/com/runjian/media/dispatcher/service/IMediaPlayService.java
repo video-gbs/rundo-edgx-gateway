@@ -147,6 +147,6 @@ public interface IMediaPlayService {
      * @param webRtcTalkReq
      * @return
      */
-    String webRtcTalk(WebRTCTalkReq webRtcTalkReq);
+    StreamInfo webRtcTalk(WebRTCTalkReq webRtcTalkReq);
 
 }

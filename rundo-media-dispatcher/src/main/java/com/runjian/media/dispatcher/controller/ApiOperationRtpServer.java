@@ -2,6 +2,7 @@ package com.runjian.media.dispatcher.controller;
 
 import com.runjian.common.commonDto.Gb28181Media.req.*;
 import com.runjian.common.commonDto.SsrcInfo;
+import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.exception.BusinessException;
 import com.runjian.common.config.response.CommonResponse;
@@ -77,7 +78,7 @@ public class ApiOperationRtpServer {
      * @return
      */
     @PostMapping(value = "/media/webRtcTalk",produces = MediaType.APPLICATION_JSON_VALUE)
-    public CommonResponse<String> webRtcTalk(@RequestBody WebRTCTalkReq webRtcTalkReq){
+    public CommonResponse<StreamInfo> webRtcTalk(@RequestBody WebRTCTalkReq webRtcTalkReq){
 
         return CommonResponse.success(mediaPlayService.webRtcTalk(webRtcTalkReq));
 

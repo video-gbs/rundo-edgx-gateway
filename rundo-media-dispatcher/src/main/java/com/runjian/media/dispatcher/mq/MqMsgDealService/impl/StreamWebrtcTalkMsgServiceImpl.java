@@ -56,7 +56,7 @@ public class StreamWebrtcTalkMsgServiceImpl implements InitializingBean, IMsgPro
         playReq.setGatewayMqRouteKey(dataMapJson.getString("gatewayMq"));
         playReq.setMsgId(commonMqDto.getMsgId());
         playReq.setDispatchUrl(dataMapJson.getString("mediaUrl"));
-        String webRtcTalkUrl = "";
+        StreamInfo webRtcTalkUrl = null;
         CommonMqDto businessMqInfo = redisCatchStorageService.getMqInfo(StreamBusinessMsgType.STREAM_WEBRTC_TALK.getTypeName(), GatewayCacheConstants.DISPATCHER_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix,commonMqDto.getMsgId());
         try {
             webRtcTalkUrl = iMediaPlayService.webRtcTalk(playReq);

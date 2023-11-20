@@ -94,6 +94,15 @@ public interface ImediaServerService {
      */
     StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream);
 
+    /**
+     * 组装推流的地址
+     * @param mediaInfo
+     * @param app
+     * @param stream
+     * @return
+     */
+    public StreamInfo getStreamInPush(MediaServerItem mediaInfo, String app, String stream);
+
     boolean checkRtpServer(MediaServerItem mediaServerItem,String stream);
 
 

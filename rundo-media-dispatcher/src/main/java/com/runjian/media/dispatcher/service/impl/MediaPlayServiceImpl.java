@@ -758,7 +758,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
     }
 
     @Override
-    public String webRtcTalk(WebRTCTalkReq webRtcTalkReq) {
+    public StreamInfo webRtcTalk(WebRTCTalkReq webRtcTalkReq) {
         String streamId = webRtcTalkReq.getStreamId();
         MediaServerItem oneMedia;
 
@@ -782,7 +782,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 onlineStreamsEntity.setMqQueueName(webRtcTalkReq.getGatewayMqRouteKey());
                 onlineStreamsEntity.setMqRouteKey(webRtcTalkReq.getGatewayMqRouteKey());
                 onlineStreamsService.update(onlineStreamsEntity);
-                return String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=push", oneMedia.getStreamIp(), oneMedia.getHttpSslPort(), VideoManagerConstants.PUSH_LIVE_APP,  streamId);
+                return mediaServerService.getStreamInPush(oneMedia, VideoManagerConstants.GB28181_APP, streamId);
             }
 
         }else {
@@ -823,7 +823,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         onlineStreamsEntity.setMqQueueName(webRtcTalkReq.getGatewayMqRouteKey());
         onlineStreamsEntity.setMqRouteKey(webRtcTalkReq.getGatewayMqRouteKey());
         onlineStreamsService.save(onlineStreamsEntity);
-        return String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=push", oneMedia.getStreamIp(), oneMedia.getHttpSslPort(), VideoManagerConstants.PUSH_LIVE_APP,  streamId);
+        return mediaServerService.getStreamInPush(oneMedia, VideoManagerConstants.GB28181_APP, streamId);
 
     }
 }
