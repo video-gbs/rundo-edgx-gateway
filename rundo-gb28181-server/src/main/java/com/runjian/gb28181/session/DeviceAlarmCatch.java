@@ -102,10 +102,10 @@ public class DeviceAlarmCatch {
                     long lastExpireTime = value.getLastExpireTime();
                     long lastHeartTime = value.getLastHeartTime();
                     long currentTime = System.currentTimeMillis();
-                    value.setAlarmTime(DateUtils.getNow());
                     if(currentTime>=lastHeartTime){
                         //可以发送心跳数据了
                         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "心跳", key);
+                        value.setAlarmTime(DateUtils.getNow());
                         alarmMappingSend(value,AlarmEventTypeEnum.COMPOUND_HEARTBEAT);
                         value.setLastHeartTime(currentTime+15000);
                     }
@@ -113,10 +113,11 @@ public class DeviceAlarmCatch {
                         //数据过期，删除，并发送end消息
                         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "结束", key);
                         alarmMap.remove(key);
+                        value.setAlarmTime(DateUtils.getNow());
                         alarmMappingSend(value,AlarmEventTypeEnum.COMPOUND_END);
                     }
                 });
-            }, 0, 1000, TimeUnit.MILLISECONDS); // 每5秒检查一次消息状态
+            }, 0, 1000, TimeUnit.MILLISECONDS); // 每1秒检查一次消息状态
         }
 
     }
