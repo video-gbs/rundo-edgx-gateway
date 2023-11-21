@@ -89,7 +89,7 @@ public class DeviceAlarmCatch {
             //首次存在 发送开始 并放入map中
             log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "开始", alarmKey);
             alarmMappingSend(deviceAlarm,AlarmEventTypeEnum.COMPOUND_START);
-            deviceAlarm.setLastHeartTime(System.currentTimeMillis()+15000);
+            deviceAlarm.setLastHeartTime(System.currentTimeMillis()+5000);
             alarmMap.put(alarmKey,deviceAlarm);
         }else {
             long lastHeartTime = deviceAlarmOld.getLastHeartTime();
@@ -107,7 +107,7 @@ public class DeviceAlarmCatch {
                         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "心跳", key);
                         value.setAlarmTime(DateUtils.getNow());
                         alarmMappingSend(value,AlarmEventTypeEnum.COMPOUND_HEARTBEAT);
-                        value.setLastHeartTime(currentTime+15000);
+                        value.setLastHeartTime(currentTime+5000);
                     }
                     if(currentTime - lastExpireTime >= polymerizationExpire* 1000L){
                         //数据过期，删除，并发送end消息
