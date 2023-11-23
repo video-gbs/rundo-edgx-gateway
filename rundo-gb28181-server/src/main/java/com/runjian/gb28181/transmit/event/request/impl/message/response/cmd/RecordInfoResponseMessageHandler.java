@@ -188,7 +188,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
             recordItems = packingRecordTime(recordList);
         }
         recordInfo.setRecordList(recordItems);
-        redisCatchStorageService.editBusinessSceneKey(businessSceneKey, GatewayBusinessMsgType.RECORD_INFO, BusinessErrorEnums.SUCCESS,recordInfo);
+        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,  BusinessErrorEnums.SUCCESS,recordInfo);
 
     }
 

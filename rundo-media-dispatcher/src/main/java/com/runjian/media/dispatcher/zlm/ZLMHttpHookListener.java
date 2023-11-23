@@ -147,22 +147,7 @@ public class ZLMHttpHookListener {
 
 		JSONObject json = (JSONObject)JSON.toJSON(param);
 		logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ZLM HOOK", "on_play API调用", JSON.toJSONString(param));
-		String mediaServerId = param.getMediaServerId();
-		ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_play, json);
-		if (subscribe != null ) {
-			MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
-			if (mediaInfo != null) {
-				subscribe.response(mediaInfo, json);
-			}
-		}
 		JSONObject ret = new JSONObject();
-		if (!"rtp".equals(param.getApp())) {
-			Map<String, String> paramMap = urlParamToMap(param.getParams());
-
-			return ret;
-
-		}
-
 		ret.put("code", 0);
 		ret.put("msg", "success");
 		return ret;
@@ -207,9 +192,17 @@ public class ZLMHttpHookListener {
 	@ResponseBody
 	@PostMapping(value = "/on_record_mp4", produces = "application/json;charset=UTF-8")
 	public JSONObject onRecordMp4(@RequestBody JSONObject json){
-		
+		//录制事件的回复
 		logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ZLM HOOK", "on_record_mp4 API调用", json);
 		String mediaServerId = json.getString("mediaServerId");
+		ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_record_mp4, json);
+		if (subscribe != null ) {
+			//返回订阅的信息
+			MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+			subscribe.response(mediaInfo, json);
+		}else {
+			logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "ZLM HOOK", "on_record_mp4回调失败", json);
+		}
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");

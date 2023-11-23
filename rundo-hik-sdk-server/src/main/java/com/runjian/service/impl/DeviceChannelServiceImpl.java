@@ -201,6 +201,7 @@ public class DeviceChannelServiceImpl extends ServiceImpl<DeviceChannelMapper, D
 
                         //新增
                         if(!channelDbNumList.contains(deviceChannel.getChannelNum())){
+                            channelDbNumList.add(deviceChannel.getChannelNum());
                             deviceChannelMapper.insert(deviceChannel);
 
                         }

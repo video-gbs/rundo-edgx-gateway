@@ -8,6 +8,7 @@ import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.ZlmStreamDto;
 import com.runjian.common.commonDto.Gb28181Media.req.CustomPlayReq;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayBindReq;
+import com.runjian.common.commonDto.Gb28181Media.req.GatewayRtpSendReq;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamPlayDto;
@@ -390,11 +391,7 @@ public class MediaServerServiceImpl implements ImediaServerService {
         param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
         param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrex));
         param.put("hook.on_send_rtp_stopped",String.format("%s/on_send_rtp_stopped", hookPrex));
-        if (mediaServerItem.getRecordAssistPort() > 0) {
-            param.put("hook.on_record_mp4",String.format("http://127.0.0.1:%s/api/record/on_record_mp4", mediaServerItem.getRecordAssistPort()));
-        }else {
-            param.put("hook.on_record_mp4","");
-        }
+        param.put("hook.on_record_mp4",String.format("%s/on_record_mp4", hookPrex));
         param.put("hook.timeoutSec","20");
         // 推流断开后可以在超时时间内重新连接上继续推流，这样播放器会接着播放。
         // 置0关闭此特性(推流断开会导致立即断开播放器)
@@ -572,29 +569,95 @@ public class MediaServerServiceImpl implements ImediaServerService {
     }
 
     @Override
-    public StreamInfo getRtpInfo(String mediaServerId, String streamId,String app) {
-        MediaServerItem mediaInfo = this.getOne(mediaServerId);
-        StreamInfo streamInfo = null;
-        if(ObjectUtils.isEmpty(mediaInfo)){
-            return null;
+    public StreamInfo getStreamInPush(MediaServerItem mediaInfo, String app, String stream) {
+        StreamInfo streamInfoResult = new StreamInfo();
+        streamInfoResult.setStreamId(stream);
+        String addr = mediaInfo.getStreamIp();
+        streamInfoResult.setMediaServerId(mediaInfo.getId());
+        streamInfoResult.setRtmp(String.format("rtmp://%s:%s/%s/%s", addr, mediaInfo.getRtmpPort(), app,  stream));
+        if (mediaInfo.getRtmpSslPort() != 0) {
+            streamInfoResult.setRtmps(String.format("rtmps://%s:%s/%s/%s", addr, mediaInfo.getRtmpSslPort(), app,  stream));
         }
-        JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaInfo, streamId);
-        logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "获取流存在信息服务", rtpInfo);
-        if(rtpInfo.getInteger("code") == 0){
-            if (rtpInfo.getBoolean("exist")) {
-                //判断是否正常
-                streamInfo = getStreamInfoByAppAndStream(mediaInfo, app ,streamId);
-                //流直接返回
-                StreamPlayDto streamPlayResult = new StreamPlayDto();
-                streamPlayResult.setStreamId(streamId);
-                streamPlayResult.setIsSuccess(true);
-                String businessSceneKey = StreamBusinessMsgType.STREAM_PLAY_RESULT.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,StreamBusinessMsgType.STREAM_PLAY_RESULT,BusinessErrorEnums.SUCCESS,streamPlayResult);
-            }
+        streamInfoResult.setRtsp(String.format("rtsp://%s:%s/%s/%s", addr, mediaInfo.getRtspPort(), app,  stream));
+        if (mediaInfo.getRtspSslPort() != 0) {
+            streamInfoResult.setRtsps(String.format("rtsps://%s:%s/%s/%s", addr, mediaInfo.getRtspSslPort(), app,  stream));
         }
-        return streamInfo;
-
+        streamInfoResult.setHttpFlv(String.format("http://%s:%s/%s/%s.live.flv", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setWsFlv(String.format("ws://%s:%s/%s/%s.live.flv", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setHttpHls(String.format("http://%s:%s/%s/%s/hls.m3u8", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setWsHls(String.format("ws://%s:%s/%s/%s/hls.m3u8", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setHttpFmp4(String.format("http://%s:%s/%s/%s.live.mp4", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setWsFmp4(String.format("ws://%s:%s/%s/%s.live.mp4", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setHttpTs(String.format("http://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setWsTs(String.format("ws://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpPlayPort(), app,  stream));
+        streamInfoResult.setRtc(String.format("http://%s:%s/index/api/webrtc?app=%s&stream=%s&type=push", mediaInfo.getStreamIp(), mediaInfo.getHttpPlayPort(), app,  stream));
+        if (mediaInfo.getHttpSslPort() != 0) {
+            streamInfoResult.setHttpsFlv(String.format("https://%s:%s/%s/%s.live.flv", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setWssFlv(String.format("wss://%s:%s/%s/%s.live.flv", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setHttpsHls(String.format("https://%s:%s/%s/%s/hls.m3u8", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setWssHls(String.format("wss://%s:%s/%s/%s/hls.m3u8", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setHttpsFmp4(String.format("https://%s:%s/%s/%s.live.mp4", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setWssFmp4(String.format("wss://%s:%s/%s/%s.live.mp4", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setHttpsTs(String.format("https://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setWssTs(String.format("wss://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpSslPort(), app,  stream));
+            streamInfoResult.setRtcs(String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=push", mediaInfo.getStreamIp(), mediaInfo.getHttpSslPort(), app,  stream));
+        }
+        streamInfoResult.setPlayProtocalType(playProtocalType);
+        return streamInfoResult;
     }
 
+    @Override
+    public SsrcInfo rtpSendServer(String mediaServerId,String app,String streamId, GatewayRtpSendReq gatewayRtpSendReq) {
+        MediaServerItem mediaInfo = this.getOne(mediaServerId);
+        if(ObjectUtils.isEmpty(mediaInfo)){
+            throw  new BusinessException(BusinessErrorEnums.MEDIA_SERVER_BUSINESS_ERROR,"流媒体信息不存在");
+        }
+        Integer streamMode = gatewayRtpSendReq.getStreamMode();
+        JSONObject jsonObject = null;
+        SsrcInfo ssrcInfo = new SsrcInfo();
 
+        if(streamMode == 2){
+            //tcp被动
+            Map<String, Object> param = new HashMap<>(12);
+            param.put("vhost","__defaultVhost__");
+            param.put("app",app);
+            param.put("stream",streamId);
+            param.put("ssrc", gatewayRtpSendReq.getSsrc());
+            param.put("only_audio",gatewayRtpSendReq.getOnlyAudio());
+            jsonObject = zlmrtpServerFactory.startSendRtpStreamForPassive(mediaInfo, param);
+
+
+        }else if(streamMode == 1 || streamMode == 0){
+            //udp，tcp主动
+            Map<String, Object> param = new HashMap<>(12);
+            param.put("vhost","__defaultVhost__");
+            param.put("app",app);
+            param.put("stream",streamId);
+            param.put("ssrc", gatewayRtpSendReq.getSsrc());
+            param.put("dst_url",gatewayRtpSendReq.getDstUrl());
+            param.put("dst_port", gatewayRtpSendReq.getDstPort());
+            param.put("is_udp", streamMode==1?1:0);
+            param.put("only_audio", gatewayRtpSendReq.getOnlyAudio());
+            jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+
+        }
+        if(!ObjectUtils.isEmpty(jsonObject)){
+            Integer code = jsonObject.getInteger("code");
+            if(code != 0){
+                String msg = jsonObject.getString("msg");
+                throw  new BusinessException(BusinessErrorEnums.MEDIA_SERVER_BUSINESS_ERROR,msg);
+            }else {
+                Integer localPort = jsonObject.getInteger("local_port");
+                ssrcInfo.setMediaServerId(mediaServerId);
+                ssrcInfo.setPort(localPort);
+                ssrcInfo.setSsrc(gatewayRtpSendReq.getSsrc());
+                ssrcInfo.setSdpIp(mediaInfo.getSdpIp());
+                ssrcInfo.setStreamId(streamId);
+                ssrcInfo.setIp(mediaInfo.getIp());
+            }
+        }else {
+            throw  new BusinessException(BusinessErrorEnums.MEDIA_SERVER_BUSINESS_ERROR,"流媒体连接失败");
+        }
+        return ssrcInfo;
+    }
 }

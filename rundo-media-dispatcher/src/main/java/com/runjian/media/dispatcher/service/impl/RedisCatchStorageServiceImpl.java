@@ -171,7 +171,7 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
             //待过期数据剔除
             GatewayTask oneByBusiness = gatewayTaskMapper.getOneByBusinessKey(businessSceneKey);
             if(ObjectUtils.isEmpty(oneByBusiness)){
-                log.error(LogTemplate.PROCESS_LOG_TEMPLATE,"处理网关业务状态","数据已被处理",businessSceneKey);
+                log.error(LogTemplate.PROCESS_LOG_TEMPLATE,"处理网关业务状态--数据已被处理",businessSceneKey);
                 return;
             }
             StreamBusinessSceneResp<Object> objectStreamBusinessSceneResp = StreamBusinessSceneResp.addSceneEnd(msgType, businessErrorEnums,businessSceneKey, data,oneByBusiness.getMsgId(), oneByBusiness.getThreadId());

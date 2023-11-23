@@ -10,9 +10,9 @@ public class BusinessSceneConstants {
      */
     public static final String  GATEWAY_BUSINESS_KEY= "gateway_business_keys:";
     public static final String  GATEWAY_BUSINESS_LISTS= "gateway_business_lists:";
-
+    public static final String  GATEWAY_BUSINESS_LOCK_KEY = "GATEWAY_BUSINESS_LOCK_KEY:";
     /**
-     * 调度服务 缓存key的全部场景值
+     * 调zlm度服务 缓存key的全部场景值
      */
     public static final String  STREAM_BUSINESS_KEY= "stream_business_keys:";
     public static final String  STREAM_BUSINESS_LISTS= "stream_business_lists:";
@@ -26,6 +26,17 @@ public class BusinessSceneConstants {
     public static final String  SELF_BUSINESS_LOCK_KEY = "SELF_BUSINESS_LOCK_KEY:";
     public static final String  SELF_STREAM_BUSINESS_KEY= "SELF_STREAM_BUSINESS_KEY:";
     public static final String  SELF_STREAM_BUSINESS_LISTS= "SELF_STREAM_BUSINESS_LISTS:";
+
+    /**
+     * alarm的告警
+     */
+    public static final String  REDISSON_DELAY_QUEUE_PREFIX = "redisson_delay_queue:";
+
+    public static final String  ALARM_DELAY_PREFIX = "ALARM_DELAY";
+    public static final String  ALARM_BUSINESS = ALARM_DELAY_PREFIX+"_BUSINESS:";
+    public static final String  ALARM_DELAY_BUSINESS = "ALARM_DELAY_BUSINESS";
+    public static final String  ALARM_HEART_BUSINESS = ALARM_DELAY_PREFIX+"_HEART_BUSINESS:";
+    public static final String  ALARM_BUSINESS_LIST = "ALARM_BUSINESS_LIST:";
     /*
      * 设备信息缓存键
      */

@@ -1,17 +1,22 @@
 package com.runjian.mq.gatewayBusiness.asyncSender;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
+import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.config.response.GatewayBusinessSceneResp;
+import com.runjian.common.config.response.StreamBusinessSceneResp;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
 import com.runjian.common.utils.RestTemplateUtil;
+import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.mq.GatewaySignInConf;
 import com.runjian.gb28181.session.CatalogDataCatch;
+import com.runjian.mq.MqMsgDealService.MqInfoCommonDto;
 import com.runjian.service.IRedisCatchStorageService;
 import com.runjian.common.utils.UuidUtil;
 import lombok.Data;
@@ -50,7 +55,7 @@ public class GatewayBusinessAsyncSender {
     @Autowired
     RedisTemplate redisTemplate;
 
-    private ConcurrentLinkedQueue<GatewayBusinessSendBefore> taskQueue = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<GatewayBusinessSceneResp> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
     @Autowired
@@ -60,43 +65,52 @@ public class GatewayBusinessAsyncSender {
     private String streamNotifyApi;
     @Autowired
     RestTemplate restTemplate;
-
-    @Data
-    public class GatewayBusinessSendBefore{
-        GatewayBusinessSceneResp businessSceneResp;
-        String businessSceneKey;
-    }
+    @Autowired
+    MqInfoCommonDto mqInfoCommonDto;
+    @Async
     //全消息处理
-    public void sendforAllScene(GatewayBusinessSceneResp businessSceneResp, String businessSceneKey){
-        GatewayBusinessSendBefore gatewayBusinessSendBefore = new GatewayBusinessSendBefore();
-        gatewayBusinessSendBefore.setBusinessSceneKey(businessSceneKey);
-        gatewayBusinessSendBefore.setBusinessSceneKey(businessSceneKey);
-        taskExecutor.execute(()->{
-            GatewayBusinessMsgType gatewayMsgType = businessSceneResp.getGatewayMsgType();
-            String msgId = businessSceneResp.getMsgId();
-            CommonMqDto mqInfo = redisCatchStorageService.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix, msgId);
-            mqInfo.setData(businessSceneResp.getData());
-            mqInfo.setCode(businessSceneResp.getCode());
-            mqInfo.setMsg(businessSceneResp.getMsg());
-            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", mqInfo);
-            //针对点播和回放的通知 仅通知调度服务
-            if (gatewayMsgType.equals(GatewayBusinessMsgType.PLAY_BACK) || gatewayMsgType.equals(GatewayBusinessMsgType.PLAY)) {
-                //restfulapi请求 分离请求中的streamId
-                String streamId = businessSceneKey.substring(businessSceneKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY) + 1);
-                GatewayStreamNotify gatewayStreamNotify = new GatewayStreamNotify();
-                gatewayStreamNotify.setStreamId(streamId);
-                gatewayStreamNotify.setBusinessSceneResp(businessSceneResp);
-                //获取实体中的设备数据 转换为playreq
-                //设备信息同步  获取设备信息
-                PlayReq playReq = (PlayReq)businessSceneResp.getData();
-                CommonResponse<Boolean> booleanCommonResponse = RestTemplateUtil.postStreamNotifyRespons(playReq.getDispatchUrl() + streamNotifyApi, gatewayStreamNotify, restTemplate);
-                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", booleanCommonResponse);
+    public void sendforAllScene(GatewayBusinessSceneResp businessSceneResp,BusinessErrorEnums businessErrorEnums){
+        //判断业务网关是否初始化
+        taskQueue.offer(businessSceneResp);
+        //业务网关未初始化 阻塞进行等待
+        while (!ObjectUtils.isEmpty(gatewaySignInConf.getMqExchange())){
+            GatewayBusinessSceneResp businessSceneKeyPoll = taskQueue.poll();
+            if(!ObjectUtils.isEmpty(businessSceneKeyPoll)){
+                try {
 
-            } else {
-                String mqGetQueue = gatewaySignInConf.getMqSetQueue();
-                rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
+                    //进行消息通知
+                    GatewayBusinessMsgType gatewayMsgType = businessSceneKeyPoll.getGatewayMsgType();
+                    String msgId = businessSceneKeyPoll.getMsgId();
+                    CommonMqDto mqInfo = mqInfoCommonDto.getMqInfo(gatewayMsgType.getTypeName(), GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR, GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix, msgId);
+                    mqInfo.setData(businessSceneKeyPoll.getData());
+                    mqInfo.setCode(businessErrorEnums.getErrCode());
+                    mqInfo.setMsg(businessErrorEnums.getErrMsg());
+                    String mqGetQueue = gatewaySignInConf.getMqSetQueue();
+                    log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mqN信令发送处理", mqInfo);
+                    if(businessSceneKeyPoll.getSendType() == 0){
+                        rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
+
+                    }else {
+
+                        PlayReq objData = (PlayReq)businessSceneKeyPoll.getData();
+                        String dispatchUrl = objData.getDispatchUrl();
+                        businessSceneKeyPoll.setMsg(businessErrorEnums.getErrMsg());
+                        businessSceneKeyPoll.setCode(businessErrorEnums.getErrCode());
+                        String resultString = RestTemplateUtil.postString(dispatchUrl, JSON.toJSONString(businessSceneKeyPoll), null, restTemplate);
+                        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", resultString);
+                    }
+
+                }catch (Exception e){
+                    log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理--异常", businessSceneResp, e);
+                }
+
+
+            }else {
+                //退出阻塞
+                break;
             }
-        });
+
+        }
     }
 
 

@@ -3,6 +3,9 @@ package com.runjian.media.dispatcher.zlm.dto;
 
 import com.alibaba.fastjson.JSONObject;
 
+import java.time.Instant;
+import java.util.concurrent.TimeUnit;
+
 /**
  * hook 订阅工厂
  * @author lin
@@ -21,6 +24,19 @@ public class HookSubscribeFactory {
         subscribeKey.put("mediaServerId", mediaServerId);
         hookSubscribe.setContent(subscribeKey);
 
+        return hookSubscribe;
+    }
+
+    public static HookSubscribeForRecordMp4 onRecordMp4(String app, String stream, String mediaServerId) {
+        HookSubscribeForRecordMp4 hookSubscribe = new HookSubscribeForRecordMp4();
+        JSONObject subscribeKey = new JSONObject();
+        subscribeKey.put("app", app);
+        subscribeKey.put("stream", stream);
+        subscribeKey.put("mediaServerId", mediaServerId);
+        hookSubscribe.setContent(subscribeKey);
+        //最大1小时的过期时间
+        Instant expiresInstant = Instant.now().plusSeconds(TimeUnit.HOURS.toSeconds(1));
+        hookSubscribe.setExpires(expiresInstant);
         return hookSubscribe;
     }
 

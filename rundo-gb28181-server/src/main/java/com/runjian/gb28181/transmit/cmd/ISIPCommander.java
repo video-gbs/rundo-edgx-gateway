@@ -97,6 +97,18 @@ public interface ISIPCommander {
 	void streamByeCmd(SsrcTransaction ssrcTransaction, Device device, String channelId, SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException;
 
 	/**
+	 * 对讲信令停止
+	 * @param ssrcTransaction
+	 * @param device
+	 * @param channelId
+	 * @param errorEvent
+	 * @param okEvent
+	 * @throws InvalidArgumentException
+	 * @throws ParseException
+	 * @throws SipException
+	 */
+	public void TalkByeCmd(SsrcTransaction ssrcTransaction,Device device,String channelId,SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException;
+	/**
 	 * 回放暂停
 	 */
 	void playPauseCmd(Device device, SsrcTransaction streamSessionSsrcTransaction) throws InvalidArgumentException, ParseException, SipException;
@@ -138,7 +150,7 @@ public interface ISIPCommander {
 	 * 
 	 * @param device  视频设备
 	 */
-	void audioBroadcastCmd(Device device, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+	void audioBroadcastCmd(Device device,String channelId, SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
 	void audioBroadcastCmd(Device device) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
@@ -162,7 +174,7 @@ public interface ISIPCommander {
 	 * 
 	 * @param device  	视频设备
 	 */
-	void guardCmd(Device device, String guardCmdStr, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
+	void guardCmd(Device device,String channelId, String guardCmdStr, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
 	
 	/**
 	 * 报警复位命令

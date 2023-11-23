@@ -1,18 +1,22 @@
 package com.runjian.gb28181.bean;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * @author lin
  */
 @Schema(description = "报警信息")
-public class DeviceAlarm {
+@Data
+public class DeviceAlarm implements Serializable {
 
 	/**
 	 * 数据库id
 	 */
 	@Schema(description = "数据库id")
-	private String id;
+	private Long id;
 
 	/**
 	 * 设备Id
@@ -93,95 +97,13 @@ public class DeviceAlarm {
 	@Schema(description = "报警类型")
 	private String alarmType;
 
-	@Schema(description = "创建时间")
-	private String createTime;
+	/**
+	 * 待过期时间
+	 */
+	private long lastExpireTime;
 
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getDeviceId() {
-		return deviceId;
-	}
-
-	public void setDeviceId(String deviceId) {
-		this.deviceId = deviceId;
-	}
-
-	public String getAlarmPriority() {
-		return alarmPriority;
-	}
-
-	public void setAlarmPriority(String alarmPriority) {
-		this.alarmPriority = alarmPriority;
-	}
-
-	public String getAlarmMethod() {
-		return alarmMethod;
-	}
-
-	public void setAlarmMethod(String alarmMethod) {
-		this.alarmMethod = alarmMethod;
-	}
-
-	public String getAlarmTime() {
-		return alarmTime;
-	}
-
-	public void setAlarmTime(String alarmTime) {
-		this.alarmTime = alarmTime;
-	}
-
-	public String getAlarmDescription() {
-		return alarmDescription;
-	}
-
-	public void setAlarmDescription(String alarmDescription) {
-		this.alarmDescription = alarmDescription;
-	}
-
-	public double getLongitude() {
-		return longitude;
-	}
-
-	public void setLongitude(double longitude) {
-		this.longitude = longitude;
-	}
-
-	public double getLatitude() {
-		return latitude;
-	}
-
-	public void setLatitude(double latitude) {
-		this.latitude = latitude;
-	}
-
-	public String getAlarmType() {
-		return alarmType;
-	}
-
-	public void setAlarmType(String alarmType) {
-		this.alarmType = alarmType;
-	}
-
-	public String getChannelId() {
-		return channelId;
-	}
-
-	public void setChannelId(String channelId) {
-		this.channelId = channelId;
-	}
-
-	public String getCreateTime() {
-		return createTime;
-	}
-
-	public void setCreateTime(String createTime) {
-		this.createTime = createTime;
-	}
+	/**
+	 * 心跳时间间隔
+	 */
+	private long lastHeartTime;
 }

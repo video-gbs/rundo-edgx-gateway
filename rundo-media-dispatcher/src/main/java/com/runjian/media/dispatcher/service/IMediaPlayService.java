@@ -4,13 +4,11 @@ package com.runjian.media.dispatcher.service;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gb28181Media.ZlmStreamDto;
-import com.runjian.common.commonDto.Gb28181Media.req.CustomPlayReq;
-import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
-import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayBackReq;
-import com.runjian.common.commonDto.Gb28181Media.req.MediaPlayReq;
+import com.runjian.common.commonDto.Gb28181Media.req.*;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.commonDto.StreamInfo;
 import com.runjian.common.config.response.BusinessSceneResp;
+import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.config.response.StreamBusinessSceneResp;
 import com.runjian.common.constant.LogTemplate;
 import com.runjian.common.constant.VideoManagerConstants;
@@ -44,6 +42,18 @@ public interface IMediaPlayService {
     void playBack(MediaPlayBackReq mediaPlayBackReq);
 
     /**
+     * 录播下载
+     * @param req
+     */
+    void playRecordDownload(MediaRecordDownloadReq req);
+
+    /**
+     * 图片下载
+     * @param mediaPlayBackReq
+     */
+    void playPictureDownload(MediaPictureDownloadReq req);
+
+    /**
      * 自定义直播
      *
      * @param customPlayReq
@@ -55,7 +65,7 @@ public interface IMediaPlayService {
      *
      * @param gatewayStreamNotify
      */
-    void streamNotifyServer(GatewayStreamNotify gatewayStreamNotify);
+    void streamNotifyServer(GatewayBusinessSceneResp gatewayStreamNotify);
 
     /**
      * sip成功，但是推流失败的处理
@@ -131,5 +141,12 @@ public interface IMediaPlayService {
      * @return
      */
     Boolean onStreamNoneReader(String app, String streamId);
+
+    /**
+     * webrtc推流返沪信息
+     * @param webRtcTalkReq
+     * @return
+     */
+    StreamInfo webRtcTalk(WebRTCTalkReq webRtcTalkReq);
 
 }

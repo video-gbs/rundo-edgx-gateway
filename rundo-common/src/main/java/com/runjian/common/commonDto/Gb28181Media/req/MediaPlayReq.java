@@ -26,7 +26,7 @@ public class MediaPlayReq {
     /**
      * 是否开启音频
      */
-    Boolean enableAudio =false;
+    Boolean enableAudio =true;
     /**
      * 是否ssrc校验
      */

@@ -129,6 +129,12 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
+    public void TalkByeCmd(SsrcTransaction ssrcTransaction,Device device,String channelId,SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
+        Request byteRequest = headerProvider.createTalkByeRequest(device, channelId, ssrcTransaction.getSipTransactionInfo());
+        sipSender.transmitRequest( byteRequest, errorEvent, okEvent);
+    }
+
+    @Override
     public void playPauseCmd(Device device, SsrcTransaction streamSessionSsrcTransaction) throws InvalidArgumentException, ParseException, SipException {
         StringBuffer content = new StringBuffer(200);
         content.append("PAUSE RTSP/1.0\r\n");
@@ -190,8 +196,21 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public void audioBroadcastCmd(Device device, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void audioBroadcastCmd(Device device,String channelId, SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
+        StringBuffer broadcastXml = new StringBuffer(200);
+        String charset = device.getCharset();
+        broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
+        broadcastXml.append("<Notify>\r\n");
+        broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
+        broadcastXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        broadcastXml.append("<SourceID>" + sipConfig.getId() + "</SourceID>\r\n");
+        broadcastXml.append("<TargetID>" + channelId + "</TargetID>\r\n");
+        broadcastXml.append("</Notify>\r\n");
 
+
+
+        Request request = headerProvider.createMessageRequest(device, broadcastXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(device.getTransport()));
+        sipSender.transmitRequest( request, errorEvent,okEvent);
     }
 
     @Override
@@ -210,8 +229,21 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public void guardCmd(Device device, String guardCmdStr, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void guardCmd(Device device,String channelId, String guardCmdStr, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+        StringBuffer cmdXml = new StringBuffer(200);
+        String charset = device.getCharset();
+        cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
+        cmdXml.append("<Control>\r\n");
+        cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
+        cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+        cmdXml.append("<GuardCmd>" + guardCmdStr + "</GuardCmd>\r\n");
+        cmdXml.append("</Control>\r\n");
 
+
+
+        Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(device.getTransport()));
+        sipSender.transmitRequest( request, errorEvent);
     }
 
     @Override

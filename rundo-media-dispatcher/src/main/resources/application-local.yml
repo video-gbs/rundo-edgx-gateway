@@ -54,7 +54,7 @@ spring:
 
     # rabbitmq 配置
     rabbitmq:
-        host: 192.192.192.92
+        host: 124.71.16.209
         port: 5672
         username: wvp
         password: wvp12345678
@@ -90,14 +90,14 @@ media:
     # [必须修改] zlm服务器唯一id，用于触发hook时区别是哪台服务器,general.mediaServerId
     id: LORVY158beilorvy
     # [必须修改] zlm服务器的内网IP
-    ip: 192.192.192.96
+    ip: 172.20.0.78
 
     # [可选] 返回流地址时的ip，置空使用 media.ip
-    stream-ip: 192.192.192.96
+    stream-ip: 172.20.0.78
     # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
-    sdp-ip: 192.192.192.96
+    sdp-ip: 172.20.0.78
     # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
-    hook-ip: 192.192.192.96
+    hook-ip: 172.20.0.78
     # [必须修改] zlm服务器的http.port
     http-port: 80
 
@@ -111,7 +111,9 @@ media:
     #zlm服务器的是否使用https
     enable-https: ${ENABLE_HTTPS:0}
     # [可选] zlm服务器的hook.admin_params=secret
-    secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
+    secret: RHI54kyNo62RhvY45KdOgeYzwl0qooHw
+
+    play-protocal-type: 0
     # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
     rtp:
         # [可选] 是否启用多端口模式, 开启后会在portRange范围内选择端口用于媒体流传输
@@ -177,4 +179,7 @@ user-settings:
     # 设备录像下载最大时间周期 30分钟
     device-download-time-cycle: 1800
 
-
+mediaApi:
+    #网关回调通知地址:
+    callBackStreamNotify: "/api/media/streamNotify"
+    streamRtpSendInfo: "/api/media/rtpSendInfo"

@@ -59,7 +59,7 @@ spring:
 
     # rabbitmq 配置
     rabbitmq:
-        host: 124.71.20.118
+        host: 124.71.16.209
         port: 5672
         username: wvp
         password: wvp12345678
@@ -93,7 +93,7 @@ server:
 # 作为28181服务器的配置
 sip:
     # [必须修改] 本机的IP
-    ip:  172.20.0.87
+    ip:  172.20.0.78
     # [可选] 28181服务监听的端口
     port: 5011
     # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
@@ -104,7 +104,7 @@ sip:
     # [可选]
     id: 44010200492000000001
     # [可选] 默认设备认证密码，后续扩展使用设备单独密码, 移除密码将不进行校验
-    password: admin123
+    password: rundo@2023
     # [可选] 心跳超时时间， 建议设置为心跳周期的三倍
     keepalive-timeout: 255
     # [可选] 国标级联注册失败，再次发起注册的时间间隔。 默认60秒
@@ -156,6 +156,7 @@ mdeia-api-uri-list:
     get-rtp-info: "/api/media/getRtpInfo"
     gateway-bind: "/api/media/gatewayBind"
     stream-notify: "/api/media/streamNotify"
+    stream-rtpSendInfo: "/api/media/rtpSendInfo"
 
 
 
@@ -189,3 +190,7 @@ gateway-info:
     serialNum: eb48104ddf2b4760be541783b3620001
     #a网关过期时间 默认3分钟
     expire: 180
+
+AlarmConfig:
+    #聚合告警周期 s
+    polymerization-expire: 2

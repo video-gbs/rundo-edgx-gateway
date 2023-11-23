@@ -115,7 +115,7 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
         }
         DeviceSendDto deviceSendDto = new DeviceSendDto();
         BeanUtil.copyProperties(device,deviceSendDto);
-        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.REGISTER,BusinessErrorEnums.SUCCESS,deviceSendDto);
+        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,deviceSendDto);
 
     }
 

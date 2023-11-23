@@ -2,6 +2,7 @@ package com.runjian.media.dispatcher.zlm.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
+import com.runjian.common.commonDto.Gb28181Media.req.GatewayRtpSendReq;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
@@ -60,15 +61,6 @@ public interface ImediaServerService {
 
     void update(MediaServerItem mediaSerItem);
 
-    /**
-     *
-     * @param mediaServerId
-     * @param streamId
-     * @param app
-     * @return
-     */
-    StreamInfo getRtpInfo(String mediaServerId, String streamId,String app);
-
 
 
     void add(MediaServerItem mediaSerItem);
@@ -102,7 +94,26 @@ public interface ImediaServerService {
      */
     StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream);
 
+    /**
+     * 组装推流的地址
+     * @param mediaInfo
+     * @param app
+     * @param stream
+     * @return
+     */
+    public StreamInfo getStreamInPush(MediaServerItem mediaInfo, String app, String stream);
+
     boolean checkRtpServer(MediaServerItem mediaServerItem,String stream);
 
+
+    /**
+     * rtp转推流的信息
+     * @param mediaServerId
+     * @param app
+     * @param streamId
+     * @param gatewayRtpSendReq
+     * @return
+     */
+    SsrcInfo rtpSendServer(String mediaServerId,String app,String streamId, GatewayRtpSendReq gatewayRtpSendReq);
 
 }

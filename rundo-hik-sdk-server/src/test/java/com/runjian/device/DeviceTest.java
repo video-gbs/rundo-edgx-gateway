@@ -3,7 +3,9 @@ package com.runjian.device;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.common.constant.LogTemplate;
+import com.runjian.entity.DeviceChannelEntity;
 import com.runjian.hik.sdklib.SocketPointer;
+import com.runjian.service.IDeviceChannelService;
 import com.runjian.service.IDeviceService;
 import com.sun.jna.Pointer;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,9 +29,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DeviceTest {
     @Autowired
     IDeviceService deviceService;
-    @Value("${mdeia-tool-uri-list.server-ip}")
+//    @Value("${mdeia-tool-uri-list.server-ip}")
     private String serverIp;
 
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
     @Test
     public void testLogin(){
 
@@ -84,5 +89,27 @@ public class DeviceTest {
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_TEMPLATE,"自研流媒体服务连接-socket-连接业务异常","aa",e);
         }
+    }
+    @Test
+    public void testInsertMysql(){
+        long stime = System.currentTimeMillis(); // 统计开始时间
+        ArrayList<DeviceChannelEntity> deviceChannelEntities = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            DeviceChannelEntity deviceChannelEntity = new DeviceChannelEntity();
+            deviceChannelEntity.setDeviceId("24010200492000000001");
+            deviceChannelEntity.setChannelId("2401020049132000000"+i);
+            deviceChannelEntity.setChannelName("test_"+i);
+            deviceChannelEntity.setOnline(1);
+            deviceChannelEntity.setManufacturer("rundo");
+            deviceChannelEntity.setPtzType(1);
+
+
+        }
+        deviceChannelService.saveBatch(deviceChannelEntities);
+
+
+        long etime = System.currentTimeMillis(); // 统计结束时间
+        System.out.println("执行时间：" + (etime - stime));
+
     }
 }

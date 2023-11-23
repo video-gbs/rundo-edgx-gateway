@@ -5,6 +5,7 @@ import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
 import com.runjian.common.config.response.CommonResponse;
 import com.runjian.media.manager.dto.dto.MediaServerConfigDto;
 import com.runjian.media.manager.dto.dto.hook.KeepaliveServerDto;
+import com.runjian.media.manager.dto.dto.hook.OnPublishDto;
 import com.runjian.media.manager.dto.dto.hook.StreamChangeDto;
 import com.runjian.media.manager.service.IMediaPlayService;
 import com.runjian.media.manager.service.IMediaServerService;
@@ -49,7 +50,6 @@ public class HookMediaServerController {
         mediaServerService.updateMediaServerKeepalive(req.getMediaServerId());
         return CommonResponse.success();
     }
-
     /**
      * 注销
      * @param req
@@ -58,6 +58,20 @@ public class HookMediaServerController {
     @PostMapping(value = "/onUnregisterMediaNode",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> unregisterMediaNode(@RequestBody KeepaliveServerDto req){
         mediaServerService.updateMediaServerKeepalive(req.getMediaServerId());
+        return CommonResponse.success();
+    }
+
+
+    /**
+     * 流鉴权
+     * @param req
+     * @return
+     */
+    @PostMapping(value = "/onPublish",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<Boolean> onPublish(@RequestBody OnPublishDto req){
+        log.info("流鉴权，请求={}",req);
+//        OnlineStreamsEntity oneBystreamId = onlineStreamsService.getOneBystreamId(req.getApp());
+        mediaPlayService.streamPublish(req);
         return CommonResponse.success();
     }
 

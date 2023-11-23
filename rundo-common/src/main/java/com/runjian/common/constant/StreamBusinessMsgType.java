@@ -39,10 +39,18 @@ public enum StreamBusinessMsgType {
     STREAM_MEDIA_INFO("STREAM_MEDIA_INFO"),
     //直播迁移
     STREAM_LIVE_PLAY_START("STREAM_LIVE_PLAY_START"),
+    //webrtc对讲
+    STREAM_WEBRTC_TALK("STREAM_WEBRTC_AUDIO"),
     //录播迁移
     STREAM_RECORD_PLAY_START("STREAM_RECORD_PLAY_START"),
     //自定义直播
     STREAM_CUSTOM_LIVE_START("STREAM_CUSTOM_LIVE_START"),
+
+    //录像获取
+    STREAM_RECORD_DOWNLOAD("STREAM_RECORD_DOWNLOAD"),
+    //截图获取
+    STREAM_PICTURE_DOWNLOAD("STREAM_PICTURE_DOWNLOAD"),
+
     /******调度服务业务队列场景*************/
     ;
 

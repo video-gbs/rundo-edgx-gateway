@@ -42,6 +42,20 @@ public class SipUtils {
         return ((Subject) subject).getSubject().split(":")[0];
     }
 
+    public static String getChannelIdFromRequestInAudioSecene(Request request) {
+        Header subject = request.getHeader("subject");
+        if (subject == null) {
+            // 如果缺失subject
+            return null;
+        }
+        String[] splitString = ((Subject) subject).getSubject().split(",");
+        if(splitString.length<2){
+            return null;
+        }
+
+        return splitString[1].split(":")[0];
+    }
+
     public static String getUserIdFromFromHeader(FromHeader fromHeader) {
         AddressImpl address = (AddressImpl)fromHeader.getAddress();
         SipUri uri = (SipUri) address.getURI();

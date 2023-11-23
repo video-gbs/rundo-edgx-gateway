@@ -1,10 +1,12 @@
 package com.runjian.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.runjian.common.commonDto.Gateway.req.NoneStreamReaderReq;
 import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.PlayCommonSsrcInfo;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
+import com.runjian.common.commonDto.StreamPlayDto;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.constant.BusinessSceneConstants;
@@ -128,7 +130,7 @@ public class PlayServiceImpl implements IplayService {
                 //todo 判断ssrc是否匹配
 
                 //传递ssrc进去，出现推流不成功的异常，进行相关逻辑处理
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY,BusinessErrorEnums.COMMDER_SEND_SUCESS,playReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.COMMDER_SEND_SUCESS,playReq);
                 streamSession.putSsrcTransaction(device.getDeviceId(), playReq.getChannelId(), "play", playReq.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.play,playReq.getDispatchUrl());
             },error->{
                 //失败业务处理
@@ -136,12 +138,12 @@ public class PlayServiceImpl implements IplayService {
                 //关闭推流端口
                 streamSession.removeSsrcTransaction(device.getDeviceId(), playReq.getChannelId(), playReq.getStreamId());
 
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY,BusinessErrorEnums.SIP_SEND_EXCEPTION,playReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SIP_SEND_EXCEPTION,playReq);
             });
 
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE, "点播服务", "点播失败", playReq,e);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY,BusinessErrorEnums.UNKNOWN_ERROR,playReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,playReq);
         }
 
 
@@ -150,7 +152,7 @@ public class PlayServiceImpl implements IplayService {
 
     @Override
     public void playBack(PlayBackReq playBackReq) {
-        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播请求进入", playBackReq);
+        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播请求进入", JSON.toJSON(playBackReq));
         String businessSceneKey = GatewayBusinessMsgType.PLAY_BACK.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+playBackReq.getStreamId();
         try {
             PlayCommonSsrcInfo playCommonSsrcInfo = playCommonProcess(businessSceneKey, GatewayBusinessMsgType.PLAY_BACK, playBackReq,false);
@@ -164,7 +166,7 @@ public class PlayServiceImpl implements IplayService {
             device.setDeviceId(playCommonSsrcInfo.getDeviceId());
             sipCommander.playbackStreamCmd(playBackReq.getStreamMode(),ssrcInfo,device, playBackReq.getChannelId(),playBackReq.getStartTime(),playBackReq.getEndTime(), ok->{
                 //成功业务处理
-                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播成功", playBackReq);
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播成功", JSON.toJSON(playBackReq));
                 //缓存当前的sip推拉流信息
                 ResponseEvent responseEvent = (ResponseEvent) ok.event;
                 SIPResponse response = (SIPResponse) responseEvent.getResponse();
@@ -173,7 +175,7 @@ public class PlayServiceImpl implements IplayService {
                 //todo 判断ssrc是否匹配
 
                 //传递ssrc进去，出现推流不成功的异常，进行相关逻辑处理
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY_BACK,BusinessErrorEnums.COMMDER_SEND_SUCESS,playBackReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.COMMDER_SEND_SUCESS,playBackReq);
                 streamSession.putSsrcTransaction(device.getDeviceId(), playBackReq.getChannelId(), sipSender.getNewCallIdHeader(device.getTransport()).getCallId(), playBackReq.getStreamId(), ssrcInfo.getSsrc(), ssrcInfo.getMediaServerId(), response, VideoStreamSessionManager.SessionType.playback,playBackReq.getDispatchUrl());
             },error->{
                 //失败业务处理
@@ -181,19 +183,17 @@ public class PlayServiceImpl implements IplayService {
                 //剔除缓存
                 streamSession.removeSsrcTransaction(device.getDeviceId(), playBackReq.getChannelId(), playBackReq.getStreamId());
 
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY_BACK,BusinessErrorEnums.SIP_SEND_EXCEPTION,playBackReq);
+                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SIP_SEND_EXCEPTION,playBackReq);
             });
         }catch (Exception e){
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "回放服务", "点播失败", playBackReq);
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayBusinessMsgType.PLAY_BACK,BusinessErrorEnums.UNKNOWN_ERROR,playBackReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.UNKNOWN_ERROR,playBackReq);
         }
     }
 
     private PlayCommonSsrcInfo playCommonProcess(String businessSceneKey, GatewayBusinessMsgType gatewayMsgType, PlayReq playReq,boolean isPlay) throws InterruptedException {
-        redisCatchStorageService.addBusinessSceneKey(businessSceneKey,gatewayMsgType,playReq.getMsgId());
+        Boolean b = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, gatewayMsgType, playReq.getMsgId(), 1,playReq);
         //尝试获取锁
-        RLock lock = redissonClient.getLock(businessSceneKey);
-        boolean b = lock.tryLock(0,userSetting.getBusinessSceneTimeout()+100, TimeUnit.MILLISECONDS);
         if(!b){
             //加锁失败，不继续执行
             log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备点播服务,加锁失败，合并全局的请求",playReq);
@@ -202,17 +202,17 @@ public class PlayServiceImpl implements IplayService {
         //参数校验
         DeviceChannel deviceChannel = deviceChannelService.getOne(playReq.getDeviceId(), playReq.getChannelId());
         if(ObjectUtils.isEmpty(deviceChannel)){
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.DB_NOT_FOUND,playReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_NOT_FOUND,playReq);
             return null;
         }
         if(deviceChannel.getStatus() == 0){
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.CHANNEL_OFFLINE,playReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.CHANNEL_OFFLINE,playReq);
             return null;
         }
         //判断设备是否存在
         Device device = deviceService.getDevice(playReq.getDeviceId());
         if(ObjectUtils.isEmpty(device)){
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,gatewayMsgType,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,playReq);
+            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,playReq);
             return null;
 
         }
@@ -232,25 +232,7 @@ public class PlayServiceImpl implements IplayService {
     public void onStreamChanges(StreamInfo streamInfo) {
         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "流注册事件", streamInfo);
 
-//        //获取点播的ssrc信息值
-//        SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamInfo.getStreamId());
-//        if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
-//            //拼接streamd的流返回值 封装返回请求体
-//            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "点播服务", "流注册失败，当前点播信息的缓存获取异常", streamInfo);
-//
-//            return;
-//        }
-//        String businessSceneKey = null;
-//        //判断类型
-//        if(streamSessionSsrcTransaction.getType().equals(VideoStreamSessionManager.SessionType.play)){
-//            businessSceneKey = GatewayMsgType.PLAY.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamSessionSsrcTransaction.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+streamSessionSsrcTransaction.getChannelId();
-//            //点播成功
-//            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY,BusinessErrorEnums.SUCCESS,streamInfo);
-//        }else if(streamSessionSsrcTransaction.getType().equals(VideoStreamSessionManager.SessionType.playback)){
-//            businessSceneKey = GatewayMsgType.PLAY_BACK.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamSessionSsrcTransaction.getDeviceId()+BusinessSceneConstants.SCENE_STREAM_KEY+streamSessionSsrcTransaction.getChannelId();
-//            //点播成功
-//            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,GatewayMsgType.PLAY_BACK,BusinessErrorEnums.SUCCESS,streamInfo);
-//        }
+
 
 
     }
@@ -317,12 +299,19 @@ public class PlayServiceImpl implements IplayService {
 
 
     @Override
-    public void streamBye(String streamId,String msgId) {
-        log.info(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "流停止请求进入， 发送BYE", streamId);
-        SsrcTransaction streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamId);
+    public void streamBye(StreamPlayDto streamPlayDto, String msgId) {
+        log.info(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "流停止请求进入， 发送BYE", streamPlayDto);
+        SsrcTransaction streamSessionSsrcTransaction;
+        if(streamPlayDto.getMediaType() == 1){
+            streamSessionSsrcTransaction = streamSession.getTalkSsrcTransaction(streamPlayDto.getDeviceId(), streamPlayDto.getChannelId(),"talk");
+
+        }else {
+            streamSessionSsrcTransaction = streamSession.getSsrcTransaction(null, null, null, streamPlayDto.getStreamId());
+
+        }
         if(ObjectUtils.isEmpty(streamSessionSsrcTransaction)){
             //todo 重要，缓存异常，点播失败需要人工介入
-            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,点播缓存异常", streamId);
+            log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,点播缓存异常", streamPlayDto);
             return;
         }
 
@@ -331,22 +320,37 @@ public class PlayServiceImpl implements IplayService {
             Device device = deviceService.getDevice(streamSessionSsrcTransaction.getDeviceId());
             if(ObjectUtils.isEmpty(device)){
                 //todo 重要，缓存异常，点播失败需要人工介入
-                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,设备信息未找到", streamId);
+                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "错误点播场景处理失败,设备信息未找到", streamPlayDto);
                 return;
 
             }
-            sipCommander.streamByeCmd(streamSessionSsrcTransaction,device,streamSessionSsrcTransaction.getChannelId(),error->{
-                //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
-                ResponseEvent responseEvent = (ResponseEvent) error.event;
-                SIPResponse response = (SIPResponse) responseEvent.getResponse();
-                log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令点播失败", response);
+            if(streamPlayDto.getMediaType() == 1){
+                //对讲
+                sipCommander.TalkByeCmd(streamSessionSsrcTransaction,device,streamSessionSsrcTransaction.getChannelId(),error->{
+                    //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
+                    ResponseEvent responseEvent = (ResponseEvent) error.event;
+                    SIPResponse response = (SIPResponse) responseEvent.getResponse();
+                    log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止对讲", "bye指令点播失败", response);
 
-            },ok->{
+                },ok->{
 
-            });
+                });
+            }else {
+                //视频流
+                sipCommander.streamByeCmd(streamSessionSsrcTransaction,device,streamSessionSsrcTransaction.getChannelId(),error->{
+                    //todo 重要，点播失败 后续需要具体分析为啥失败，针对直播bye失败需要重点关注，回放bye失败需要排查看一下
+                    ResponseEvent responseEvent = (ResponseEvent) error.event;
+                    SIPResponse response = (SIPResponse) responseEvent.getResponse();
+                    log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "停止点播", "bye指令点播失败", response);
 
-            //剔除缓存
-            streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
+                },ok->{
+
+                });
+                //剔除缓存
+                streamSession.removeSsrcTransaction(streamSessionSsrcTransaction);
+            }
+
+
 
         } catch (InvalidArgumentException | SipException | ParseException e) {
             log.error(LogTemplate.ERROR_LOG_TEMPLATE, "停止点播", "[命令发送失败] 停止点播， 发送BYE", e);
