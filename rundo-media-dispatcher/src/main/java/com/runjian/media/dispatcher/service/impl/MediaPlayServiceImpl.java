@@ -233,7 +233,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                 String filePath = json.getString("file_path");
                 String streamId = json.getString("stream");
                 OnlineStreamsEntity oneBystreamId = onlineStreamsService.getOneBystreamId(streamId);
-//                sendFile(filePath,oneBystreamId,2);
+                sendFile(filePath,oneBystreamId,2);
                 //实际的录像通知完成之后  进行流删除 录像先到 还是流注销先到 这里不确定
                 onlineStreamsService.remove(streamId);
                 // hook响应
