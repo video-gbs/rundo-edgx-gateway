@@ -1,5 +1,6 @@
 package com.runjian.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.req.RecordInfoReq;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.constant.BusinessSceneConstants;
@@ -72,71 +73,95 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     public  List<DeviceChannel> resetChannelsForcatalogLock(String deviceId, List<DeviceChannel> deviceChannelList){
+        if (CollectionUtils.isEmpty(deviceChannelList)) {
+            return null;
+        }
+        log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "通道同步--入库", "数据进行操作", deviceId);
+
+        //查出数据库中已存在的channel 区分是add还是update
         List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannelsByDeviceId(deviceId);
-        //组装增删改的数据
-        List<String> updateCollects = new ArrayList<>();
-        List<String> addCollects = new ArrayList<>();
-        List<String> removeCollects = new ArrayList<>();
+
         List<String> oldChannelCollect = deviceChannels.stream().map(DeviceChannel::getChannelId).collect(Collectors.toList());
         List<String> newChannelCollect = deviceChannelList.stream().map(DeviceChannel::getChannelId).collect(Collectors.toList());
-        //组装数据
-        for (String s : oldChannelCollect) {
-            removeCollects.add(s);
-            updateCollects.add(s);
-        }
 
-        for (String s : newChannelCollect) {
-            addCollects.add(s);
-        }
-        //组装待删除的数据
-        boolean b = removeCollects.removeAll(newChannelCollect);
-        //组装待添加的数据
-        boolean b1 = addCollects.removeAll(oldChannelCollect);
-        //状态待修改的数据
-        boolean b2 = updateCollects.retainAll(newChannelCollect);
+        List<String> updateCollects = new ArrayList<>(oldChannelCollect);
+        List<String> removeCollects = new ArrayList<>(oldChannelCollect);
+        List<String> addCollects = new ArrayList<>(newChannelCollect);
+
+        removeCollects.removeAll(newChannelCollect);
+        addCollects.removeAll(oldChannelCollect);
+        updateCollects.retainAll(newChannelCollect);
+
+        List<DeviceChannel> removeChannels = deviceChannels.parallelStream()
+                .filter(deviceChannel -> removeCollects.contains(deviceChannel.getChannelId()))
+                .collect(Collectors.toList());
+
+        List<DeviceChannel> addDeviceChannels = deviceChannelList.parallelStream()
+                .filter(deviceChannel -> addCollects.contains(deviceChannel.getChannelId()))
+                .collect(Collectors.toList());
+
+        List<DeviceChannel> deviceChannelsUpdate = deviceChannelList.parallelStream()
+                .filter(deviceChannel -> updateCollects.contains(deviceChannel.getChannelId()))
+                .collect(Collectors.toList());
+
+        List<Long> removeIdList = removeChannels.stream().map(DeviceChannel::getId).collect(Collectors.toList());
+
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+
         try{
-            List<DeviceChannel> addDeviceChannels = new ArrayList<>();
-            if(!CollectionUtils.isEmpty(removeCollects)){
-                //进行删除数据组装
-                List<Long> idList = new ArrayList<>();
-                for (DeviceChannel deviceChannel : deviceChannels) {
-                    if(removeCollects.contains(deviceChannel.getChannelId())){
-                        long id = deviceChannel.getId();
-                        idList.add(id);
-                    }
-                }
-                deviceChannelMapper.cleanChannelsByChannelIdList(idList);
+
+            if(!ObjectUtils.isEmpty(removeIdList)){
+
+                //删除关联的节点，项目管理
+                deviceChannelMapper.cleanChannelsByChannelIdList(removeIdList);
             }
 
-            if(!CollectionUtils.isEmpty(addCollects)){
-                //进行添加数据组装
-                for (DeviceChannel deviceChannel : deviceChannelList) {
-                    if(addCollects.contains(deviceChannel.getChannelId())){
-                        addDeviceChannels.add(deviceChannel);
+            int limitCount = 1000;
+            if(!CollectionUtils.isEmpty(addDeviceChannels)){
+                if(addDeviceChannels.size() > limitCount){
+                    for (int i = 0; i < addDeviceChannels.size(); i += limitCount) {
+                        int toIndex = i + limitCount;
+                        if (i + limitCount > addDeviceChannels.size()) {
+                            toIndex = addDeviceChannels.size();
+                        }
+                        List<DeviceChannel> thisOne = addDeviceChannels.subList(i, toIndex);
+                        deviceChannelMapper.batchAdd(thisOne);
                     }
+
+                }else {
+                    //直接执行
+                    deviceChannelMapper.batchAdd(addDeviceChannels);
+
                 }
-                deviceChannelMapper.batchAdd(addDeviceChannels);
+
+
             }
-            if(!CollectionUtils.isEmpty(updateCollects)){
+            if(!CollectionUtils.isEmpty(deviceChannelsUpdate)){
                 //进行编辑数据操作
-                List<DeviceChannel> deviceChannelsUpdate = new ArrayList<>();
-                for (DeviceChannel deviceChannel : deviceChannelList) {
-                    if(updateCollects.contains(deviceChannel.getChannelId())){
-                        //单独编辑入库
-                        deviceChannelsUpdate.add(deviceChannel);
+                if(deviceChannelsUpdate.size() > limitCount){
+                    for (int i = 0; i < deviceChannelsUpdate.size(); i += limitCount) {
+                        int toIndex = i + limitCount;
+                        if (i + limitCount > deviceChannelsUpdate.size()) {
+                            toIndex = deviceChannelsUpdate.size();
+                        }
+                        List<DeviceChannel> thisOne = deviceChannelsUpdate.subList(i, toIndex);
+                        deviceChannelMapper.batchUpdate(thisOne);
                     }
-                }
-                if(!CollectionUtils.isEmpty(deviceChannelsUpdate)){
+
+                }else {
+                    //直接执行
                     deviceChannelMapper.batchUpdate(deviceChannelsUpdate);
 
                 }
             }
+            log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "通道同步--入库", "数据入库成功,deviceId={}",deviceId);
+
             dataSourceTransactionManager.commit(transactionStatus);
         }catch (Exception e){
+            log.error(LogTemplate.PROCESS_LOG_TEMPLATE, "通道同步数据异常", "未知异常",e);
             dataSourceTransactionManager.rollback(transactionStatus);
         }
-        //从数据库中重新查找 过滤被删除的通道
+
 
         return deviceChannelMapper.queryUndeletedChannelsByDeviceId(deviceId);
     }

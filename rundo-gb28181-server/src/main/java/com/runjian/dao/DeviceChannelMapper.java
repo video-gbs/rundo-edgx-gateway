@@ -99,14 +99,14 @@ public interface DeviceChannelMapper {
                 "insert into "+DEVICE_CHANNEL_TABLE_NAME+" " +
                 "(channel_id, device_Id, channel_name, manufacturer, model, owner, civil_code, block, " +
                 "  address, parental, parent_id, safety_way, register_way, cert_num, certifiable, err_code, secrecy, " +
-                "  ip_address, port, password, ptz_type, status, longitude, latitude, business_group_id) " +
+                "  ip_address, port, password, ptz_type, status, longitude, latitude, business_group_id,gb_code) " +
                 "values " +
                 "<foreach collection='addChannels' index='index' item='item' separator=','> " +
                 "(#{item.channelId},#{item.deviceId},#{item.channelName},#{item.manufacturer},#{item.model}" +
                 ",#{item.owner},#{item.civilCode},#{item.block},#{item.address},#{item.parental},#{item.parentId}" +
                 ",#{item.safetyWay},#{item.registerWay},#{item.certNum},#{item.certifiable},#{item.errCode}" +
                 ",#{item.secrecy},#{item.ipAddress},#{item.port},#{item.password},#{item.ptzType},#{item.status}" +
-                ",#{item.longitude},#{item.latitude},#{item.businessGroupId}"+
+                ",#{item.longitude},#{item.latitude},#{item.businessGroupId},#{gbCode}"+
                 ") " +
                 "</foreach> " +
             "</script> "
@@ -163,6 +163,7 @@ public interface DeviceChannelMapper {
             "<if test='item.latitude != null'>, latitude=#{item.latitude}</if>" +
             "<if test='item.parental != null'>, parental=#{item.parental}</if>" +
             "<if test='item.businessGroupId != null'>, business_group_id=#{item.businessGroupId}</if>" +
+            ", gb_code=#{item.gbCode}</if>" +
             "WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}"+
             "</foreach>" +
             "</script>"})
