@@ -181,5 +181,11 @@ public class DeviceChannel {
 	private String businessGroupId;
 
 
+	/**
+	 * gb28181类型编码
+	 */
+	private int gbCode;
+
+
 
 }

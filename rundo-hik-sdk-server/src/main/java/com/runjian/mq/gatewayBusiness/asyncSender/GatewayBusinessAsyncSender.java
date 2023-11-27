@@ -1,5 +1,6 @@
 package com.runjian.mq.gatewayBusiness.asyncSender;
 
+import com.alibaba.fastjson.JSON;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
 import com.runjian.common.config.response.CommonResponse;
@@ -60,7 +61,7 @@ public class GatewayBusinessAsyncSender {
                 mqInfo.setData(businessCommonResponsePoll.getData());
                 mqInfo.setCode(businessCommonResponsePoll.getCode());
                 mqInfo.setMsg(businessCommonResponsePoll.getMsg());
-                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", mqInfo);
+                log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mq信令发送处理", JSON.toJSONString(mqInfo));
                 rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), gatewaySignInConf.getMqSetQueue(), UuidUtil.toUuid(), mqInfo, true);
 
             } else {

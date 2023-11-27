@@ -436,13 +436,13 @@ public class XmlUtil {
             // 除了ADD和update情况下需要识别全部内容，
             return deviceChannel;
         }
-
+        int code = 0;
         ChannelType channelType = ChannelType.Other;
         if (channelId.length() <= 8) {
             channelType = ChannelType.CivilCode;
         }else {
             if (channelId.length() == 20) {
-                int code = Integer.parseInt(channelId.substring(10, 13));
+                code = Integer.parseInt(channelId.substring(10, 13));
                 switch (code){
                     case 215:
                         channelType = ChannelType.BusinessGroup;
@@ -464,6 +464,7 @@ public class XmlUtil {
         Element channdelNameElement = itemDevice.element("Name");
         String channelName = channdelNameElement != null ? channdelNameElement.getTextTrim() : "";
         deviceChannel.setChannelName(channelName);
+        deviceChannel.setGbCode(code);
 
         String civilCode = XmlUtil.getText(itemDevice, "CivilCode");
         deviceChannel.setCivilCode(civilCode);

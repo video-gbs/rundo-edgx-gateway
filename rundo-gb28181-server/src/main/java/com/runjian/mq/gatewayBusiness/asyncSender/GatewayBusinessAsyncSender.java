@@ -86,7 +86,7 @@ public class GatewayBusinessAsyncSender {
                     mqInfo.setCode(businessErrorEnums.getErrCode());
                     mqInfo.setMsg(businessErrorEnums.getErrMsg());
                     String mqGetQueue = gatewaySignInConf.getMqSetQueue();
-                    log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mqN信令发送处理", mqInfo);
+                    log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-mqN信令发送处理", JSONObject.toJSONString(mqInfo));
                     if(businessSceneKeyPoll.getSendType() == 0){
                         rabbitMqSender.sendMsgByExchange(gatewaySignInConf.getMqExchange(), mqGetQueue, UuidUtil.toUuid(), mqInfo, true);
 

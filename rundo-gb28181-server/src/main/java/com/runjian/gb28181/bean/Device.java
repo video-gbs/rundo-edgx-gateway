@@ -126,4 +126,9 @@ public class Device {
 	@Schema(description = "密码")
 	private String password;
 
+	/**
+	 * gb28181类型编码
+	 */
+	private int gbCode;
+
 }

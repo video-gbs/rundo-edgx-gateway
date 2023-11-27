@@ -144,6 +144,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             device.setStreamMode("UDP");
             device.setCharset("GB2312");
             device.setDeviceId(deviceId);
+            device.setGbCode(Integer.parseInt(deviceId.substring(10, 13)));
             device.setOnline(0);
         }
         device.setIp(received);
