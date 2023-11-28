@@ -13,6 +13,7 @@ import com.runjian.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.runjian.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.runjian.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.runjian.gb28181.utils.XmlUtil;
+import com.runjian.runner.CivilCodeFileConfRunner;
 import com.runjian.service.IDeviceChannelService;
 import com.runjian.service.IRedisCatchStorageService;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -77,6 +78,8 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     @Autowired
     IRedisCatchStorageService redisCatchStorageService;
 
+    @Autowired
+    private CivilCodeFileConfRunner civilCodeFileConf;
     @Override
     public void afterPropertiesSet() throws Exception {
         responseMessageHandler.addHandler(cmdType, this);
@@ -134,7 +137,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         if (channelDeviceElement == null) {
                             continue;
                         }
-                        DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice, device, null);
+                        DeviceChannel deviceChannel = XmlUtil.channelContentHandler(itemDevice, device, null,civilCodeFileConf);
                         deviceChannel.setDeviceId(take.getDevice().getDeviceId());
 
                         channelList.add(deviceChannel);
