@@ -6,6 +6,7 @@ import com.runjian.common.config.response.GatewayBusinessSceneResp;
 import com.runjian.common.constant.*;
 import com.runjian.common.utils.BeanUtil;
 import com.runjian.conf.DynamicTask;
+import com.runjian.conf.SipConfig;
 import com.runjian.conf.UserSetting;
 import com.runjian.dao.DeviceChannelMapper;
 import com.runjian.dao.DeviceCompatibleMapper;
@@ -14,6 +15,7 @@ import com.runjian.domain.dto.DeviceSendDto;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.event.SipSubscribe;
 import com.runjian.gb28181.session.CatalogDataCatch;
+import com.runjian.gb28181.task.impl.CatalogSubscribeTask;
 import com.runjian.gb28181.transmit.cmd.ISIPCommander;
 import com.runjian.mq.gatewayBusiness.asyncSender.GatewayBusinessAsyncSender;
 import com.runjian.service.IDeviceService;
@@ -78,6 +80,9 @@ public class DeviceServiceImpl implements IDeviceService {
     UserSetting userSetting;
 
     @Autowired
+    private SipConfig sipConfig;
+
+    @Autowired
     IRedisCatchStorageService redisCatchStorageService;
 
 
@@ -128,12 +133,26 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device.getKeepaliveTime() == null) {
             device.setKeepaliveIntervalTime(60);
         }
-
+        if(device.getIsSubscribeCatalog() == 1){
+            //进行目录订阅
+            addCatalogSubscribe(device);
+        }
         // 刷新过期任务
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
         // 如果三次心跳失败，则设置设备离线
         dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device),  (int)device.getKeepaliveIntervalTime()*1000*3);
 
+    }
+
+    public boolean addCatalogSubscribe(Device device) {
+
+        // 添加目录订阅
+        CatalogSubscribeTask catalogSubscribeTask = new CatalogSubscribeTask(device, sipCommander, dynamicTask);
+        // 刷新订阅
+        int subscribeCycleForCatalog = Math.max(sipConfig.getSubscribeCatalogCycle(), 600);
+        // 设置最小值为30
+        dynamicTask.startCron(device.getDeviceId() + "catalog", catalogSubscribeTask, (subscribeCycleForCatalog -1) * 1000);
+        return true;
     }
 
     @Override

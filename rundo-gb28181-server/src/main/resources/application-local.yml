@@ -112,6 +112,8 @@ sip:
     # [可选] 云台控制速度
     ptz-speed: 100
     alarm: true
+    #订阅周期，和订阅刷新周期 10分钟
+    subscribe-catalog-cycle: 600
 
 # [可选] 日志配置, 一般不需要改
 logging:
@@ -134,6 +136,7 @@ user-settings:
     platform-play-timeout: 60000
     # 设备录像下载最大时间周期 30分钟
     device-download-time-cycle: 1800
+
 
 # 在线文档： swagger-ui（生产环境建议关闭）
 swagger-ui:

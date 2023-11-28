@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
+import javax.sip.SipFactory;
+import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
 
@@ -394,8 +396,29 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public SIPRequest catalogSubscribe(Device device, SIPRequest request, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
-        return null;
+    public SIPRequest catalogSubscribe(Device device, SIPRequest requestOld, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+        StringBuffer cmdXml = new StringBuffer(200);
+        String charset = device.getCharset();
+        cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
+        cmdXml.append("<Query>\r\n");
+        cmdXml.append("<CmdType>Catalog</CmdType>\r\n");
+        cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+        cmdXml.append("</Query>\r\n");
+
+        CallIdHeader callIdHeader;
+
+        if (requestOld != null) {
+            callIdHeader = SipFactory.getInstance().createHeaderFactory().createCallIdHeader(requestOld.getCallIdHeader().getCallId());
+        } else {
+            callIdHeader = sipSender.getNewCallIdHeader(device.getTransport());
+        }
+
+        // 有效时间默认为60秒以上
+        SIPRequest request = (SIPRequest) headerProvider.createSubscribeRequest(device, cmdXml.toString(), requestOld, sipConfig.getSubscribeCatalogCycle(), "Catalog",
+                callIdHeader);
+        sipSender.transmitRequest(request, errorEvent, okEvent);
+        return request;
     }
 
     @Override

@@ -131,4 +131,9 @@ public class Device {
 	 */
 	private int gbCode;
 
+	/**
+	 * 是否目录订阅
+	 */
+	private int isSubscribeCatalog;
+
 }

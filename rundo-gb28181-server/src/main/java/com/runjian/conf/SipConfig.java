@@ -31,6 +31,11 @@ public class SipConfig {
 
 	private boolean alarm;
 
+	/**
+	 * 订阅周期
+	 */
+	private int subscribeCatalogCycle = 600;
+
 	public void setIp(String ip) {
 		this.ip = ip;
 	}
@@ -113,5 +118,13 @@ public class SipConfig {
 
 	public void setAlarm(boolean alarm) {
 		this.alarm = alarm;
+	}
+
+	public int getSubscribeCatalogCycle() {
+		return subscribeCatalogCycle;
+	}
+
+	public void setSubscribeCatalogCycle(int subscribeCatalogCycle) {
+		this.subscribeCatalogCycle = subscribeCatalogCycle;
 	}
 }
