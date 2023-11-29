@@ -88,7 +88,7 @@ mybatis:
         mapUnderscoreToCamelCase: true
 ## [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
-    port: 18080
+    port: 18070
 
 # 作为28181服务器的配置
 sip:
@@ -113,7 +113,7 @@ sip:
     ptz-speed: 100
     alarm: true
     #订阅周期，和订阅刷新周期 10分钟
-    subscribe-catalog-cycle: 600
+    subscribe-catalog-cycle: 10
 
 # [可选] 日志配置, 一般不需要改
 logging:

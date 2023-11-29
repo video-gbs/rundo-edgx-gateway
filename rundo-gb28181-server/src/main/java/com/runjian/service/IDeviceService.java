@@ -23,6 +23,13 @@ public interface IDeviceService {
     void offline(Device device);
 
     /**
+     * 订阅数据发送
+     * @param device
+     * @return
+     */
+    public boolean addCatalogSubscribe(Device device);
+
+    /**
      * 查询设备信息
      * @param deviceId 设备编号
      * @return 设备信息

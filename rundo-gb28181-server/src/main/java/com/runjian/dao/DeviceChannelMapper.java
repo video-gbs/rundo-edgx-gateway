@@ -1,5 +1,6 @@
 package com.runjian.dao;
 
+import com.runjian.conf.dao.SimpleInsertExtendedLanguageDriver;
 import com.runjian.conf.dao.SimpleUpdateExtendedLanguageDriver;
 import com.runjian.gb28181.bean.DeviceChannel;
 import org.apache.ibatis.annotations.*;
@@ -54,7 +55,7 @@ public interface DeviceChannelMapper {
      * @param deviceId
      * @return
      */
-    @Delete("DELETE FROM "+DEVICE_CHANNEL_TABLE_NAME+" WHERE device_id=#{deviceId}")
+    @Update("update "+DEVICE_CHANNEL_TABLE_NAME+" SET status = 0 WHERE device_id=#{deviceId}")
     int cleanChannelsByDeviceId(String deviceId);
 
     /**
@@ -106,13 +107,22 @@ public interface DeviceChannelMapper {
                 ",#{item.owner},#{item.civilCode},#{item.block},#{item.address},#{item.parental},#{item.parentId}" +
                 ",#{item.safetyWay},#{item.registerWay},#{item.certNum},#{item.certifiable},#{item.errCode}" +
                 ",#{item.secrecy},#{item.ipAddress},#{item.port},#{item.password},#{item.ptzType},#{item.status}" +
-                ",#{item.longitude},#{item.latitude},#{item.businessGroupId},#{gbCode}"+
+                ",#{item.longitude},#{item.latitude},#{item.businessGroupId},#{item.gbCode}"+
                 ") " +
                 "</foreach> " +
             "</script> "
             )
     @Options(useGeneratedKeys = true,keyColumn = "id",keyProperty = "id")
     int batchAdd(List<DeviceChannel> addChannels);
+
+    /**
+     *
+     * @param addChannels
+     * @return
+     */
+    @Insert("insert into "+DEVICE_CHANNEL_TABLE_NAME+" (#{deviceChannel})")
+    @Lang(SimpleInsertExtendedLanguageDriver.class)
+    int add(DeviceChannel addChannels);
 
     /**
      * 更新通道
@@ -123,6 +133,28 @@ public interface DeviceChannelMapper {
     @Lang(SimpleUpdateExtendedLanguageDriver.class)
     int update(DeviceChannel deviceChannel);
 
+
+    /**
+     * 更新通道
+     * @param deviceChannel
+     * @return
+     */
+    @Update("update "+DEVICE_CHANNEL_TABLE_NAME+" (#{deviceChannel}) where device_Id=#{deviceId} and channel_id = #{channelId}")
+    @Lang(SimpleUpdateExtendedLanguageDriver.class)
+    int updateByDeviceAndChannelId(DeviceChannel deviceChannel);
+
+
+//    /**
+//     * 更新通道
+//     * @param deviceChannel
+//     * @return
+//     */
+//    @Update("update "+DEVICE_CHANNEL_TABLE_NAME+" (#{deviceChannel}) where device_Id=#{deviceId} and channel_id = #{channelId}")
+//    @Lang(SimpleUpdateExtendedLanguageDriver.class)
+//    int updateStatusByDeviceAndChannelId(DeviceChannel deviceChannel);
+
+    @Update("update "+DEVICE_CHANNEL_TABLE_NAME+" set status = #{status} where device_Id=#{deviceChannel.deviceId} and channel_id = #{deviceChannel.channelId}")
+    int updateStatusByDeviceAndChannelId(DeviceChannel deviceChannel,int status);
     /**
      * 查询通道信息
      * @param deviceId
@@ -163,7 +195,7 @@ public interface DeviceChannelMapper {
             "<if test='item.latitude != null'>, latitude=#{item.latitude}</if>" +
             "<if test='item.parental != null'>, parental=#{item.parental}</if>" +
             "<if test='item.businessGroupId != null'>, business_group_id=#{item.businessGroupId}</if>" +
-            ", gb_code=#{item.gbCode}</if>" +
+            ", gb_code=#{item.gbCode} " +
             "WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}"+
             "</foreach>" +
             "</script>"})

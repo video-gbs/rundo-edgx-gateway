@@ -5,6 +5,7 @@ import com.runjian.conf.SipConfig;
 import com.runjian.conf.UserSetting;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceChannel;
+import com.runjian.gb28181.bean.DeviceChannelSubscibe;
 import com.runjian.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.runjian.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.runjian.gb28181.utils.SipUtils;
@@ -17,7 +18,9 @@ import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import javax.sip.RequestEvent;
 import javax.sip.header.FromHeader;
@@ -60,11 +63,13 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 
 	private final static String talkKey = "notify-request-for-catalog-task";
 
+	@Async
 	public void process(RequestEvent evt) {
 		try {
 			long start = System.currentTimeMillis();
 			FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
 			String deviceId = SipUtils.getUserIdFromFromHeader(fromHeader);
+			logger.info("[收到目录订阅]：{}", evt.getRequest());
 
 			Device device = deviceService.getDevice(deviceId);
 			if (device == null) {
@@ -81,6 +86,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 				return;
 			}
 			Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
+			ArrayList<DeviceChannelSubscibe> deviceChannelSubscibes = new ArrayList<>();
 			if (deviceListIterator != null) {
 
 				// 遍历DeviceList
@@ -107,37 +113,43 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 						channel.setParentId(null);
 					}
 					channel.setDeviceId(device.getDeviceId());
-					logger.info("[收到目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
+					DeviceChannelSubscibe deviceChannelSubscibe = new DeviceChannelSubscibe();
+					deviceChannelSubscibe.setEvent(event);
+					deviceChannelSubscibe.setDeviceChannel(channel);
 					switch (event) {
 						case CatalogEvent.ON:
 							// 上线
-
-
+							channel.setStatus(1);
+							deviceChannelService.updateByDeviceIdAndChannelId(channel,1);
 							break;
 						case CatalogEvent.OFF :
 							// 离线
-
+							channel.setStatus(0);
+							deviceChannelService.updateByDeviceIdAndChannelId(channel,0);
 							break;
 						case CatalogEvent.VLOST:
 							// 视频丢失
-
+							channel.setStatus(0);
+							deviceChannelService.updateByDeviceIdAndChannelId(channel,0);
 							break;
 						case CatalogEvent.DEFECT:
 							// 故障
-
+							deviceChannelService.updateByDeviceIdAndChannelId(channel,0);
+							channel.setStatus(0);
 							break;
 						case CatalogEvent.ADD:
 							// 增加
-
+							deviceChannelService.addOne(channel);
 
 							break;
 						case CatalogEvent.DEL:
-							// 删除
-
+							// 删除  本平台先判断为下线
+							deviceChannelService.updateByDeviceIdAndChannelId(channel,0);
+							channel.setStatus(0);
 							break;
 						case CatalogEvent.UPDATE:
 							// 更新
-							logger.info("[收到更新通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+							deviceChannelService.updateByDeviceIdAndChannelId(channel);
 
 							break;
 						default:
@@ -146,8 +158,13 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 					}
 					// 转发变化信息
 				}
+
+				if(!ObjectUtils.isEmpty(deviceChannelSubscibes)){
+					//通知能力层进行变化的通道处理
+
+				}
 			}
-		} catch (DocumentException e) {
+		} catch (Exception e) {
 			logger.error("未处理的异常 ", e);
 		}
 	}

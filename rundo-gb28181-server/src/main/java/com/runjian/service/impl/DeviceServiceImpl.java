@@ -143,13 +143,13 @@ public class DeviceServiceImpl implements IDeviceService {
         dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device),  (int)device.getKeepaliveIntervalTime()*1000*3);
 
     }
-
+    @Override
     public boolean addCatalogSubscribe(Device device) {
 
         // 添加目录订阅
         CatalogSubscribeTask catalogSubscribeTask = new CatalogSubscribeTask(device, sipCommander, dynamicTask);
         // 刷新订阅
-        int subscribeCycleForCatalog = Math.max(sipConfig.getSubscribeCatalogCycle(), 600);
+        int subscribeCycleForCatalog = sipConfig.getSubscribeCatalogCycle();
         // 设置最小值为30
         dynamicTask.startCron(device.getDeviceId() + "catalog", catalogSubscribeTask, (subscribeCycleForCatalog -1) * 1000);
         return true;

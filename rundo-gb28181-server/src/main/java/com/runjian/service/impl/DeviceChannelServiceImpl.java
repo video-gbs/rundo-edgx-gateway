@@ -178,6 +178,21 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
+    public void updateByDeviceIdAndChannelId(DeviceChannel deviceChannel) {
+         deviceChannelMapper.updateByDeviceAndChannelId(deviceChannel);
+    }
+
+    @Override
+    public void updateByDeviceIdAndChannelId(DeviceChannel deviceChannel, int status) {
+        deviceChannelMapper.updateStatusByDeviceAndChannelId(deviceChannel,status);
+    }
+
+    @Override
+    public void addOne(DeviceChannel deviceChannel) {
+        deviceChannelMapper.add(deviceChannel);
+    }
+
+    @Override
     public void recordInfo(RecordInfoReq recordInfoReq) {
         String deviceId = recordInfoReq.getDeviceId();
         String channelId = recordInfoReq.getChannelId();

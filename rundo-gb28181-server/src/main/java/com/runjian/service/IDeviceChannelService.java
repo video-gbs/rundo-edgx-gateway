@@ -33,6 +33,21 @@ public interface IDeviceChannelService {
     DeviceChannel getOne(String deviceId,String channelId);
 
     /**
+     * 更新
+     * @param deviceChannel
+     */
+    void updateByDeviceIdAndChannelId(DeviceChannel deviceChannel);
+
+    /**
+     * 在离线更新
+     * @param deviceChannel
+     * @param status
+     */
+    void updateByDeviceIdAndChannelId(DeviceChannel deviceChannel,int status);
+
+    void addOne(DeviceChannel deviceChannel);
+
+    /**
      * 录像列表
      * @param recordInfoReq
      */

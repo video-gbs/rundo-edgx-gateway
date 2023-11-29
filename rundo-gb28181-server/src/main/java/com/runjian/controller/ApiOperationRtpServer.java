@@ -94,6 +94,19 @@ public class ApiOperationRtpServer {
         return CommonResponse.success();
     }
 
+    @GetMapping(value = "/test/testCatalogSyncSub",produces = MediaType.APPLICATION_JSON_VALUE)
+    public CommonResponse<Boolean> testCatalogSyncSub(@RequestParam String deviceId){
+
+        try {
+            Device device = deviceService.getDevice(deviceId);
+            deviceService.addCatalogSubscribe(device);
+
+        }catch (Exception e){
+            log.info("通道订阅",e);
+        }
+        return CommonResponse.success();
+    }
+
     @PostMapping(value = "/test/testBye",produces = MediaType.APPLICATION_JSON_VALUE)
     public CommonResponse<Boolean> testBye(@RequestBody StreamPlayDto streamPlayDto){
 
@@ -105,4 +118,6 @@ public class ApiOperationRtpServer {
         }
         return CommonResponse.success();
     }
+
+
 }

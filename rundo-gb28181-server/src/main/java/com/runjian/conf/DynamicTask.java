@@ -55,6 +55,7 @@ public class DynamicTask {
                 return;
             }
         }
+        logger.info(LogTemplate.PROCESS_LOG_TEMPLATE, "动态定时任务--执行", cycleForCatalog, key);
         // scheduleWithFixedDelay 必须等待上一个任务结束才开始计时period， cycleForCatalog表示执行的间隔
         future = threadPoolTaskScheduler.scheduleAtFixedRate(task, cycleForCatalog);
         if (future != null){
