@@ -121,7 +121,7 @@ media:
         # [可选] 在此范围内选择端口用于媒体流传输,
         port-range: 22000,22200 # 端口范围
         # [可选] 国标级联在此范围内选择端口发送媒体流,
-        send-port-range: 22000,22200 # 端口范围
+        send-port-range: 22300,22400 # 端口范围
 # [可选] 日志配置, 一般不需要改
 logging:
     config: classpath:logback-spring-local.xml

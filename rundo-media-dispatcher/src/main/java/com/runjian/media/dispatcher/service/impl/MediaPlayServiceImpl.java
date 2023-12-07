@@ -496,7 +496,8 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
                         //释放ssrc
                         redisCatchStorageService.ssrcRelease(oneBystreamId.getSsrc());
                         //清除点播请求
-                        if(oneBystreamId.getRecordState() != 0){
+                        if(oneBystreamId.getRecordState() == 0){
+                            //录像在录像通知以后再删除
                             onlineStreamsService.remove(streamId);
                         }
 
