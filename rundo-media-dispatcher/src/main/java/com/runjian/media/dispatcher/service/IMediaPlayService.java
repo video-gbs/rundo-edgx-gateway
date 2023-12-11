@@ -3,6 +3,7 @@ package com.runjian.media.dispatcher.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.runjian.common.commonDto.GatewayBusinessNotifyReq;
 import com.runjian.common.commonDto.Gb28181Media.ZlmStreamDto;
 import com.runjian.common.commonDto.Gb28181Media.req.*;
 import com.runjian.common.commonDto.Gb28181Media.resp.StreamCheckListResp;
@@ -65,7 +66,7 @@ public interface IMediaPlayService {
      *
      * @param gatewayStreamNotify
      */
-    void streamNotifyServer(GatewayBusinessSceneResp gatewayStreamNotify);
+    void streamNotifyServer(GatewayBusinessNotifyReq gatewayBusinessNotifyReq);
 
     /**
      * sip成功，但是推流失败的处理

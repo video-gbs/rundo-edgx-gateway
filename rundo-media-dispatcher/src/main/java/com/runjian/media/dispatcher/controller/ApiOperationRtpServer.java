@@ -1,5 +1,6 @@
 package com.runjian.media.dispatcher.controller;
 
+import com.runjian.common.commonDto.GatewayBusinessNotifyReq;
 import com.runjian.common.commonDto.Gb28181Media.req.*;
 import com.runjian.common.commonDto.SsrcInfo;
 import com.runjian.common.commonDto.StreamInfo;
@@ -46,9 +47,8 @@ public class ApiOperationRtpServer {
      *  查看流是否存在
      */
     @PostMapping(value = "/media/streamNotify",consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)
-    public CommonResponse<Boolean> streamNotifyServer(@RequestBody GatewayBusinessSceneResp gatewayStreamNotify){//获取zlm流媒体配置
-        validatorService.validateRequest(gatewayStreamNotify);
-        mediaPlayService.streamNotifyServer(gatewayStreamNotify);
+    public CommonResponse<Boolean> streamNotifyServer(@RequestBody GatewayBusinessNotifyReq gatewayBusinessNotifyReq){//获取zlm流媒体配置
+        mediaPlayService.streamNotifyServer(gatewayBusinessNotifyReq);
         return CommonResponse.success();
     }
 

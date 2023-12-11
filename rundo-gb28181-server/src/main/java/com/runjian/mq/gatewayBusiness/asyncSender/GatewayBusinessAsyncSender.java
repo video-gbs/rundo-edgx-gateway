@@ -3,6 +3,7 @@ package com.runjian.mq.gatewayBusiness.asyncSender;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
+import com.runjian.common.commonDto.GatewayBusinessNotifyReq;
 import com.runjian.common.commonDto.Gb28181Media.req.GatewayStreamNotify;
 import com.runjian.common.config.exception.BusinessErrorEnums;
 import com.runjian.common.config.response.BusinessSceneResp;
@@ -12,6 +13,7 @@ import com.runjian.common.config.response.StreamBusinessSceneResp;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.RabbitMqSender;
 import com.runjian.common.mq.domain.CommonMqDto;
+import com.runjian.common.utils.BeanUtil;
 import com.runjian.common.utils.RestTemplateUtil;
 import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.conf.mq.GatewaySignInConf;
@@ -92,11 +94,16 @@ public class GatewayBusinessAsyncSender {
 
                     }else {
 
+                        String businessSceneKey = businessSceneKeyPoll.getBusinessSceneKey();
+                        String streamId = businessSceneKey.substring(businessSceneKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY) + 1);
                         PlayReq objData = (PlayReq)businessSceneKeyPoll.getData();
                         String dispatchUrl = objData.getDispatchUrl();
                         businessSceneKeyPoll.setMsg(businessErrorEnums.getErrMsg());
                         businessSceneKeyPoll.setCode(businessErrorEnums.getErrCode());
-                        String resultString = RestTemplateUtil.postString(dispatchUrl, JSON.toJSONString(businessSceneKeyPoll), null, restTemplate);
+                        GatewayBusinessNotifyReq gatewayBusinessNotifyReq = new GatewayBusinessNotifyReq();
+                        BeanUtil.copyProperties(businessSceneKeyPoll,gatewayBusinessNotifyReq);
+                        gatewayBusinessNotifyReq.setStreamId(streamId);
+                        String resultString = RestTemplateUtil.postString(dispatchUrl, JSON.toJSONString(gatewayBusinessNotifyReq), null, restTemplate);
                         log.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "业务场景处理", "业务场景处理-http请求发送", resultString);
                     }
 

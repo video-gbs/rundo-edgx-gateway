@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.dto.SsrcConfig;
 import com.runjian.common.commonDto.Gateway.req.PlayBackReq;
 import com.runjian.common.commonDto.Gateway.req.PlayReq;
+import com.runjian.common.commonDto.GatewayBusinessNotifyReq;
 import com.runjian.common.commonDto.Gb28181Media.BaseRtpServerDto;
 import com.runjian.common.commonDto.Gb28181Media.ZlmStreamDto;
 import com.runjian.common.commonDto.Gb28181Media.req.*;
@@ -432,12 +433,13 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
     }
 
     @Override
-    public void streamNotifyServer(GatewayBusinessSceneResp gatewayStreamNotify) {
-        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"点播通知", JSON.toJSONString(gatewayStreamNotify));
-        String businessSceneKey = gatewayStreamNotify.getBusinessSceneKey();
-        String streamId = businessSceneKey.substring(businessSceneKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY) + 1);
+    public void streamNotifyServer(GatewayBusinessNotifyReq gatewayBusinessNotifyReq) {
+        log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"点播通知", JSON.toJSONString(gatewayBusinessNotifyReq));
+//        String businessSceneKey = gatewayStreamNotify.getBusinessSceneKey();
+//        String streamId = businessSceneKey.substring(businessSceneKey.indexOf(BusinessSceneConstants.SCENE_SEM_KEY) + 1);
+        String streamId = gatewayBusinessNotifyReq.getStreamId();
         //判断点播回放
-        GatewayBusinessMsgType businessMsgType = gatewayStreamNotify.getGatewayMsgType();
+        GatewayBusinessMsgType businessMsgType = gatewayBusinessNotifyReq.getGatewayMsgType();
         String businessKey;
         StreamBusinessMsgType gatewayType = StreamBusinessMsgType.STREAM_LIVE_PLAY_START;
         if(businessMsgType.equals(GatewayBusinessMsgType.PLAY)){
@@ -447,7 +449,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
             businessKey = StreamBusinessMsgType.STREAM_RECORD_PLAY_START.getTypeName()+ BusinessSceneConstants.SCENE_SEM_KEY+streamId;
             gatewayType = StreamBusinessMsgType.STREAM_RECORD_PLAY_START;
         }
-        BusinessErrorEnums oneBusinessNum = BusinessErrorEnums.getOneBusinessNum(gatewayStreamNotify.getCode());
+        BusinessErrorEnums oneBusinessNum = BusinessErrorEnums.getOneBusinessNum(gatewayBusinessNotifyReq.getCode());
         if(oneBusinessNum.equals(BusinessErrorEnums.COMMDER_SEND_SUCESS) || oneBusinessNum.equals(BusinessErrorEnums.SUCCESS)){
             //网关正常通知
         }else {
