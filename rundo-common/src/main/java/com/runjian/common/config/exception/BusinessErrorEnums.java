@@ -146,6 +146,7 @@ public enum BusinessErrorEnums {
     MEDIA_PROTOCAL_ERROR(400,23308,"流媒体传输协议不存在"),
     MEDIA_STREAM_CONTROL_ERROR(500,23309,"流媒体回放控制失败"),
     MEDIA_STREAM_ALREADY_EXIST_ERROR(400,23310,"流媒体已存在正在对讲的用户，请等待"),
+    MEDIA_STREAM_REQUEST_TO_MANY(400,23311,"请求频率过高，请稍后重试"),
 
 
     /**************************** 对外api类型异常,PREFIX:模块名 CODE:3xxxx ****************************/

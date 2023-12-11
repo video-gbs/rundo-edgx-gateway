@@ -5,9 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.commonDto.Gateway.dto.GatewayTask;
 import com.runjian.common.commonDto.Gateway.dto.SsrcConfig;
 import com.runjian.common.config.exception.BusinessErrorEnums;
-import com.runjian.common.config.response.BusinessSceneResp;
-import com.runjian.common.config.response.GatewayBusinessSceneResp;
-import com.runjian.common.config.response.StreamBusinessSceneResp;
 import com.runjian.common.config.response.StreamBusinessSceneResp;
 import com.runjian.common.constant.*;
 import com.runjian.common.mq.domain.CommonMqDto;
@@ -15,22 +12,25 @@ import com.runjian.common.utils.redis.RedisCommonUtil;
 import com.runjian.media.dispatcher.conf.StreamInfoConf;
 import com.runjian.media.dispatcher.conf.UserSetting;
 import com.runjian.media.dispatcher.mapper.GatewayTaskMapper;
+import com.runjian.media.dispatcher.mq.mqEvent.MqSendSceneEvent;
 import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timeout;
+import io.netty.util.TimerTask;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.validator.internal.engine.messageinterpolation.parser.ELState;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -59,34 +59,28 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     @Autowired
     StreamInfoConf InfoConf;
 
-
     @Autowired
     RedissonClient redissonClient;
 
-    @Override
-    @Scheduled(fixedRate = 10000)
-    public void msgExpireRoutine() {
-        LocalDateTime localDateTime = LocalDateTime.now().minusSeconds(userSetting.getBusinessSceneTimeout() / 1000);
-        List<GatewayTask> listByBusinessKey = gatewayTaskMapper.getExpireListByBusinessKey(localDateTime);
-        if(!ObjectUtils.isEmpty(listByBusinessKey)){
-            ConcurrentLinkedQueue<StreamBusinessSceneResp> taskQueue = InfoConf.getTaskQueue();
-            for (GatewayTask gatewayTask : listByBusinessKey) {
-                if(gatewayTask.getSourceType() == 1){
-                    //直接进行超时数据库的修改
-                    gatewayTask.setCode(BusinessErrorEnums.MSG_OPERATION_TIMEOUT.getErrCode());
-                    gatewayTask.setMsg(BusinessErrorEnums.MSG_OPERATION_TIMEOUT.getErrMsg());
-                    gatewayTask.setStatus(BusinessSceneStatusEnum.TimeOut.getCode());
-                    gatewayTaskMapper.updateById(gatewayTask);
-                    continue;
-                }
+    @Autowired
+    private ApplicationEventPublisher applicationEventPublisher;
 
-                StreamBusinessMsgType typeName = StreamBusinessMsgType.getTypeName(gatewayTask.getMsgType());
-                StreamBusinessSceneResp<Object> objectGatewayBusinessSceneResp = StreamBusinessSceneResp.addSceneTimeout(typeName, BusinessErrorEnums.MSG_OPERATION_TIMEOUT,gatewayTask.getBusinessKey(), null,gatewayTask.getMsgId(),gatewayTask.getThreadId());
 
-                taskQueue.offer(objectGatewayBusinessSceneResp);
-            }
-        }
+    private static HashedWheelTimer timer;
+    /**
+     * 延迟执行时间，可配置在配置文件中，这里为了方便测试设置为20s
+     */
+    private static long delay = 20L;
+    /**
+     * 存储Timeout对象，建立订单id与Timeout关系，用于通过订单id找到Timeout从队列中移除
+     */
+    private static Map<String, Timeout> timeoutMap = new HashMap<>();
+
+    static {
+        // 创建延迟队列实例，可以设置时间轮长度及刻度等，这里直接使用默认的
+        timer = new HashedWheelTimer();
     }
+
 
     @Override
     public Long getCSEQ() {
@@ -166,17 +160,30 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     }
 
     @Override
-    public synchronized   void editBusinessSceneKey(String businessSceneKey,StreamBusinessMsgType msgType, BusinessErrorEnums businessErrorEnums,Object data) {
+    public    void editBusinessSceneKey(String businessSceneKey,StreamBusinessMsgType msgType, BusinessErrorEnums businessErrorEnums,Object data) {
         try {
-            //待过期数据剔除
-            GatewayTask oneByBusiness = gatewayTaskMapper.getOneByBusinessKey(businessSceneKey);
-            if(ObjectUtils.isEmpty(oneByBusiness)){
+            Timeout timeout = timeoutMap.remove(businessSceneKey);
+            if(ObjectUtils.isEmpty(timeout)){
                 log.error(LogTemplate.PROCESS_LOG_TEMPLATE,"处理网关业务状态--数据已被处理",businessSceneKey);
                 return;
             }
-            StreamBusinessSceneResp<Object> objectStreamBusinessSceneResp = StreamBusinessSceneResp.addSceneEnd(msgType, businessErrorEnums,businessSceneKey, data,oneByBusiness.getMsgId(), oneByBusiness.getThreadId());
-            ConcurrentLinkedQueue<StreamBusinessSceneResp> taskQueue = InfoConf.getTaskQueue();
-            taskQueue.offer(objectStreamBusinessSceneResp);
+            //取消延时任务
+            boolean cancel = timeout.cancel();
+            if(!cancel){
+                log.error(LogTemplate.PROCESS_LOG_TEMPLATE,"处理网关业务状态--数据其实已经过期了,可能是过期以后才通知，不用处理",businessSceneKey);
+                return;
+            }
+            MsgTimerTask task = (MsgTimerTask)timeout.task();
+            StreamBusinessSceneResp businessSceneRespOld = task.getStreamBusinessSceneResp();
+            StreamBusinessSceneResp<Object> objectStreamBusinessSceneResp = StreamBusinessSceneResp.addSceneEnd(msgType, businessErrorEnums,businessSceneKey, data,businessSceneRespOld.getMsgId(), businessSceneRespOld.getThreadId());
+            MqSendSceneEvent mqSendSceneEvent = new MqSendSceneEvent(this);
+            mqSendSceneEvent.setMqSendSceneDto(objectStreamBusinessSceneResp);
+
+            applicationEventPublisher.publishEvent(mqSendSceneEvent);
+            RLock lock = redissonClient.getLock( BusinessSceneConstants.BUSINESS_LOCK_KEY+businessSceneKey);
+            if(!ObjectUtils.isEmpty(lock)){
+                lock.unlockAsync(businessSceneRespOld.getThreadId());
+            }
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE,"处理网关业务状态","数据执行失败",businessSceneKey,e);
         }
@@ -184,34 +191,21 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
     }
 
     @Override
-    public  Boolean addBusinessSceneKey(String businessSceneKey, StreamBusinessMsgType msgType, String msgId) {
+    public  Boolean  addBusinessSceneKey(String businessSceneKey, StreamBusinessMsgType msgType, String msgId) {
         String redisLockKey = BusinessSceneConstants.BUSINESS_LOCK_KEY+businessSceneKey;
         RLock lock = redissonClient.getLock(redisLockKey);
         Boolean  aBoolean = false;
         try {
-            //分布式锁 进行
             aBoolean = lock.tryLock(10, userSetting.getBusinessSceneTimeout(), TimeUnit.MILLISECONDS);
             if(ObjectUtils.isEmpty(msgId)){
                 String sn = getSn(GatewayCacheConstants.GATEWAY_BUSINESS_SN_INCR);
                 msgId = GatewayCacheConstants.GATEWAY_BUSINESS_SN_prefix + sn;
             }
             StreamBusinessSceneResp<Object> objectStreamBusinessSceneResp = StreamBusinessSceneResp.addSceneReady(msgType, msgId, businessSceneKey,null);
-            RedisCommonUtil.leftPush(redisTemplate,BusinessSceneConstants.STREAM_BUSINESS_LISTS+businessSceneKey,objectStreamBusinessSceneResp);
-            if(aBoolean){
+            //进行时间轮的插入
+            Timeout timeout = timer.newTimeout(new MsgTimerTask(businessSceneKey, objectStreamBusinessSceneResp), userSetting.getBusinessSceneTimeout(), TimeUnit.MILLISECONDS);
+            timeoutMap.put(businessSceneKey,timeout);
 
-                //消息链路的数据库记录
-                GatewayTask gatewayTask = new GatewayTask();
-                gatewayTask.setMsgId(msgId);
-                gatewayTask.setBusinessKey(businessSceneKey);
-                gatewayTask.setCode(objectStreamBusinessSceneResp.getCode());
-
-                gatewayTask.setMsg(objectStreamBusinessSceneResp.getMsg());
-                gatewayTask.setMsgType(msgType.getTypeName());
-                gatewayTask.setStatus(0);
-                gatewayTask.setThreadId(objectStreamBusinessSceneResp.getThreadId());
-                gatewayTaskMapper.add(gatewayTask);
-            }
-            return aBoolean;
         }catch (Exception e){
             log.error(LogTemplate.ERROR_LOG_MSG_TEMPLATE,"处理网关业务状态","缓存添加执行失败",businessSceneKey,e);
         }
@@ -219,22 +213,34 @@ public class RedisCatchStorageServiceImpl implements IRedisCatchStorageService {
 
     }
 
-    @Override
-    public synchronized Boolean businessSceneLogDb(StreamBusinessSceneResp businessSceneResp, List<String> msgStrings) {
 
-        GatewayTask gatewayTask = gatewayTaskMapper.getOneByBusinessKey(businessSceneResp.getBusinessSceneKey());
-        if(ObjectUtils.isEmpty(gatewayTask)){
-            log.error(LogTemplate.ERROR_LOG_TEMPLATE,"处理网关业务状态","数据库信息查询失败",businessSceneResp);
-            return null;
-        }
-        gatewayTask.setCode(businessSceneResp.getCode());
-        gatewayTask.setMsg(businessSceneResp.getMsg());
-        gatewayTask.setStatus(businessSceneResp.getStatus().getCode());
-        if(!ObjectUtils.isEmpty(msgStrings)){
-            gatewayTask.setMsgIdList(String.join(",", msgStrings));
-        }
-        gatewayTaskMapper.updateById(gatewayTask);
+    @Data
+    public  class MsgTimerTask implements TimerTask {
 
-        return null;
+        private String businessSceneKey;
+        private StreamBusinessSceneResp streamBusinessSceneResp;
+        public MsgTimerTask(String businessSceneKey,StreamBusinessSceneResp streamBusinessSceneResp){
+            this.businessSceneKey = businessSceneKey;
+            this.streamBusinessSceneResp = streamBusinessSceneResp;
+        }
+        @Override
+        public void run(Timeout timeout) throws Exception {
+
+            timeoutMap.remove(businessSceneKey);
+            MsgTimerTask task = (MsgTimerTask)timeout.task();
+            StreamBusinessSceneResp businessSceneRespExpire = task.getStreamBusinessSceneResp();
+            businessSceneRespExpire.setCode(BusinessErrorEnums.MSG_OPERATION_TIMEOUT.getErrCode());
+            businessSceneRespExpire.setMsg(BusinessErrorEnums.MSG_OPERATION_TIMEOUT.getErrMsg());
+            log.info("执行延时任务,延时过期的任务,businessSceneRespExpire={}",businessSceneRespExpire);
+            MqSendSceneEvent mqSendSceneEvent = new MqSendSceneEvent(this);
+            mqSendSceneEvent.setMqSendSceneDto(businessSceneRespExpire);
+
+            applicationEventPublisher.publishEvent(mqSendSceneEvent);
+            RLock lock = redissonClient.getLock( BusinessSceneConstants.BUSINESS_LOCK_KEY+businessSceneKey);
+            if(!ObjectUtils.isEmpty(lock)){
+                lock.unlockAsync(businessSceneRespExpire.getThreadId());
+            }
+
+        }
     }
 }

@@ -24,11 +24,6 @@ public interface IRedisCatchStorageService {
      */
     CircleArray<String> msgIdArray = new CircleArray<>(20);
 
-
-    /**
-     * 心跳
-     */
-    void msgExpireRoutine();
     /**
      * 计数器。为cseq进行计数
      *
@@ -74,11 +69,4 @@ public interface IRedisCatchStorageService {
      */
     Boolean addBusinessSceneKey(String businessSceneKey, StreamBusinessMsgType msgType, String msgId);
 
-    /**
-     * 修改数据库
-     * @param businessSceneResp
-     * @param msgStrings
-     * @return
-     */
-    Boolean businessSceneLogDb(StreamBusinessSceneResp businessSceneResp, List<String> msgStrings);
 }

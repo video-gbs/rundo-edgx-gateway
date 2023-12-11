@@ -3,8 +3,12 @@ package com.runjian.media.dispatcher.zlmTest;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.runjian.common.constant.LogTemplate;
+import com.runjian.common.constant.StreamBusinessMsgType;
+import com.runjian.media.dispatcher.service.IRedisCatchStorageService;
 import com.runjian.media.dispatcher.zlm.ZLMRESTfulUtils;
 import com.runjian.media.dispatcher.zlm.dto.MediaServerItem;
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timeout;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,6 +28,9 @@ public class ZlmTest {
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
+
+    @Autowired
+    IRedisCatchStorageService redisCatchStorageService;
 
     @Test
     public void testZlmPassive() throws InterruptedException {
@@ -59,4 +66,36 @@ public class ZlmTest {
         log.info("主动连接返回结果={}|",json2);
 
     }
+//
+//    @Test
+//    public void testTaskTimer() throws InterruptedException {
+//        for (int i = 0; i < 10; i++) {
+//            timer.newTimeout(new MsgTimerTask("test_"+i,null),delay,TimeUnit.SECONDS);
+//
+//
+//        }
+//        log.info("结束前");
+//        Thread.sleep(10000);
+//
+//    }
+
+    //
+    @Test
+    public void testTaskTimer() throws InterruptedException {
+        Boolean test123 = redisCatchStorageService.addBusinessSceneKey("test123", StreamBusinessMsgType.STREAM_LIVE_PLAY_START, "123");
+
+        log.info("结束前");
+        Thread.sleep(20000);
+
+    }
+
+//    @Test
+//    public void testTaskTimer2() throws InterruptedException {
+//        Boolean test123 = redisCatchStorageService.addBusinessSceneKey("test123", StreamBusinessMsgType.STREAM_LIVE_PLAY_START, "123");
+//
+//        log.info("结束前");
+//        Thread.sleep(10000);
+//
+//    }
+
 }

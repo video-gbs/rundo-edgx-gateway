@@ -326,8 +326,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         Boolean aBoolean = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, msgType, playReq.getMsgId());
         //尝试获取锁
         if(!aBoolean){
-            log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"点播请求，合并全局的请求",businessSceneKey);
-            return null;
+            throw new BusinessException(BusinessErrorEnums.MEDIA_STREAM_REQUEST_TO_MANY);
         }
         String streamId = playReq.getStreamId();
         MediaServerItem oneMedia;
@@ -361,8 +360,7 @@ public class MediaPlayServiceImpl implements IMediaPlayService {
         Boolean aBoolean = redisCatchStorageService.addBusinessSceneKey(businessSceneKey, msgType, playReq.getMsgId());
         //尝试获取锁
         if(!aBoolean){
-            log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"点播请求，合并全局的请求",businessSceneKey);
-            return null;
+            throw new BusinessException(BusinessErrorEnums.MEDIA_STREAM_REQUEST_TO_MANY);
         }
         String streamId = playReq.getStreamId();
         MediaServerItem oneMedia;
