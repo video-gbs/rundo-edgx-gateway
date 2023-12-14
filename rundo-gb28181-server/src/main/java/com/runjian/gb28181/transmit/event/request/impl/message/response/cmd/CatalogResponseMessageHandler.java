@@ -150,12 +150,39 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
                         // 目前支持设备通道上线通知时和设备上线时向上级通知
                         List<DeviceChannel> deviceChannels = catalogDataCatch.get(take.getDevice().getDeviceId());
-                        //该结束状态用于删除之前的本地缓存数据
-                        CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
-                        catalogMqSyncDto.setTotal(deviceChannels.size());
-                        catalogMqSyncDto.setNum(deviceChannels.size());
-                        catalogMqSyncDto.setChannelDetailList(deviceChannels);
-                        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
+                        ///过滤出通道的数据
+                        ArrayList<DeviceChannel> deviceChannelsNode = new ArrayList<>();
+                        ArrayList<DeviceChannel> deviceChannelsOnly = new ArrayList<>();
+                        deviceChannels.forEach(deviceChannel -> {
+                            if(deviceChannel.getGbCode() == 0||deviceChannel.getGbCode() == 216||deviceChannel.getGbCode() == 215){
+                                //节点数据
+                                deviceChannelsNode.add(deviceChannel);
+                            }
+                            if(deviceChannel.getGbCode() == 131 || deviceChannel.getGbCode() == 132){
+                                //通道数据
+                                deviceChannelsOnly.add(deviceChannel);
+                            }
+
+                        });
+                        if(!ObjectUtils.isEmpty(deviceChannelsNode)){
+                            //该结束状态用于删除之前的本地缓存数据
+                            CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
+                            catalogMqSyncDto.setTotal(deviceChannelsOnly.size());
+                            catalogMqSyncDto.setNum(deviceChannelsOnly.size());
+                            catalogMqSyncDto.setChannelDetailList(deviceChannelsOnly);
+                            //todo  自行推送节点的数据
+//                            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
+                        }
+                        if(!ObjectUtils.isEmpty(deviceChannelsOnly)){
+                            //该结束状态用于删除之前的本地缓存数据
+                            CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
+                            catalogMqSyncDto.setTotal(deviceChannelsOnly.size());
+                            catalogMqSyncDto.setNum(deviceChannelsOnly.size());
+                            catalogMqSyncDto.setChannelDetailList(deviceChannelsOnly);
+                            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
+                        }
+
+
                         catalogDataCatch.removeChannelSync(take.getDevice().getDeviceId());
                     }
                 }
