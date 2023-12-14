@@ -49,8 +49,8 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 
 
 
-	@Autowired
-	private IDeviceChannelService deviceChannelService;
+//	@Autowired
+//	private IDeviceChannelService deviceChannelService;
 
 	@Autowired
 	private DynamicTask dynamicTask;
@@ -120,36 +120,29 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 						case CatalogEvent.ON:
 							// 上线
 							channel.setStatus(1);
-							deviceChannelService.updateByDeviceIdAndChannelId(channel,1);
 							break;
 						case CatalogEvent.OFF :
 							// 离线
 							channel.setStatus(0);
-							deviceChannelService.updateByDeviceIdAndChannelId(channel,0);
 							break;
 						case CatalogEvent.VLOST:
 							// 视频丢失
 							channel.setStatus(0);
-							deviceChannelService.updateByDeviceIdAndChannelId(channel,0);
 							break;
 						case CatalogEvent.DEFECT:
 							// 故障
-							deviceChannelService.updateByDeviceIdAndChannelId(channel,0);
 							channel.setStatus(0);
 							break;
 						case CatalogEvent.ADD:
 							// 增加
-							deviceChannelService.addOne(channel);
 
 							break;
 						case CatalogEvent.DEL:
 							// 删除  本平台先判断为下线
-							deviceChannelService.updateByDeviceIdAndChannelId(channel,0);
 							channel.setStatus(0);
 							break;
 						case CatalogEvent.UPDATE:
 							// 更新
-							deviceChannelService.updateByDeviceIdAndChannelId(channel);
 
 							break;
 						default:

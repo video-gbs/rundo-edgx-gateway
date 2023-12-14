@@ -11,41 +11,7 @@ import java.util.List;
  */
 public interface IDeviceChannelService {
 
-    /**
-     * catlog查询结束后完全重写通道信息----流程优化
-     * @param deviceId
-     * @param deviceChannelList
-     */
-    List<DeviceChannel> resetChannelsForcatalog(String deviceId, List<DeviceChannel> deviceChannelList);
 
-    /**
-     * 清空通道
-     * @param deviceId
-     */
-    void cleanChannelsForDevice(String deviceId);
-
-    /**
-     * 获取一个通道
-     * @param deviceId
-     * @param channelId
-     * @return
-     */
-    DeviceChannel getOne(String deviceId,String channelId);
-
-    /**
-     * 更新
-     * @param deviceChannel
-     */
-    void updateByDeviceIdAndChannelId(DeviceChannel deviceChannel);
-
-    /**
-     * 在离线更新
-     * @param deviceChannel
-     * @param status
-     */
-    void updateByDeviceIdAndChannelId(DeviceChannel deviceChannel,int status);
-
-    void addOne(DeviceChannel deviceChannel);
 
     /**
      * 录像列表

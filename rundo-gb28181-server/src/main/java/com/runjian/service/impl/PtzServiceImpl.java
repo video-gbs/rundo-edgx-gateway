@@ -148,12 +148,6 @@ public class PtzServiceImpl implements IPtzService {
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
                 return;
             }
-            //查询通道
-            DeviceChannel channelOne = deviceChannelService.getOne(channelPtzControlReq.getDeviceId(), channelPtzControlReq.getChannelId());
-            if(ObjectUtils.isEmpty(channelOne)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,null);
-                return;
-            }
             if(ObjectUtils.isEmpty(ptzOperationTypeEnum)){
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.PTZ_OPERATION_TYPE_NOT_FOUND,null);
                 return;
@@ -293,12 +287,7 @@ public class PtzServiceImpl implements IPtzService {
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_DEVICE_NOT_FOUND,null);
                 return;
             }
-            //查询通道
-            DeviceChannel channelOne = deviceChannelService.getOne(deviceId, channelId);
-            if(ObjectUtils.isEmpty(channelOne)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,null);
-                return;
-            }
+
             sipCommander.presetQuery(device,channelId,null);
         }catch (Exception e){
             log.error(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "ptz服务", "预置位查询失败", msgId);
@@ -331,11 +320,6 @@ public class PtzServiceImpl implements IPtzService {
                 return;
             }
             //查询通道
-            DeviceChannel channelOne = deviceChannelService.getOne(dragZoomControlReq.getDeviceId(), dragZoomControlReq.getChannelId());
-            if(ObjectUtils.isEmpty(channelOne)){
-                redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_CHANNEL_NOT_FOUND,null);
-                return;
-            }
             if(ObjectUtils.isEmpty(dragRoomTypeEnumOne)){
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.PTZ_OPERATION_TYPE_NOT_FOUND,null);
                 return;

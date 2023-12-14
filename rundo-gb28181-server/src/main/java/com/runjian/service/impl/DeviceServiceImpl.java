@@ -8,7 +8,6 @@ import com.runjian.common.utils.BeanUtil;
 import com.runjian.conf.DynamicTask;
 import com.runjian.conf.SipConfig;
 import com.runjian.conf.UserSetting;
-import com.runjian.dao.DeviceChannelMapper;
 import com.runjian.dao.DeviceCompatibleMapper;
 import com.runjian.dao.DeviceMapper;
 import com.runjian.domain.dto.DeviceSendDto;
@@ -50,8 +49,7 @@ public class DeviceServiceImpl implements IDeviceService {
     @Autowired
     private DeviceMapper deviceMapper;
 
-    @Autowired
-    private DeviceChannelMapper deviceChannelMapper;
+
 
     @Autowired
     private DeviceCompatibleMapper deviceCompatibleMapper;
@@ -177,8 +175,6 @@ public class DeviceServiceImpl implements IDeviceService {
         dynamicTask.stop(registerExpireTaskKey);
         device.setOnline(0);
         deviceMapper.update(device);
-        //进行通道离线
-        deviceChannelMapper.offlineByDeviceId(deviceId);
         //  TODO离线释放所有ssrc
         //发送mq设备上线信息
         DeviceSendDto deviceSendDto = new DeviceSendDto();
@@ -284,7 +280,7 @@ public class DeviceServiceImpl implements IDeviceService {
             if(deviceDto.getOnline() == 0){
                 //可以删除
                 deviceMapper.remove(deviceId);
-                deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
+//                deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,true);
 
             }else {
@@ -352,7 +348,7 @@ public class DeviceServiceImpl implements IDeviceService {
             }
             //可以删除
             deviceMapper.softRecover(deviceId);
-            deviceChannelMapper.softDeleteRecoverByDeviceId(deviceId);
+//            deviceChannelMapper.softDeleteRecoverByDeviceId(deviceId);
             redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,true);
 
 

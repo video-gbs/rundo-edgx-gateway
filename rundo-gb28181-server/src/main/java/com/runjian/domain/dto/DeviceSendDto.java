@@ -65,5 +65,9 @@ public class DeviceSendDto {
 	@Schema(description = "是否在线，1为在线，0为离线")
 	private int online;
 
+	/**
+	 * gb28181类型编码
+	 */
+	private int gbCode;
 
 }

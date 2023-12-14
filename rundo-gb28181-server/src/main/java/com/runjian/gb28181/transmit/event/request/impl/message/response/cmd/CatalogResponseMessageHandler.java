@@ -104,7 +104,6 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
             String businessSceneKey = GatewayBusinessMsgType.CATALOG.getTypeName()+BusinessSceneConstants.SCENE_SEM_KEY+take.getDevice().getDeviceId();
 
-
             Element rootElement = null;
             try {
                 rootElement = getRootElement(take.getEvt(), take.getDevice().getCharset());
@@ -122,7 +121,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
             if (sumNum == 0) {
                 logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "目录查询回复", "[收到通道]设备: 0个", take.getDevice().getDeviceId());
                 // 数据已经完整接收
-                storager.cleanChannelsForDevice(take.getDevice().getDeviceId());
+//                storager.cleanChannelsForDevice(take.getDevice().getDeviceId());
                 catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
 
                 redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,new CatalogMqSyncDto());
@@ -143,40 +142,6 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         channelList.add(deviceChannel);
                     }
                     int sn = Integer.parseInt(snElement.getText());
-                    //超过超时时间便不在继续接收处理
-                    CatalogData catalogData = catalogDataCatch.getData(take.getDevice().getDeviceId());
-                    if(!ObjectUtils.isEmpty(catalogData)){
-                        if(catalogData.getSn() == sn){
-                            //仅仅处理本次请求的相关数据,至于上一次的请求数据先不处理
-                            //预留10毫秒的过期时间
-                            Instant lastTime = catalogData.getLastTime();
-                            Instant expireTime = lastTime.plusMillis(TimeUnit.MILLISECONDS.toMillis(userSetting.getBusinessSceneTimeout()));
-                            if(expireTime.isBefore(Instant.now())){
-                                //同步已经超时
-                                logger.error(LogTemplate.ERROR_LOG_TEMPLATE, "目录查询回复", "查询过程超时,放弃后续的数据库同步", take.getDevice().getDeviceId());
-//                                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
-                                if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.runIng)) {
-                                    //只处理正在执行的通道同步
-
-                                    List<DeviceChannel> deviceChannels = storager.resetChannelsForcatalog(catalogData.getDevice().getDeviceId(), catalogData.getChannelList());
-
-                                    CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
-                                    catalogMqSyncDto.setTotal(catalogData.getTotal());
-                                    catalogMqSyncDto.setNum(catalogData.getChannelList().size());
-                                    catalogMqSyncDto.setChannelDetailList(deviceChannels);
-                                    //更新redis
-
-                                    redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
-                                    catalogDataCatch.setChannelSyncEnd(catalogData.getDevice().getDeviceId(), null,0);
-                                    return;
-                                }
-
-                            }
-
-                        }
-
-
-                    }
 
                     catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(), channelList);
                     logger.info(LogTemplate.PROCESS_LOG_MSG_TEMPLATE, "目录查询回复", "[收到通道]", "设备id" + take.getDevice().getDeviceId() + " 通道数量:" + channelList.size() + " " + (catalogDataCatch.get(take.getDevice().getDeviceId()) == null ? 0 : catalogDataCatch.get(take.getDevice().getDeviceId()).size()) + "/" + sumNum);
@@ -185,15 +150,13 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
                         // 目前支持设备通道上线通知时和设备上线时向上级通知
                         List<DeviceChannel> deviceChannels = catalogDataCatch.get(take.getDevice().getDeviceId());
-                        List<DeviceChannel> deviceChannelsNew = storager.resetChannelsForcatalog(take.getDevice().getDeviceId(), deviceChannels);
-
-                        CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
-                        catalogMqSyncDto.setTotal(sumNum);
-                        catalogMqSyncDto.setNum(sumNum);
-                        catalogMqSyncDto.setChannelDetailList(deviceChannelsNew);
-                        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
                         //该结束状态用于删除之前的本地缓存数据
-                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null,0);
+                        CatalogMqSyncDto catalogMqSyncDto = new CatalogMqSyncDto();
+                        catalogMqSyncDto.setTotal(deviceChannels.size());
+                        catalogMqSyncDto.setNum(deviceChannels.size());
+                        catalogMqSyncDto.setChannelDetailList(deviceChannels);
+                        redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.SUCCESS,catalogMqSyncDto);
+                        catalogDataCatch.removeChannelSync(take.getDevice().getDeviceId());
                     }
                 }
 
@@ -207,26 +170,6 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     @Override
     public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
 
-    }
-
-    public SyncStatus getChannelSyncProgress(String deviceId) {
-        if (catalogDataCatch.get(deviceId) == null) {
-            return null;
-        } else {
-            return catalogDataCatch.getSyncStatus(deviceId);
-        }
-    }
-
-    public boolean isSyncRunning(String deviceId) {
-        if (catalogDataCatch.get(deviceId) == null) {
-            return false;
-        } else {
-            return catalogDataCatch.isSyncRunning(deviceId);
-        }
-    }
-
-    public void setChannelSyncReady(Device device, int sn) {
-        catalogDataCatch.addReady(device, sn);
     }
 
 

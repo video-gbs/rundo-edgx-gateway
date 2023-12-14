@@ -24,7 +24,7 @@ public class DeviceChannel {
 	private String channelId;
 
 	/**
-	 * 设备国标编号
+	 * 设备国标编号0
 	 */
 	@Schema(description = "设备国标编号")
 	private String deviceId;

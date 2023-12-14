@@ -1,6 +1,5 @@
 package com.runjian.gb28181.session;
 
-import com.runjian.dao.DeviceChannelMapper;
 import com.runjian.gb28181.bean.CatalogData;
 import com.runjian.gb28181.bean.Device;
 import com.runjian.gb28181.bean.DeviceChannel;
@@ -135,5 +134,8 @@ public class CatalogDataCatch {
         catalogData.setStatus(CatalogData.CatalogDataStatus.end);
         catalogData.setErrorMsg(errorMsg);
         catalogData.setCode(code);
+    }
+    public void removeChannelSync(String deviceId) {
+        data.remove(deviceId);
     }
 }

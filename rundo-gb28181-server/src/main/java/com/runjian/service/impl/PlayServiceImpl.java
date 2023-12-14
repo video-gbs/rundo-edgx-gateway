@@ -199,16 +199,6 @@ public class PlayServiceImpl implements IplayService {
             log.info(LogTemplate.PROCESS_LOG_TEMPLATE,"设备点播服务,加锁失败，合并全局的请求",playReq);
             return null;
         }
-        //参数校验
-        DeviceChannel deviceChannel = deviceChannelService.getOne(playReq.getDeviceId(), playReq.getChannelId());
-        if(ObjectUtils.isEmpty(deviceChannel)){
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.DB_NOT_FOUND,playReq);
-            return null;
-        }
-        if(deviceChannel.getStatus() == 0){
-            redisCatchStorageService.editBusinessSceneKey(businessSceneKey,BusinessErrorEnums.CHANNEL_OFFLINE,playReq);
-            return null;
-        }
         //判断设备是否存在
         Device device = deviceService.getDevice(playReq.getDeviceId());
         if(ObjectUtils.isEmpty(device)){
